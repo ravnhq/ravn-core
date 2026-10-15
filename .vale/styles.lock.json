@@ -1,0 +1,25 @@
+{
+  "package": {
+    "name": "write-good",
+    "version": "0.4.1",
+    "source": "https://github.com/vale-cli/write-good/releases/download/v0.4.1/write-good.zip",
+    "archiveSha256": "2960ef10861ddc7dc76292a4967eb3789bf05ca24f862042f6d15f53332887f0"
+  },
+  "files": {
+    "Ravn/DyingMetaphors.yml": "5d0e3a2b7a49145d6fc4fc918e923c35416a545d37bbd463a1e26d24f9bdb9d1",
+    "Ravn/Latin.yml": "c31dcd448ce6fb5429dcf96f8d59f247293f23bc3e9823676a4def43676623c3",
+    "Ravn/ShortWords.yml": "2160527c4eb745b111e779dfbe483047274305a325df2c6896d91488f0b40955",
+    "Ravn/Slop.yml": "45f9a3e6a4353fbc55e8edb909676951e3e5e56663a58ab6e7ac64d1e985f067",
+    "config/vocabularies/Ravn/accept.txt": "48f67a1e3b0e93837a94493d165b26ed11d4e13779d1ea68727d54aa8ee4e340",
+    "write-good/Cliches.yml": "8889c96b78c96a0ea7b05f514dd3035d87f9670d21d7a9422cf0b0f582e336a1",
+    "write-good/E-Prime.yml": "5f0cb504a9adaa6dbcb535f60b5a806e6a1517017a0dc66a4c15f4e90e827896",
+    "write-good/Illusions.yml": "6c362d8d6a960928e4465756e6b093182d06ba3e2b59005281a5dfebb5bff07b",
+    "write-good/Passive.yml": "c0d702236dc8b128f9ce7c26bde0754f17c962798744379f2d2113e98834f012",
+    "write-good/README.md": "8826e2193035d98c38a7ef1560f1677ce7e9c305e2de48d469276e877b2d42f7",
+    "write-good/So.yml": "ff7e8b290e0274d116c33f13d99e2b7c710068ee619f22926774f982b003c432",
+    "write-good/ThereIs.yml": "8877286f0efc806f0dbc6bd4127021c8ed71925fc88f485a044abfccacfeb829",
+    "write-good/TooWordy.yml": "79c423bef70b00186b71637dc64b964b3270272221febe836e49e2887ca40b40",
+    "write-good/Weasel.yml": "a5b5bc0de632dd09f3dee86c70d1f0bf5c607ec9b6462af8f992a14fcfe2a0fc",
+    "write-good/meta.json": "52830ffa5868d3534b78475b576ba3eaba6f9f6f665f5aec5cf2e2c36a876391"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "description": "Skill nudges above the prompt, judged by Haiku after each turn",
+  "modules": ["./register.tsx"]
+}

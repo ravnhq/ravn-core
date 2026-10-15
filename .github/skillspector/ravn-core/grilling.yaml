@@ -1,0 +1,10 @@
+# SkillSpector baseline — findings listed here are suppressed on future scans.
+# Edit 'reason' fields and add glob 'rules' as needed. See docs/SUPPRESSION.md.
+version: 2
+scanner_version: 2.12.0
+rules: []
+fingerprints:
+- hash: sha256:73e161b46a5f13777b5b935aa766985c9e07f2f262905827f3c24b66d3c5cc1b
+  rule_id: EA2
+  file: SKILL.md
+  reason: Accepted upstream mattpocock/skills text; grilling sends sub-agents to look up facts and leaves every decision to the user

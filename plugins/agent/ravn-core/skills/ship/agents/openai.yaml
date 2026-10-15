@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ship"
+  short_description: "Take a change from idea to an open PR"
+policy:
+  allow_implicit_invocation: false

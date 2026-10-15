@@ -1,0 +1,42 @@
+{
+  "name": "ravn-core-repo",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "pi": {
+    "skills": [
+      "./plugins/agent/ravn-core/skills"
+    ]
+  },
+  "scripts": {
+    "prepare": "node scripts/install-git-hooks.ts",
+    "test": "node --test \"test/**/*.test.ts\" \"evals/private/test/**/*.test.ts\"",
+    "typecheck": "tsc",
+    "lint": "oxlint",
+    "format": "biome format --write",
+    "check": "biome format && oxlint && tsc && pnpm test",
+    "validate:plugins": "node scripts/validate-plugins.ts",
+    "prose:check": "node scripts/check-prose.ts",
+    "eval:fetch": "node evals/fetch-private.ts",
+    "eval": "node evals/run.ts --arms current",
+    "eval:compare": "node evals/run.ts --repeat 3",
+    "eval:smoke": "node evals/run.ts --smoke",
+    "eval:skill-nudge": "promptfoo eval -c evals/skill-nudge/promptfooconfig.ts --repeat 3 --no-cache",
+    "eval:view": "promptfoo view"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.285",
+    "@biomejs/biome": "2.5.14",
+    "@oxlint/plugins": "1.86.0",
+    "@types/node": "^24.19.0",
+    "oxlint": "1.86.0",
+    "promptfoo": "0.124.0",
+    "typescript": "^7.0.2",
+    "yaml": "2.9.1",
+    "zod": "4.6.5"
+  },
+  "packageManager": "pnpm@11.25.0"
+}

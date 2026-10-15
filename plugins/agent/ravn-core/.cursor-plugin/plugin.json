@@ -1,0 +1,12 @@
+{
+  "name": "ravn-core",
+  "version": "0.7.0",
+  "description": "Core Ravn agent plugin. Bundles reusable skills and MCP server configuration.",
+  "author": {
+    "name": "Ravn AI Enablement Team"
+  },
+  "homepage": "https://github.com/ravnhq/ravn-core",
+  "repository": "https://github.com/ravnhq/ravn-core",
+  "license": "MIT",
+  "keywords": ["ravn", "skills", "agent-plugin"]
+}

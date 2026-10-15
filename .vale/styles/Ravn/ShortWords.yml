@@ -1,0 +1,15 @@
+# Ravn/ShortWords.yml  — do not include remainder/implement/require
+extends: substitution
+message: "Prefer '%s' over '%s'."
+ignorecase: true
+level: warning
+swap:
+  leverage: use
+  commence: start
+  facilitate: help
+  'prior to': before
+  subsequently: then
+  'in the event that': if
+  'in the event of': if
+  'at this time': now
+  'with respect to': about

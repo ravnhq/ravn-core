@@ -1,0 +1,13 @@
+{
+  "name": "skill-nudge",
+  "version": "0.1.4",
+  "license": "MIT",
+  "description": "A background Haiku watches the session and, at the right moment, suggests one of your installed skills above the prompt.",
+  "author": {
+    "name": "Ravn AI Enablement Team"
+  },
+  "homepage": "https://github.com/ravnhq/ravn-core",
+  "repository": "https://github.com/ravnhq/ravn-core",
+  "keywords": ["skills", "nudge", "haiku", "mod", "claude-code"],
+  "types": "./types/index.d.ts"
+}

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node evals/private/fixtures/freeze.ts *)",
+      "Bash(pnpm check)",
+      "Bash(pnpm eval)",
+      "Bash(pnpm eval *)",
+      "Bash(pnpm eval:compare)",
+      "Bash(pnpm eval:compare *)",
+      "Bash(pnpm eval:smoke)",
+      "Bash(npm view *)"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Explain the Number"
+  short_description: "Check what a measurement means"
+policy:
+  allow_implicit_invocation: false

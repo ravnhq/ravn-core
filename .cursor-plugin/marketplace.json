@@ -1,0 +1,16 @@
+{
+  "name": "ravn",
+  "owner": {
+    "name": "Ravn AI Enablement Team"
+  },
+  "metadata": {
+    "description": "Cursor team marketplace for the ravn-core Agent Plugin."
+  },
+  "plugins": [
+    {
+      "name": "ravn-core",
+      "source": "plugins/agent/ravn-core",
+      "description": "Core Ravn agent plugin. Bundles reusable skills and MCP server configuration."
+    }
+  ]
+}

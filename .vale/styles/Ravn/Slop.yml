@@ -1,0 +1,32 @@
+extends: existence
+message: "Drop '%s'; state the fact without filler."
+ignorecase: true
+level: error
+tokens:
+  - delve
+  - tapestry
+  - nestled
+  - embark
+  - dive into
+  - let's dive
+  - it's important to note
+  - it is important to note
+  - furthermore
+  - moreover
+  - in order to
+  - utilize
+  - simply
+  - seamless
+  - seamlessly
+  - groundbreaking
+  - game-changer
+  - plethora
+  - myriad
+  - holistic
+  - paradigm
+  - synergy
+  - ever-evolving
+  - at the end of the day
+  - it goes without saying
+  - needless to say
+  - rest assured

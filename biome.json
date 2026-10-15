@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "*.json",
+      ".oxlintrc.json",
+      ".claude-plugin/marketplace.json",
+      ".agents/plugins/marketplace.json",
+      ".cursor-plugin/marketplace.json",
+      "plugins/*/*/.claude-plugin/plugin.json",
+      "plugins/agent/ravn-core/**",
+      "plugins/mods/skill-nudge/**",
+      "!plugins/*/*/.claude-plugin/types",
+      "evals/**",
+      "test/**",
+      "tools/**",
+      "scripts/**",
+      ".agents/skills/verify-ravn-core/**",
+      "!tools/oxlint/anti-slop",
+      "!pnpm-lock.yaml"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space"
+  },
+  "linter": {
+    "enabled": false
+  },
+  "assist": {
+    "enabled": false
+  }
+}

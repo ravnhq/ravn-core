@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    env:
+      RAVN_CORE_EVALS_DEPLOY_KEY: ${{ secrets.RAVN_CORE_EVALS_DEPLOY_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      # The eval cases and fixtures are private. Without the deploy key
+      # (forks), the tests that read them skip.
+      - uses: actions/checkout@v7
+        if: env.RAVN_CORE_EVALS_DEPLOY_KEY != ''
+        with:
+          repository: ravnhq/ravn-core-evals
+          ssh-key: ${{ secrets.RAVN_CORE_EVALS_DEPLOY_KEY }}
+          path: evals/private
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install -g @anthropic-ai/claude-code
+      - run: pnpm check
+      - run: pnpm validate:plugins
+      - name: Install Vale
+        if: success() || failure()
+        run: |
+          curl -fsSL -o /tmp/vale.tar.gz https://github.com/vale-cli/vale/releases/download/v3.21.0/vale_3.21.0_Linux_64-bit.tar.gz
+          echo "96997d19a4ca6981673b0d4c5ca7f3ede4a9f97964a96edc29fba9e28a328336  /tmp/vale.tar.gz" | sha256sum -c -
+          mkdir -p /tmp/vale && tar -xzf /tmp/vale.tar.gz -C /tmp/vale
+          echo "/tmp/vale" >> "$GITHUB_PATH"
+      - run: pnpm prose:check
+        if: success() || failure()
+
+  skillspector:
+    name: Scan ravn-core skills
+    runs-on: ubuntu-latest
+    env:
+      SKILLSPECTOR_REF: v2.12.0
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: Static security scan
+        run: |
+          for skill in plugins/agent/ravn-core/skills/*/; do
+            skill=${skill%/}
+            plugin=${skill#plugins/*/}
+            plugin=${plugin%%/*}
+            baseline=".github/skillspector/${plugin}/${skill##*/}.yaml"
+            args=()
+            if [ -f "$baseline" ]; then args=(--baseline "$baseline"); fi
+            report="$RUNNER_TEMP/skillspector-${plugin}-${skill##*/}.json"
+            uvx --from "git+https://github.com/NVIDIA/SkillSpector.git@${SKILLSPECTOR_REF}" \
+              skillspector scan "$skill" --recursive --no-llm --fail-on-findings "${args[@]}" --format json -o "$report"
+            jq -e '.analysis_completeness
+              | .execution_successful
+                and .partially_inspected_files == 0
+                and .entirely_uninspected_files == 0
+                and (.is_complete
+                  or ((.limitations | length) == 0
+                    and (.ledger_exceptions | length) > 0
+                    and all(.ledger_exceptions[]; .reason_code == "reference_missing")))' "$report" > /dev/null \
+              || { echo "$skill: incomplete analysis"; jq '.analysis_completeness' "$report"; exit 1; }
+          done

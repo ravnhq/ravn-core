@@ -1,0 +1,5 @@
+interface:
+  display_name: "Make Operations Idempotent"
+  short_description: "Converge after crashes and retries"
+policy:
+  allow_implicit_invocation: false

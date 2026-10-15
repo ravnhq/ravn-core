@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "plugins/agent/ravn-core/**/*.ts",
+    "evals/**/*.ts",
+    "test/**/*.ts",
+    "tools/**/*.ts",
+    "scripts/**/*.ts",
+    ".agents/skills/verify-ravn-core/scripts/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "ravn-core",
+  "private": true,
+  "type": "module",
+  "version": "0.7.0",
+  "keywords": [
+    "pi-package"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+extends: existence
+message: "Dying metaphor '%s'; say what you mean."
+ignorecase: true
+level: warning
+tokens:
+  - achilles'? heel
+  - swan song
+  - hotbed
+  - ring the changes
+  - take up the cudgels
+  - ride roughshod
+  - play into the hands
+  - leave no stone unturned
+  - explore every avenue

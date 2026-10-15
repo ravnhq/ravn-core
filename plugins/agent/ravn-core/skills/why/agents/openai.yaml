@@ -1,0 +1,5 @@
+interface:
+  display_name: "Why"
+  short_description: "Find why the code is shaped this way"
+policy:
+  allow_implicit_invocation: false

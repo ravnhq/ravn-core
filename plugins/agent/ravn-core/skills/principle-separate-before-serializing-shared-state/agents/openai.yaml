@@ -1,0 +1,5 @@
+interface:
+  display_name: "Separate Before Serializing Shared State"
+  short_description: "Remove shared writes before locking"
+policy:
+  allow_implicit_invocation: false

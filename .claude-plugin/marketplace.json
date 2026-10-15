@@ -1,0 +1,41 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ravn",
+  "metadata": {
+    "description": "Ravn's open-source agent plugins: ravn-core for Claude Code, Codex, Cursor, and Pi, and the skill-nudge Claude Code mod.",
+    "version": "1.0.0"
+  },
+  "owner": {
+    "name": "Ravn AI Enablement Team"
+  },
+  "plugins": [
+    {
+      "name": "ravn-core",
+      "source": "./plugins/agent/ravn-core",
+      "description": "Core Ravn agent plugin. Bundles reusable skills and MCP server configuration.",
+      "version": "0.7.0",
+      "author": {
+        "name": "Ravn AI Enablement Team"
+      },
+      "license": "MIT",
+      "keywords": ["ravn", "skills", "agent-plugin"],
+      "homepage": "https://github.com/ravnhq/ravn-core",
+      "repository": "https://github.com/ravnhq/ravn-core",
+      "category": "engineering"
+    },
+    {
+      "name": "skill-nudge",
+      "version": "0.1.4",
+      "license": "MIT",
+      "description": "A background Haiku watches the session and, at the right moment, suggests one of your installed skills above the prompt.",
+      "author": {
+        "name": "Ravn AI Enablement Team"
+      },
+      "homepage": "https://github.com/ravnhq/ravn-core",
+      "repository": "https://github.com/ravnhq/ravn-core",
+      "keywords": ["skills", "nudge", "haiku", "mod", "claude-code"],
+      "source": "./plugins/mods/skill-nudge",
+      "category": "productivity"
+    }
+  ]
+}

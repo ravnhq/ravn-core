@@ -1,0 +1,5 @@
+interface:
+  display_name: "Guard the Context Window"
+  short_description: "Keep bulk out of the main thread"
+policy:
+  allow_implicit_invocation: false

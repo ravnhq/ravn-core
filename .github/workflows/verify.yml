@@ -1,0 +1,217 @@
+name: Verify
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      RUN_ID: ${{ github.run_id }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Set the Pi agent directory
+        run: echo "PI_CODING_AGENT_DIR=$RUNNER_TEMP/pi" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: ravnhq/ravn-core-evals
+          ssh-key: ${{ secrets.RAVN_CORE_EVALS_DEPLOY_KEY }}
+          path: evals/private
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install harness CLIs
+        run: |
+          npm install -g --ignore-scripts @earendil-works/pi-coding-agent@1.0.0 @openai/codex@0.159.3 @anthropic-ai/claude-code@2.1.287
+          (cd "$(npm root -g)/@anthropic-ai/claude-code" && node install.cjs)
+          claude --version
+      - name: Write logins
+        env:
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+          PI_AUTH_JSON: ${{ secrets.PI_AUTH_JSON }}
+        run: |
+          mkdir -p ~/.codex "$PI_CODING_AGENT_DIR"
+          printenv CODEX_AUTH_JSON > ~/.codex/auth.json
+          printenv PI_AUTH_JSON > "$PI_CODING_AGENT_DIR/auth.json"
+          chmod 600 ~/.codex/auth.json "$PI_CODING_AGENT_DIR/auth.json"
+          codex login status
+          pi auth check --provider openai-codex
+      - name: Doctor
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: node .agents/skills/verify-ravn-core/scripts/doctor.ts
+      - name: Smoke
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: node .agents/skills/verify-ravn-core/scripts/collect.ts harness-skill-loading pnpm eval:smoke --runners claude-code/claude-sonnet-5-5,codex/gpt-6-luna,pi/gpt-6-luna
+      - name: Maintain
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: >-
+          pi -p -a --no-session --model openai-codex/gpt-6-luna
+          "/skill:maintain-verification-skill Target .agents/skills/verify-ravn-core. This run is unattended in GitHub Actions:
+          you may run the smoke eval and one plugin skill eval on the runners claude-code/claude-sonnet-5-5, codex/gpt-6-luna, pi/gpt-6-luna;
+          report marketplace-install as unverified. Leave proven corrections uncommitted in the working tree; the workflow opens the PR."
+          > "$RUNNER_TEMP/maintain.txt" 2>&1
+      - name: Export corrections
+        run: |
+          mkdir -p "$RUNNER_TEMP/corrections"
+          git add --intent-to-add -- .agents/skills/verify-ravn-core
+          git diff --binary -- .agents/skills/verify-ravn-core > "$RUNNER_TEMP/corrections/corrections.patch"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: verify-corrections
+          path: ${{ runner.temp }}/corrections/
+          retention-days: 7
+      - name: Encrypt rotated logins
+        if: always()
+        env:
+          VERIFY_AUTH_CERT: ${{ vars.VERIFY_AUTH_CERT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/logins"
+          printenv VERIFY_AUTH_CERT > "$RUNNER_TEMP/verify-auth-cert.pem"
+          encrypt() {
+            if [ -s "$1" ]; then
+              openssl cms -encrypt -binary -aes256 -outform DER -in "$1" -out "$RUNNER_TEMP/logins/$2.enc" "$RUNNER_TEMP/verify-auth-cert.pem"
+            fi
+          }
+          encrypt ~/.codex/auth.json codex
+          encrypt "$PI_CODING_AGENT_DIR/auth.json" pi
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: verify-logins
+          path: ${{ runner.temp }}/logins/
+          if-no-files-found: ignore
+          retention-days: 1
+      # Evidence and the maintain log quote the private eval cases and fixtures,
+      # and this repo's artifacts are public, so they upload encrypted. Decrypt
+      # with the VERIFY_AUTH_KEY private key:
+      # openssl cms -decrypt -binary -inform DER -in evidence.tar.gz.enc -inkey key.pem | tar -xz
+      - name: Encrypt evidence
+        if: always()
+        env:
+          VERIFY_AUTH_CERT: ${{ vars.VERIFY_AUTH_CERT }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/evidence" .verify
+          cp "$RUNNER_TEMP/maintain.txt" .verify/ 2>/dev/null || true
+          tar -czf "$RUNNER_TEMP/evidence.tar.gz" \
+            --exclude='.env*' --exclude='auth.json' --exclude='.claude' --exclude='.codex' --exclude='.git' \
+            .verify
+          openssl cms -encrypt -binary -aes256 -outform DER -in "$RUNNER_TEMP/evidence.tar.gz" \
+            -out "$RUNNER_TEMP/evidence/evidence.tar.gz.enc" "$RUNNER_TEMP/verify-auth-cert.pem"
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: verify-${{ github.run_id }}
+          path: ${{ runner.temp }}/evidence/
+          retention-days: 30
+
+  save-logins:
+    needs: verify
+    if: always() && needs.verify.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: verify-logins
+          path: ${{ runner.temp }}/logins
+          merge-multiple: true
+      - name: Install login CLIs
+        run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent@1.0.0 @openai/codex@0.159.3
+      - name: Check and save rotated logins
+        env:
+          VERIFY_AUTH_KEY: ${{ secrets.VERIFY_AUTH_KEY }}
+          VERIFY_PAT: ${{ secrets.VERIFY_PAT }}
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+          PI_AUTH_JSON: ${{ secrets.PI_AUTH_JSON }}
+        run: |
+          printenv VERIFY_AUTH_KEY > "$RUNNER_TEMP/verify-auth-key.pem"
+          shape() { jq -cS '[paths | map(tostring) | join(".")] | sort'; }
+          identity() { jq -cS '[paths(scalars) as $p | select(($p[-1] | tostring | test("account|user|email"; "i")) and ($p[-1] | tostring | test("token"; "i") | not)) | {path: $p, value: getpath($p)}]'; }
+          save() {
+            name=$1 secret=$2
+            encrypted="$RUNNER_TEMP/logins/$name.enc"
+            if [ ! -s "$encrypted" ]; then echo "$name: no rotated login"; return 0; fi
+            dir=$(mktemp -d)
+            openssl cms -decrypt -binary -inform DER -in "$encrypted" -out "$dir/auth.json" -inkey "$RUNNER_TEMP/verify-auth-key.pem"
+            if ! jq -e 'type == "object"' "$dir/auth.json" > /dev/null; then
+              echo "::error::$name: rotated login is not a JSON object"; return 1
+            fi
+            if [ "$(shape < "$dir/auth.json")" != "$(printenv "$secret" | shape)" ]; then
+              echo "::error::$name: rotated login has a different structure from the stored one"; return 1
+            fi
+            stored_identity=$(printenv "$secret" | identity)
+            if [ "$(identity < "$dir/auth.json")" != "$stored_identity" ]; then
+              echo "::error::$name: rotated login names a different account from the stored one"; return 1
+            fi
+            if [ "$stored_identity" = "[]" ]; then
+              echo "::warning::$name: no account field found, so the account could not be compared"
+            fi
+            if printenv "$secret" | cmp -s - "$dir/auth.json"; then
+              echo "$name: unchanged"; return 0
+            fi
+            case $name in
+              codex) CODEX_HOME=$dir codex login status ;;
+              pi) PI_CODING_AGENT_DIR=$dir pi auth check --provider openai-codex ;;
+            esac
+            GH_TOKEN=$VERIFY_PAT gh secret set "$secret" --repo "$GITHUB_REPOSITORY" < "$dir/auth.json"
+            echo "$name: saved"
+          }
+          status=0
+          save codex CODEX_AUTH_JSON || status=1
+          save pi PI_AUTH_JSON || status=1
+          exit "$status"
+
+  open-pr:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.VERIFY_PAT }}
+      - uses: actions/download-artifact@v5
+        with:
+          name: verify-corrections
+          path: ${{ runner.temp }}/corrections
+      - name: Open PR with corrections
+        env:
+          GH_TOKEN: ${{ secrets.VERIFY_PAT }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          patch="$RUNNER_TEMP/corrections/corrections.patch"
+          if [ ! -s "$patch" ]; then exit 0; fi
+          outside=$(git apply --numstat "$patch" | cut -f3 | grep -v '^\.agents/skills/verify-ravn-core/' || true)
+          if [ -n "$outside" ]; then
+            echo "::error::corrections touch files outside .agents/skills/verify-ravn-core: $outside"; exit 1
+          fi
+          git apply "$patch"
+          branch="verify/maintain-$RUN_ID"
+          git config user.name "ravn-verify"
+          git config user.email "ravn-verify@users.noreply.github.com"
+          git switch -c "$branch"
+          git add .agents/skills/verify-ravn-core
+          git commit -m "docs(verify): maintain verify-ravn-core"
+          git push origin "$branch"
+          echo "Corrections from run $RUN_ID. The maintain log is in that run's encrypted \`verify-$RUN_ID\` artifact." > "$RUNNER_TEMP/body.md"
+          gh pr create --title "docs(verify): maintain verify-ravn-core" --body-file "$RUNNER_TEMP/body.md"
