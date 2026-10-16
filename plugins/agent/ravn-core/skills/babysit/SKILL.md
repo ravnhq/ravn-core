@@ -140,7 +140,7 @@ Merge the lowest unmerged PR only, and only when all of these hold:
 - **Codex:** `spawn_agent` with a fresh context, not a fork of your conversation.
 - **A harness without subagents:** read the brief in full, then run its steps yourself: worktrees, a check for each behavior with its expectation written first, and the `VERDICT:` line, before any merge command. Label the verdict self-verified in your reply.
 
-Give the verifier the brief's absolute path, the PR number, `<sha>`, the head and base branches, and the verification skill's path from the gate list's `verificationSkills` when there is one. Tell it nothing about what you expect it to find. Only `PASS` or `PASS+NOTES` at `<sha>` allows the merge. On `FAIL`, handle the verifier's reproduction like a failing check in Step 5; a fix needs a fresh verdict. Without a verdict, do not merge. On `INCONCLUSIVE` because no recipe reaches a behavior, update the verification skill, then ask for a fresh verdict:
+Give the verifier the brief's absolute path, the PR number, `<sha>`, the head and base branches, and the verification skill's path from the gate list's `verificationSkills` when there is one. Tell it nothing about what you expect it to find. Only `PASS` or `PASS+NOTES` at `<sha>` allows the merge. On `FAIL`, handle the verifier's reproduction like a failing check in Step 5; a fix needs a fresh verdict. Without a verdict, do not merge. An `INCONCLUSIVE` because no recipe reaches a behavior is not a blocker but your next task, within the authority above: update the verification skill, then ask for a fresh verdict.
 
 1. Add a recipe for each behavior the verifier listed, in the skill's own format: a feature file under `features/` and its entry in the index, with any driver beside the skill's others. Follow [Maintain Verification Skill](../maintain-verification-skill/SKILL.md) for what a recipe holds. Add only: never change an existing recipe, its pass criteria, or the skill's launch and doctor steps. The verifier judges a changed recipe by its base version anyway.
 2. Drive each new recipe yourself on the PR's head, and confirm it shows the behavior; run it on the base too, where it must show the behavior absent or failing.
@@ -161,7 +161,7 @@ After a merge, the next PR's base must become the merged PR's base. GitHub retar
 
 ## Step 10. Report a blocker
 
-Stop when the frontier's blocker is outside your authority or needs someone else: missing approval for a requested merge, changes requested that you cannot resolve, an escalated thread, a rebase that needs a force-push, a persistent failure outside the PR, no passing verdict for a requested merge, a merge request dropped twice, a scope decision, a `GATE`, or a persistent `QUERY_ERROR`. PRs above a blocked frontier wait on it. For each blocker, give:
+Stop when the frontier's blocker is outside your authority or needs someone else: missing approval for a requested merge, changes requested that you cannot resolve, an escalated thread, a rebase that needs a force-push, a persistent failure outside the PR, no passing verdict for a requested merge once Step 9 has added any missing recipes, a merge request dropped twice, a scope decision, a `GATE`, or a persistent `QUERY_ERROR`. PRs above a blocked frontier wait on it. For each blocker, give:
 
 - **What** blocks the PR, on which PR, and which gate it is.
 - **Evidence:** the watcher JSON fields, check and thread links, and the commands you ran with their output.
