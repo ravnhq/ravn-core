@@ -1,0 +1,5 @@
+interface:
+  display_name: "Bug Fix"
+  short_description: "Reproduce, root-cause, and fix a bug with evidence"
+policy:
+  allow_implicit_invocation: false
