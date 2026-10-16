@@ -271,6 +271,14 @@ if (args[0] === "pr" && args[1] === "view") {
   );
 } else if (args[0] === "pr" && args[1] === "checkout") {
   spawnSync("git", ["switch", "-q", "feat/retry"], { cwd: process.cwd() });
+} else if (args[0] === "pr" && args[1] === "create") {
+  // A new PR, such as babysit's recipe PR, is #43. It is recorded for
+  // grading and never merges here: only a person can merge it.
+  writeFileSync(join(root, "created.json"), JSON.stringify({ args }));
+  console.log("https://github.com/fixture/test/pull/43");
+} else if (args[0] === "pr" && args[1] === "merge" && !args.includes("42")) {
+  console.error("Only PR #42 can merge in this simulation.");
+  process.exitCode = 1;
 } else if (args[0] === "pr" && args[1] === "merge") {
   if (args.includes("--admin")) {
     console.error("Admin merge is not allowed in this simulation.");
