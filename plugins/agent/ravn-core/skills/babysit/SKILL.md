@@ -132,13 +132,13 @@ Merge the lowest unmerged PR only, and only when all of these hold:
 - Its row in Step 3's `stack` is `READY` at head commit `<sha>`, and every PR below it is merged.
 - Its `reviewDecision` is `APPROVED`, or the gates require no review. A required review still pending is a blocker: missing approval.
 - Every gate from Step 2 is satisfied.
-- A verifier returned `PASS` or `PASS+NOTES` for `<sha>`, as below, and the verdict is still fresh.
+- A verifier returned `PASS` or `PASS+NOTES` for `<sha>`, as below, and the verdict is still fresh. A verdict is the brief's `VERDICT:` line and the checks behind it; a test suite, a type check, or reading the diff is not one.
 
 **Get an independent verdict first.** The gates show that CI passed, not that the change does what the PR says, and an agent that wrote or fixed a PR checks what it meant to build. Before each merge, a verifier that did neither judges the PR at `<sha>` by [the verifier brief](references/verifier.md):
 
 - **Claude Code:** the Agent tool with ravn-core's read-only `verifier` agent: `ravn-core:verifier` from the plugin, or `verifier` where it is installed as a project agent.
 - **Codex:** `spawn_agent` with a fresh context, not a fork of your conversation.
-- **A harness without subagents:** follow the brief yourself, and label the verdict self-verified in your reply.
+- **A harness without subagents:** read the brief in full, then run its steps yourself: worktrees, a check for each behavior with its expectation written first, and the `VERDICT:` line, before any merge command. Label the verdict self-verified in your reply.
 
 Give the verifier the brief's absolute path, the PR number, `<sha>`, the head and base branches, and the verification skill's path from the gate list's `verificationSkills` when there is one. Tell it nothing about what you expect it to find. Only `PASS` or `PASS+NOTES` at `<sha>` allows the merge. On `FAIL`, handle the verifier's reproduction like a failing check in Step 5; a fix needs a fresh verdict. Without a verdict, do not merge: `INCONCLUSIVE` is a blocker, with the verifier's reason. When the verifier built any of its own checks, say so in your reply, and name [Create Verification Skill](../create-verification-skill/SKILL.md), or [Maintain Verification Skill](../maintain-verification-skill/SKILL.md) when the repository has one, as the follow-up that lets the next verifier drive those behaviors by recipe; the merge does not wait on it. Never edit a verification skill during a babysit.
 
@@ -171,4 +171,4 @@ Run Step 3 with `--since-last` for the whole session, so every result lists only
 
 Both ways reach the same verdicts and end states. Act on the `changes` list; the exit code repeats the current verdict even when nothing is new. Triage with Steps 4 to 7, and finish your current step before you start a PR fix batch. Keep PR fixes out of unrelated commits. Push only your fix batches: the other work is the user's, so do not push it unless they asked you to, since a push restarts the PR's checks. When the other work ends before the PRs reach an end state, keep going as in drive mode until they do; then report.
 
-**Reply:** each PR's end state. For a merge: the merge commit, the method, the head commit that merged, and the verdict: who produced it, the checks it ran at which head and base, each labeled as a recipe or as one it built, and their evidence. For merge-ready: the Step 8 report. For a blocker: the Step 10 report. In both cases: the gate list and how each gate was met, each fix with its commit and the checks run before its push, and each thread with your reply.
+**Reply:** each PR's end state. For a merge: the merge commit, the method, the head commit that merged, and the verdict: who produced it, the checks it ran at which head and base, each labeled as a recipe or as one it built, and their evidence; when it built any, the Create Verification Skill or Maintain Verification Skill follow-up from Step 9. For merge-ready: the Step 8 report. For a blocker: the Step 10 report. In both cases: the gate list and how each gate was met, each fix with its commit and the checks run before its push, and each thread with your reply.
