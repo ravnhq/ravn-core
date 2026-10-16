@@ -45,6 +45,6 @@ Claude Code mods:
 
 ## Not covered
 
-These have no recipe yet. Report them as unverified when a change touches them.
+These have no dedicated complete live recipe yet. Report them as unverified when a change touches them. Skills exercised only as a link in another recipe are not thereby fully verified.
 
-- `ravn-core` skills without a complete live recipe: `codebase-design`, `domain-modeling`, and `principle-prove-it-works` beyond the focused engineering-principles cases; `grill-me`, `grilling`, `improve-codebase-architecture`, `principle-guard-the-context-window`, and `writing-for-agents` beyond their use in `ship`.
+- `ravn-core` skills without a complete live recipe: `agent-readiness`, `ask-ravn`, `blast-radius`, `codebase-design`, `create-verification-skill` beyond its use in `ship`, `domain-modeling`, `grill-me`, `grilling` beyond its use in `ship`, `improve-codebase-architecture`, `maintain-verification-skill`, `pause-safely`, `pr` beyond its use in `ship`, `principle-boundary-discipline`, `principle-explain-the-number`, `principle-fix-root-causes`, `principle-guard-the-context-window`, `principle-make-operations-idempotent`, `principle-prove-it-works` beyond the focused engineering-principles cases, `principle-separate-before-serializing-shared-state`, `principle-type-system-discipline`, `research` beyond its use in `ship`, `session-pickup`, `show-me-your-work`, and `writing-for-agents` beyond its use in `ship`.
