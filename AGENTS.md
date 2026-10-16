@@ -32,10 +32,7 @@ Before creating or changing a plugin, identify its tier, place it at `plugins/<t
 ## Versions and releases
 
 - Bump a plugin's version whenever its shipped content changes. Installed users get updates only on a bump.
-- Keep every plugin version declaration synchronized:
-  - Every plugin: its manifest (`plugin.json` for `ravn-core`, `.claude-plugin/plugin.json` otherwise) and `.claude-plugin/marketplace.json` entry.
-  - `ravn-core`: those declarations plus `plugins/agent/ravn-core/package.json` and `plugins/agent/ravn-core/.cursor-plugin/plugin.json`, all in the same edit.
-  - CI fails when these versions differ.
+- Run `pnpm sync:versions` to write; `pnpm check` fails on drift.
 - Route every plugin release through the `release` skill; it owns the bump, full validation, and tag.
 
 ## Code
