@@ -60,7 +60,7 @@ const queued = existsSync(join(root, "queued"));
 const head = remote(["rev-parse", "feat/retry"]);
 
 // "queue" is approved too, but merges go through a queue that drops the PR.
-const approved = ["approved", "queue", "unproven"].includes(scenario);
+const approved = ["approved", "queue", "no-skill"].includes(scenario);
 
 // In "late", the check stays pending for two check reads; on the third it
 // passes and a review thread appears, so only a watch that outlasts the

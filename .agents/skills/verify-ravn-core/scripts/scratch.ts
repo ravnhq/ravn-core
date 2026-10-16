@@ -45,7 +45,7 @@ export const babysitScenarios = [
   "approved",
   "late",
   "queue",
-  "unproven",
+  "no-skill",
 ];
 
 // Opens simulated PR #42 (feat/retry) on a local bare remote. "thread" has a
@@ -53,8 +53,8 @@ export const babysitScenarios = [
 // "approved" is green and approved; "late" holds its check pending for two
 // check reads, then passes as a thread appears, for background watching;
 // "queue" is approved, but its merge queue takes the PR for one read and then
-// drops it on a failed check. "unproven" is "approved" without the repo's
-// verification skill, so babysit has no way to prove the PR. The simulator and its state live in `sim`,
+// drops it on a failed check. "no-skill" is "approved" without the repo's
+// verification skill, so the verifier must build its own check. The simulator and its state live in `sim`,
 // outside the repo, which this resets; the repo gets only the wrapper.
 export function setupBabysitPR(cwd: string, scenario: string, sim: string) {
   if (!babysitScenarios.includes(scenario))
@@ -87,7 +87,7 @@ export function setupBabysitPR(cwd: string, scenario: string, sim: string) {
     git(cwd, ["remote", "remove", "origin"]);
   git(cwd, ["remote", "add", "origin", join(root, "remote.git")]);
 
-  if (scenario !== "unproven") {
+  if (scenario !== "no-skill") {
     // The repo's verification skill, which babysit must drive before it
     // merges. Its driver logs each run with its head commit, as evidence.
     cpSync(
