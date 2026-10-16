@@ -119,9 +119,10 @@ test("the ravn-core Cursor manifest matches plugin.json", () => {
 
   const cursor = readJson(join(ravnCoreDir, ".cursor-plugin", "plugin.json"));
 
+  assert.equal(cursor.version, manifest.version);
+
   for (const field of [
     "name",
-    "version",
     "description",
     "author",
     "homepage",

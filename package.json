@@ -19,6 +19,7 @@
     "format": "biome format --write",
     "check": "biome format && oxlint && tsc && pnpm test",
     "validate:plugins": "node scripts/validate-plugins.ts",
+    "sync:versions": "node scripts/sync-versions.ts",
     "prose:check": "node scripts/check-prose.ts",
     "eval:fetch": "node evals/fetch-private.ts",
     "eval": "node evals/run.ts --arms current",
