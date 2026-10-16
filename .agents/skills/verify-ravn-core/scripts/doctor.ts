@@ -80,8 +80,7 @@ const harnessChecks = [
   {
     tool: "pi",
     label: "pi login",
-    ok: () =>
-      run("pi", ["auth", "check", "--provider", "openai-codex"]).status === 0,
+    ok: () => run("pi", ["auth", "check", "--provider", "openai"]).status === 0,
   },
   {
     tool: "gh",

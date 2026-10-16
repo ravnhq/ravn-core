@@ -51,7 +51,7 @@ beforeEach(() => {
 
   writeFileSync(
     stub,
-    '#!/usr/bin/env node\nprocess.exit(Number(process.env.PUSH_CHECK_EXIT ?? "0"));\n',
+    '#!/usr/bin/env node\nif (process.env.GIT_DIR) process.exit(3);\nprocess.exit(Number(process.env.PUSH_CHECK_EXIT ?? "0"));\n',
     { mode: 0o755 },
   );
 
@@ -104,6 +104,20 @@ test("a clean validated commit and its release tag reach the remote", () => {
     requiredGit(["rev-parse", "HEAD"]),
   );
   requiredGit(["push", "origin", "main"]);
+});
+
+test("checks pushed from a linked worktree run outside its Git environment", () => {
+  const linked = join(root, "linked");
+
+  requiredGit(["worktree", "add", "-q", "-b", "linked", linked]);
+
+  const pushed = spawnSync("git", ["push", "origin", "linked"], {
+    cwd: linked,
+    env,
+    encoding: "utf8",
+  });
+
+  assert.equal(pushed.status, 0, pushed.stderr);
 });
 
 test("an uncommitted repair cannot validate a different committed tree", () => {

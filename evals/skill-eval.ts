@@ -10,7 +10,7 @@ export const runners = [
   { harness: "claude-code", model: "claude-opus-5-5" },
   { harness: "codex", model: "gpt-6-luna" },
   { harness: "codex", model: "gpt-6-sol" },
-  { harness: "pi", model: "openai-codex/gpt-6-luna" },
+  { harness: "pi", model: "openai/gpt-6-luna" },
   { harness: "claude-code", model: "openrouter/anthropic/claude-sonnet-5.5" },
   { harness: "claude-code", model: "openrouter/anthropic/claude-opus-5.5" },
   { harness: "codex", model: "openrouter/openai/gpt-6-luna" },
