@@ -63,6 +63,6 @@ It deletes `/tmp/ravn-verify/$RUN_ID` and keeps `.verify/$RUN_ID`. It refuses pa
 | `scripts/collect.ts` | `<feature-id> <command> [args...]` | Run a command from the repo root and keep its evidence |
 | `scripts/doctor.ts` | | Read-only preflight |
 | `scripts/cleanup.ts` | `[run-id]` | Remove the run's scratch work dirs, keep evidence |
-| `scripts/scratch.ts` | `babysit <dir> [thread\|approved\|late\|queue\|no-skill]` or `bug-fix <dir>` | Build a scratch repo in a known state; for babysit, a simulated PR with `github-sim.ts` as `gh` |
+| `scripts/scratch.ts` | `babysit <dir> [thread\|approved\|late\|queue\|no-skill\|uncovered]` or `bug-fix <dir>` | Build a scratch repo in a known state; for babysit, a simulated PR with `github-sim.ts` as `gh` |
 
 Keep the map current with the `maintain-verification-skill` skill when skills or features change.

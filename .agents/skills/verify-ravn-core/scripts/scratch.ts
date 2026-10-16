@@ -46,6 +46,7 @@ export const babysitScenarios = [
   "late",
   "queue",
   "no-skill",
+  "uncovered",
 ];
 
 // Opens simulated PR #42 (feat/retry) on a local bare remote. "thread" has a
@@ -54,7 +55,9 @@ export const babysitScenarios = [
 // check reads, then passes as a thread appears, for background watching;
 // "queue" is approved, but its merge queue takes the PR for one read and then
 // drops it on a failed check. "no-skill" is "approved" without the repo's
-// verification skill, so the verifier must build its own check. The simulator and its state live in `sim`,
+// verification skill, so the verifier must build its own check. "uncovered" is
+// "approved" with a PR that also adds isRetryable, which the repo's
+// verification skill has no recipe for, so babysit must add one. The simulator and its state live in `sim`,
 // outside the repo, which this resets; the repo gets only the wrapper.
 export function setupBabysitPR(cwd: string, scenario: string, sim: string) {
   if (!babysitScenarios.includes(scenario))
@@ -105,7 +108,10 @@ export function setupBabysitPR(cwd: string, scenario: string, sim: string) {
   mkdirSync(join(cwd, "src"), { recursive: true });
   writeFileSync(
     join(cwd, "src", "retry.ts"),
-    "export function backoffMs(attempt: number): number {\n  return Math.min(30_000, 250 * 2 ** attempt);\n}\n",
+    "export function backoffMs(attempt: number): number {\n  return Math.min(30_000, 250 * 2 ** attempt);\n}\n" +
+      (scenario === "uncovered"
+        ? "\nexport function isRetryable(status: number): boolean {\n  return status === 429 || status >= 500;\n}\n"
+        : ""),
   );
   git(cwd, ["add", "src/retry.ts"]);
   git(cwd, ["commit", "-qm", "feat: retry with exponential backoff"]);
