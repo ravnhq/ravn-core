@@ -7,7 +7,7 @@ import {
   readFileSync,
   writeFileSync,
 } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { agentPluginDirs } from "../scripts/plugins.ts";
 
 // Eval cases and fixtures derive from private Ravn code, so they live in a
@@ -77,6 +77,8 @@ export function resetWorkspaceRepo(workspaceDir: string, fixture: string) {
       "/.claude/skills/",
       "-e",
       "/.agents/skills/",
+      "-e",
+      "/.claude/agents/",
     ],
     workspaceDir,
   );
@@ -107,6 +109,9 @@ export function pluginSkillDirs(pluginsDir: string): string[] {
     .filter((dir) => existsSync(dir));
 }
 
+// Skills go where Claude Code and Codex read project skills. A plugin's
+// agents, beside its skills, become Claude Code project agents; Codex reads no
+// agents from a plugin, so its skills spawn fresh subagents instead.
 export function installSkills(workspaceDir: string, skillDirs: string[]) {
   for (const harnessDir of [".claude", ".agents"]) {
     mkdirSync(join(workspaceDir, harnessDir, "skills"), { recursive: true });
@@ -116,6 +121,15 @@ export function installSkills(workspaceDir: string, skillDirs: string[]) {
         recursive: true,
       });
     }
+  }
+
+  for (const skillDir of skillDirs) {
+    const agentsDir = join(dirname(skillDir), "agents");
+
+    if (existsSync(agentsDir))
+      cpSync(agentsDir, join(workspaceDir, ".claude", "agents"), {
+        recursive: true,
+      });
   }
 }
 

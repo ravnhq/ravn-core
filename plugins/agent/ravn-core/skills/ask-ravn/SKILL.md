@@ -35,7 +35,8 @@ Read `ship` before choosing an entry point within that sequence. This map does n
 
 ## On-ramps
 
-- **Something is broken:** Enter [ship](../ship/SKILL.md) at fact gathering when the fix should be delivered as a PR; apply [fix-root-causes](../principle-fix-root-causes/SKILL.md) while reproducing and tracing the failure.
+- **Something is broken:** [bug-fix](../bug-fix/SKILL.md) reproduces the bug, finds its cause with runtime evidence, and delivers the fix as a PR whose history shows the failure before the fix. It applies [fix-root-causes](../principle-fix-root-causes/SKILL.md) throughout.
+- **PR or stack is open and needs to land:** [babysit](../babysit/SKILL.md) brings it to merge-ready or an evidenced blocker: it discovers the repository gates and clears conflicts, review threads, and failing CI. It merges only when the user asks it to, and only after an independent verifier passes the PR.
 - **Architecture is causing friction:** [improve-codebase-architecture](../improve-codebase-architecture/SKILL.md) surveys deepening opportunities. A chosen change can enter `ship` at goal shaping; [codebase-design](../codebase-design/SKILL.md) supplies its design vocabulary.
 - **Work already started:** [session-pickup](../session-pickup/SKILL.md) finds the resume point from a handoff or prior trail, then continues the unfinished work through the fitting skill or flow.
 
@@ -53,6 +54,7 @@ Reach for these without committing to the whole `ship` flow:
 | Create or audit a project's user-facing verification path | [create-verification-skill](../create-verification-skill/SKILL.md) or [maintain-verification-skill](../maintain-verification-skill/SKILL.md) |
 | Audit and fix how well a coding agent can work in a repo | [agent-readiness](../agent-readiness/SKILL.md) |
 | Keep a reviewable trail during unattended work | [show-me-your-work](../show-me-your-work/SKILL.md) |
+| Check a PR or stack's gates and merge readiness | [babysit](../babysit/SKILL.md) in `check` mode |
 | Write a PR body | [pr](../pr/SKILL.md) |
 | Write a skill or agent-facing document | [writing-for-agents](../writing-for-agents/SKILL.md) |
 

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Babysit"
+  short_description: "Bring a PR or stack to merge-ready, merged on request, or a blocker"
+policy:
+  allow_implicit_invocation: false
