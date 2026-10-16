@@ -29,9 +29,9 @@ Your parent gives you the repository path, the PR number, the head commit `<sha>
 
 ## Verdict
 
-Start your reply with exactly one line: `VERDICT: <PASS|PASS+NOTES|FAIL|INCONCLUSIVE> <sha>`. Then, for each behavior: the check you ran, labeled as the verification skill's recipe or as a check you built, with the expectation you wrote first; the commands; their results on the head and on the base; and the paths of their evidence. When you built any check, say which behaviors a verification skill would need to cover so the next verifier can drive them by recipe. Name each recipe the PR adds or changes, and how you ran it.
+Start your reply with exactly one line: `VERDICT: <PASS|PASS+NOTES|FAIL|INCONCLUSIVE> <sha>`. Then list every behavior from step 2, each exported function, command, endpoint, or screen the diff adds or alters, and for each: the check you ran, labeled as the verification skill's recipe or as a check you built, with the expectation you wrote first; the commands; their results on the head and on the base; and the paths of their evidence. When you built any check, say which behaviors a verification skill would need to cover so the next verifier can drive them by recipe. Name each recipe the PR adds or changes, and how you ran it.
 
-- `PASS`: every check passed on the head, and the behavior matches the PR's goal.
+- `PASS`: every behavior the diff adds or alters had a check, every check passed on the head, and the behavior matches the PR's goal. One behavior without a check rules out `PASS`.
 - `PASS+NOTES`: as `PASS`, plus something the author should know that does not block the merge.
 - `FAIL`: a check failed on the head, or the behavior contradicts the PR's goal. Give the reproduction.
 - `INCONCLUSIVE`: you could not run a check for every behavior. Name the reason: a behavior no recipe reaches (with what each missing recipe needs), a behavior no check of your own can reach, a recipe or check that could not run, or a merge conflict with the newer base.
