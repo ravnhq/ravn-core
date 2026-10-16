@@ -13,7 +13,18 @@ function required(command: string, args: string[]): string {
     shell: process.platform === "win32" && command === "pnpm",
   };
 
-  if (command === "pnpm") options.stdio = "inherit";
+  // Git exports GIT_DIR and its other repo-local variables to hooks. Checks
+  // create fixture repos, so they run without them (see githooks(5)).
+  if (command === "pnpm") {
+    const local = new Set(
+      required("git", ["rev-parse", "--local-env-vars"]).split("\n"),
+    );
+
+    options.stdio = "inherit";
+    options.env = Object.fromEntries(
+      Object.entries(process.env).filter(([name]) => !local.has(name)),
+    );
+  }
 
   const result = spawnSync(command, args, options);
 
