@@ -60,7 +60,9 @@ const queued = existsSync(join(root, "queued"));
 const head = remote(["rev-parse", "feat/retry"]);
 
 // "queue" is approved too, but merges go through a queue that drops the PR.
-const approved = ["approved", "queue", "no-skill"].includes(scenario);
+const approved = ["approved", "queue", "no-skill", "uncovered"].includes(
+  scenario,
+);
 
 // In "late", the check stays pending for two check reads; on the third it
 // passes and a review thread appears, so only a watch that outlasts the
@@ -78,7 +80,10 @@ if (args[0] === "pr" && args[1] === "view") {
     JSON.stringify({
       number: 42,
       url,
-      title: "feat: retry with exponential backoff",
+      title:
+        scenario === "uncovered"
+          ? "feat: retry with exponential backoff on retryable statuses"
+          : "feat: retry with exponential backoff",
       state: merged ? "MERGED" : "OPEN",
       mergedAt: merged ? "2026-10-16T12:00:00Z" : null,
       mergeCommit: merged ? { oid: "f".repeat(40) } : null,
