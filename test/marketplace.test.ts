@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
 import { test } from "node:test";
@@ -114,15 +115,24 @@ test("a Pi install of the repo root loads only the ravn-core skills", () => {
   });
 });
 
+test("sync-versions --check accepts the current tree", () => {
+  const result = spawnSync(
+    process.execPath,
+    [join(repoDir, "scripts/sync-versions.ts"), "--check"],
+    { cwd: repoDir, encoding: "utf8" },
+  );
+
+  assert.equal(result.status, 0);
+});
+
 test("the ravn-core Cursor manifest matches plugin.json", () => {
   const manifest = readJson(join(ravnCoreDir, "plugin.json"));
 
   const cursor = readJson(join(ravnCoreDir, ".cursor-plugin", "plugin.json"));
 
-  assert.equal(cursor.version, manifest.version);
-
   for (const field of [
     "name",
+    "version",
     "description",
     "author",
     "homepage",

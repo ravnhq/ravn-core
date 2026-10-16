@@ -32,7 +32,7 @@ Before creating or changing a plugin, identify its tier, place it at `plugins/<t
 ## Versions and releases
 
 - Bump a plugin's version whenever its shipped content changes. Installed users get updates only on a bump.
-- Run `pnpm sync:versions`; CI fails on drift.
+- Run `pnpm sync:versions` to write; `pnpm check` fails on drift.
 - Route every plugin release through the `release` skill; it owns the bump, full validation, and tag.
 
 ## Code
