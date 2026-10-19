@@ -112,6 +112,6 @@ Done when every chosen fix has been applied and re-checked, with any fix that st
 24. **Secrets ignored**: secret files such as `.env` are gitignored.
 25. **No committed secrets**: no secret values are committed.
 26. **Danger zones**: generated code, migrations, deploy config, and other areas to leave alone or handle with care are called out.
-27. **Guardrails**: a pre-commit hook or CI catches unformatted code, committed secrets, and oversized files. Name any that are missing.
+27. **Guardrails**: a pre-commit hook or CI catches unformatted code and committed secrets. Name any that are missing.
 28. **Commit conventions**: the commit message convention is documented.
 29. **PR conventions**: the pull request convention is documented, or a PR template exists.
