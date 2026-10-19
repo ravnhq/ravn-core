@@ -12,6 +12,8 @@ Take a change from a loose idea to a ready pull request with evidence that it wo
 
 Run every step in order. Skip a step only when the user says to, or when its condition below does not hold. This is the full path on purpose; the user learns which steps a small change can drop.
 
+When the request is a bug with a known symptom, switch to [Bug Fix](../bug-fix/SKILL.md) and follow it in place of this skill: it owns the repro, the cause, and the red-then-green history.
+
 ## Step 1. Shape the idea
 
 If the user brings only an idea or a problem, lay out two or three ways to approach it, with the trade-off of each, and recommend one. Then state in two or three sentences what the change is, who it serves, and the observable condition that means it is done, such as a passing check or a behavior a user can see. Ask the user to correct it. Do not continue on a goal the user has not confirmed.
@@ -20,7 +22,7 @@ If the user brings only an idea or a problem, lay out two or three ways to appro
 
 Read the code the change touches. Use [How](../how/SKILL.md) for how that code works now, and [Why](../why/SKILL.md) when existing behavior looks deliberate or odd. If the change builds on a library, API, or tool, use the `research` skill to read its official docs and examples for this use case. If the reading spans many files or large outputs, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
 
-For a bug, use [Fix Root Causes](../principle-fix-root-causes/SKILL.md) to reproduce and trace the failure before choosing a fix. For a measured performance or eval claim, use [Explain the Number](../principle-explain-the-number/SKILL.md) to vet the baseline before planning from it.
+For a bug you find mid-change, run [Bug Fix](../bug-fix/SKILL.md)'s Steps 1 to 3 before choosing a fix. For a measured performance or eval claim, use [Explain the Number](../principle-explain-the-number/SKILL.md) to vet the baseline before planning from it.
 
 ## Step 3. Grill the assumptions
 
@@ -102,4 +104,4 @@ Commit with the repo's commit convention, push the branch, and open a draft PR a
 
 ## Step 13. Deliver green CI
 
-Use [Deliver Green CI](DELIVER-GREEN-CI.md) to wait for checks, repair failures, and verify the latest PR commit before marking it ready. Finish only when its applicable CI checks pass. Report the PR URL, verified head commit, local and CI results with evidence links, and anything from the plan left undone. If blocked, report the failing or missing checks and the concrete blocker as incomplete delivery.
+Use [Deliver Green CI](DELIVER-GREEN-CI.md) to wait for checks, repair failures, and verify the latest PR commit before marking it ready. Finish only when its applicable CI checks pass. Report the PR URL, verified head commit, local and CI results with evidence links, and anything from the plan left undone. If blocked, report the failing or missing checks and the concrete blocker as incomplete delivery. Otherwise end the report with how to land the PR: the user runs [Babysit](../babysit/SKILL.md) on it, which clears later review threads and merges only when they ask.

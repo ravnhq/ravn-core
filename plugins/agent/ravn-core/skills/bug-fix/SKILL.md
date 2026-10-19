@@ -53,4 +53,4 @@ Done when `git log` on the branch shows the test commit, then the fix commit, an
 
 Ask the user before pushing unless they already authorized delivery; when they said not to push, stop here. Otherwise push, open a draft PR with a body written by the `pr` skill, and put the red and green repro output under Evidence. Deliver it with [Deliver Green CI](../ship/DELIVER-GREEN-CI.md). Never push to the default branch, force-push, or merge.
 
-**Reply:** what was broken, the root cause and the evidence for it, the fix, and how you verified it. Paste the failing and passing repro output verbatim. Give the branch, its worktree if you made one, and its two commits, and the PR URL when you delivered.
+**Reply:** what was broken, the root cause and the evidence for it, the fix, and how you verified it. Paste the failing and passing repro output verbatim. Give the branch, its worktree if you made one, and its two commits, and the PR URL when you delivered. For a delivered PR, end with how to land it: the user runs [Babysit](../babysit/SKILL.md) on it, which clears later review threads and merges only when they ask.
