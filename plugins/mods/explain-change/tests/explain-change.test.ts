@@ -112,7 +112,7 @@ test("the section buttons switch what the pane shows", async ($, on) => {
   expect(drawn).not.toContain(EXPLANATION.background);
 });
 
-test("picking a quiz answer reveals its feedback and the score", async ($, on) => {
+test("answering reveals all option feedback and the score", async ($, on) => {
   await start($, on);
   await $.tool.call({ tool: TOOL, ...EXPLANATION });
   await $.ui.render(pane);
@@ -126,8 +126,7 @@ test("picking a quiz answer reveals its feedback and the score", async ($, on) =
 
   const after = await draw($);
   expect(after).toContain("Right: the hash is unchanged.");
-  // Only the picked option's feedback shows, so the pane stays uncluttered.
-  expect(after).not.toContain("The hash matches.");
+  expect(after).toContain("The hash matches.");
   expect(after).toContain("1 of 1 correct.");
 });
 
