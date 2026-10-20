@@ -243,11 +243,6 @@ function quizView(
             <Text bold>
               <Text color="claude">{q + 1}.</Text> {question.question}
             </Text>
-            {chosen && (
-              <Text bold color={chosen.isCorrect ? "success" : "error"}>
-                {chosen.isCorrect ? "Correct" : "Not quite"}
-              </Text>
-            )}
             {question.options.map((option, o) => {
               if (chosen === undefined)
                 return (
@@ -262,17 +257,23 @@ function quizView(
               const { glyph, color } = badge(option, o === choice);
 
               return (
-                <Box key={`answer-${q}-${o}`} flexDirection="column">
-                  <Text dimColor={color === undefined} color={color}>
-                    {`${glyph} ${letter(o)}) ${option.text}`}
-                  </Text>
-                  <Markdown
-                    text={option.feedback}
-                    dimColor={color === undefined}
-                  />
-                </Box>
+                <Text
+                  key={`answer-${q}-${o}`}
+                  dimColor={color === undefined}
+                  color={color}
+                >
+                  {`${glyph} ${letter(o)}) ${option.text}`}
+                </Text>
               );
             })}
+            {chosen && (
+              <Box flexDirection="column">
+                <Text bold color={chosen.isCorrect ? "success" : "error"}>
+                  {chosen.isCorrect ? "Correct" : "Not quite"}
+                </Text>
+                <Markdown text={chosen.feedback} />
+              </Box>
+            )}
           </Box>
         );
       })}
