@@ -7,6 +7,7 @@ import {
   SECTIONS,
   parseExplanation,
   score,
+  shuffleOptions,
 } from "../lib/explanation.ts";
 import { DIAGRAM_LANGUAGES, segments } from "../lib/markdown.ts";
 import { drawFlowchart, parseFlowchart } from "../lib/flowchart.ts";
@@ -60,7 +61,11 @@ export const register: Register = (on) => {
 
     if (!parsed.isValid) return { deny: `Not shown: ${parsed.error}.` };
 
-    const { explanation } = parsed;
+    const explanation = {
+      ...parsed.explanation,
+      quiz: shuffleOptions(parsed.explanation.quiz),
+    };
+
     await update($, view, () => ({
       explanation,
       section: 0,
