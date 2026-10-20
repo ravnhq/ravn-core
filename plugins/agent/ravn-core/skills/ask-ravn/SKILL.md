@@ -48,6 +48,7 @@ Reach for these without committing to the whole `ship` flow:
 |---|---|
 | Understand current code, ownership, or runtime flow | [how](../how/SKILL.md) |
 | Investigate why code has its current shape | [why](../why/SKILL.md) |
+| Learn a diff, branch, or PR well enough to review it | [explain-change](../explain-change/SKILL.md) |
 | Test a plan or decision by interview | [grill-me](../grill-me/SKILL.md), the user-invoked wrapper around [grilling](../grilling/SKILL.md) |
 | Gather primary-source facts | [research](../research/SKILL.md) |
 | Check what a change could break elsewhere | [blast-radius](../blast-radius/SKILL.md) |

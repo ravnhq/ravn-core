@@ -1,13 +1,13 @@
 # ravn-core
 
-Ravn's open-source agent plugins: `ravn-core` for Claude Code, Codex, Cursor, and Pi, and the `skill-nudge` Claude Code mod. This file is the repo map. The rules for each plugin live in its tier folder.
+Ravn's open-source agent plugins: `ravn-core` for Claude Code, Codex, Cursor, and Pi, and the `explain-change` and `skill-nudge` Claude Code mods. This file is the repo map. The rules for each plugin live in its tier folder.
 
 ## Tiers
 
 Before creating or changing a plugin, identify its tier, place it at `plugins/<tier>/<name>/`, and read that tier's `AGENTS.md`. `test/marketplace.test.ts` fails when a plugin sits in the wrong tier.
 
 - `plugins/agent/`: `ravn-core`, the coding-agent plugin. It has a `plugin.json` at its root. Rules in `plugins/agent/AGENTS.md`, vision in `plugins/agent/VISION.md`.
-- `plugins/mods/`: Claude Code mods, the plugins with `hooks/hooks.json`: `skill-nudge`. Rules in `plugins/mods/AGENTS.md`.
+- `plugins/mods/`: Claude Code mods, the plugins with `hooks/hooks.json`: `explain-change` and `skill-nudge`. Rules in `plugins/mods/AGENTS.md`.
 
 ## Layout
 
