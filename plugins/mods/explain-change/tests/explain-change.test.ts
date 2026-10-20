@@ -112,7 +112,7 @@ test("the section buttons switch what the pane shows", async ($, on) => {
   expect(drawn).not.toContain(EXPLANATION.background);
 });
 
-test("picking a quiz answer reveals every option's feedback and the score", async ($, on) => {
+test("picking a quiz answer reveals its feedback and the score", async ($, on) => {
   await start($, on);
   await $.tool.call({ tool: TOOL, ...EXPLANATION });
   await $.ui.render(pane);
@@ -121,14 +121,13 @@ test("picking a quiz answer reveals every option's feedback and the score", asyn
   const before = await draw($);
   expect(before).toContain(EXPLANATION.quiz[0]!.question);
   expect(before).not.toContain("Right: the hash is unchanged.");
-  expect(before).not.toContain("The hash matches.");
 
   await $.ui.press({ plugin: "explain-change", key: "answer-0-1" });
 
   const after = await draw($);
   expect(after).toContain("Right: the hash is unchanged.");
-  expect(after).toContain("The hash matches.");
-  expect(after).toContain("Correct");
+  // Only the picked option's feedback shows, so the pane stays uncluttered.
+  expect(after).not.toContain("The hash matches.");
   expect(after).toContain("1 of 1 correct.");
 });
 
@@ -151,35 +150,6 @@ test("a new explanation clears the previous quiz answers", async ($, on) => {
   const quiz = await draw($);
   expect(quiz).toContain("0 of 1 answered.");
   expect(quiz).not.toContain("The hash matches.");
-});
-
-test("a wrong pick reveals the correct and unpicked feedback", async ($, on) => {
-  await start($, on);
-  await $.tool.call({
-    tool: TOOL,
-    ...EXPLANATION,
-    quiz: [
-      {
-        ...EXPLANATION.quiz[0],
-        options: [
-          ...EXPLANATION.quiz[0]!.options,
-          { text: "Deletes it", isCorrect: false, feedback: "No data is lost." },
-        ],
-      },
-    ],
-  });
-  await $.ui.render(pane);
-  await $.ui.press({ plugin: "explain-change", key: "section-3" });
-  await $.ui.render(pane);
-  await $.ui.press({ plugin: "explain-change", key: "answer-0-0" });
-
-  const drawn = await draw($);
-
-  expect(drawn).toContain("Not quite");
-  expect(drawn).toContain("The hash matches.");
-  expect(drawn).toContain("Right: the hash is unchanged.");
-  expect(drawn).toContain('"dimColor":true},"children":["No data is lost."]');
-  expect(drawn).toContain("0 of 1 correct.");
 });
 
 test("a malformed call is denied and leaves the pane closed", async ($, on) => {

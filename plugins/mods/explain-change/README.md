@@ -5,7 +5,7 @@ Explain Change gives `ravn-core`'s `explain-change` skill a pane inside Claude C
 - **Background**: the system the change lives in, from a skippable primer down to the part the change touches.
 - **Intuition**: the core idea, walked through with toy data.
 - **Code**: the diff in reading order, with `path:line` references.
-- **Quiz**: multiple-choice questions. Pick an answer to reveal feedback for every option, and see your score once you finish.
+- **Quiz**: multiple-choice questions. Pick an answer to see why it's right or wrong, and your score once you finish.
 
 Flows are Mermaid flowcharts that the pane draws as boxes and connectors at its own width. Widen or narrow the pane and they lay out again. Connections it cannot draw unambiguously are listed below the drawing; Mermaid it cannot parse stays as source. Other diagrams are text: call trees, file trees, component trees, and diff-shaped sketches of what changed. Text diagrams and diff sketches clip at the pane's width. Code is syntax-highlighted, and diff sketches show added lines in green and removed ones in red.
 

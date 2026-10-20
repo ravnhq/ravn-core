@@ -167,7 +167,9 @@ test("shared destinations with distinct labels list the whole route group", () =
           const connector = link === "---" ? "—" : "→";
 
           expect(drawing.join("\n")).not.toContain("▼");
-          expect(drawing.filter((line) => line.startsWith(`  ${marker}`))).toEqual(
+          expect(
+            drawing.filter((line) => line.startsWith(`  ${marker}`)),
+          ).toEqual(
             chart.edges.map(
               (edge) =>
                 `  ${marker} ${edge.from} ${connector} C${edge.label ? `  (${edge.label})` : ""}`,
