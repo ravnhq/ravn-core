@@ -181,7 +181,7 @@ function segmentView(
 
   if (graph !== null)
     return (
-      <Text key={`flow-${index}`} color="suggestion">
+      <Text key={`flow-${index}`} color="suggestion" wrap="truncate-end">
         {drawFlowchart(graph, width).join("\n")}
       </Text>
     );

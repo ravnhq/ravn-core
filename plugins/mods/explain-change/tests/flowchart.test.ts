@@ -165,6 +165,57 @@ test("the drawing fits the width it is given and changes with it", () => {
   expect(wide.join("\n")).toContain("↺ Done → Editor saves");
 });
 
+test("CJK labels fit narrow boxes in terminal columns", () => {
+  const chart = parseFlowchart('flowchart TD\nA["保存保存保存保存保存"]');
+
+  if (chart === null) throw new Error("expected a chart");
+
+  expect(drawFlowchart(chart, 30)).toEqual([
+    `   ┌${"─".repeat(22)}┐`,
+    "   │ 保存保存保存保存保存 │",
+    `   └${"─".repeat(22)}┘`,
+  ]);
+});
+
+test("combining marks, fullwidth and supplementary characters keep box alignment", () => {
+  const chart = parseFlowchart('flowchart TD\nA["e\u0301Ａ𠀀"]');
+
+  if (chart === null) throw new Error("expected a chart");
+
+  expect(drawFlowchart(chart, 15)).toEqual([
+    "   ┌───────┐",
+    "   │ e\u0301Ａ𠀀 │",
+    "   └───────┘",
+  ]);
+});
+
+test("wide node and edge labels wrap, clip and refit without exceeding columns", () => {
+  const chart = parseFlowchart(`flowchart TD
+    A["保存保存 保存保存 保存保存 保存保存"] -->|"関係関係関係関係関係関係"| B["終点 e\u0301Ａ𠀀"]
+    B -->|"関係関係関係関係関係関係"| A`);
+
+  if (chart === null) throw new Error("expected a chart");
+
+  for (const width of [16, 30, 70]) {
+    const drawing = drawFlowchart(chart, width);
+
+    for (const line of drawing) {
+      const columns = [...line.replace(/\p{Mark}/gu, "")].reduce(
+        (sum, glyph) => sum + (/[保存終点関係Ａ𠀀]/u.test(glyph) ? 2 : 1),
+        0,
+      );
+
+      expect(columns).toBeLessThanOrEqual(width);
+    }
+
+    expect(drawing.join("\n")).toContain("e\u0301Ａ𠀀");
+    expect(drawing.join("\n")).toContain("↺");
+    expect(drawing.join("\n")).toContain("…");
+    if (width === 70)
+      expect(drawing.join("\n")).toContain("▼ 関係関係関係関係関…");
+  }
+});
+
 test("chains retain undirected links and every supported arrow's direction", () => {
   const chart = parseFlowchart(
     "flowchart TD\nA ---|peer| B --> C ==> D -.-> E -- yes --> F",

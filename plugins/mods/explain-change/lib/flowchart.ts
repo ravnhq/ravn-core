@@ -413,8 +413,7 @@ function paintBox(grid: Cell[][], box: Placed): void {
     put(grid, y, box.x, v);
     put(grid, y, right, v);
 
-    for (const [at, glyph] of [...line].entries())
-      put(grid, y, box.x + 2 + at, glyph);
+    paintText(grid, y, box.x + 2, line);
   }
 }
 
@@ -499,7 +498,9 @@ function paintEdges(
 
   for (const { edge, y, x } of labels) {
     const text = clip(edge.label, 20);
-    const cells = [...text].map((_, at) => grid[y]?.[x + at]);
+    const cells = Array.from({ length: displayWidth(text) }, (_, at) =>
+      grid[y]?.[x + at],
+    );
 
     const isFree = cells.every(
       (cell) => cell !== undefined && cell.glyph === " " && cell.joins === 0,
@@ -510,7 +511,7 @@ function paintEdges(
       continue;
     }
 
-    for (const [at, glyph] of [...text].entries()) put(grid, y, x + at, glyph);
+    paintText(grid, y, x, text);
   }
 
   return crowded;
@@ -520,6 +521,26 @@ function put(grid: Cell[][], y: number, x: number, glyph: string | undefined) {
   const cell = grid[y]?.[x];
 
   if (cell !== undefined && glyph !== undefined) cell.glyph = glyph;
+}
+
+function paintText(grid: Cell[][], y: number, x: number, text: string): void {
+  let previous = x - 1;
+
+  for (const glyph of text) {
+    const width = glyphWidth(glyph);
+
+    if (width === 0) {
+      const cell = grid[y]?.[previous];
+
+      if (cell !== undefined) cell.glyph += glyph;
+      continue;
+    }
+
+    put(grid, y, x, glyph);
+    for (let at = 1; at < width; at += 1) put(grid, y, x + at, "");
+    previous = x;
+    x += width;
+  }
 }
 
 function join(grid: Cell[][], y: number, x: number, joins: number) {
@@ -545,7 +566,8 @@ function wrapLabel(label: string, width: number): string[] {
     const piece = clip(word, width);
 
     if (line === "") line = piece;
-    else if (line.length + 1 + piece.length <= width) line += ` ${piece}`;
+    else if (displayWidth(line) + 1 + displayWidth(piece) <= width)
+      line += ` ${piece}`;
     else {
       lines.push(line);
       line = piece;
@@ -561,11 +583,49 @@ function wrapLabel(label: string, width: number): string[] {
 }
 
 function widest(lines: readonly string[]): number {
-  return Math.max(...lines.map((line) => line.length));
+  return Math.max(...lines.map(displayWidth));
 }
 
 function clip(text: string, width: number): string {
-  return text.length <= width
-    ? text
-    : `${text.slice(0, Math.max(1, width - 1))}…`;
+  if (displayWidth(text) <= width) return text;
+
+  let result = "";
+  let used = 0;
+
+  for (const glyph of text) {
+    const columns = glyphWidth(glyph);
+
+    if (used + columns > width - 1) break;
+    result += glyph;
+    used += columns;
+  }
+
+  return width > 0 ? `${result}…` : "";
+}
+
+function displayWidth(text: string): number {
+  return [...text].reduce((width, glyph) => width + glyphWidth(glyph), 0);
+}
+
+function glyphWidth(glyph: string): number {
+  if (/\p{Mark}/u.test(glyph)) return 0;
+
+  const code = glyph.codePointAt(0) ?? 0;
+
+  return code >= 0x1100 &&
+    (code <= 0x115f ||
+      code === 0x2329 ||
+      code === 0x232a ||
+      (code >= 0x2e80 && code <= 0xa4cf && code !== 0x303f) ||
+      (code >= 0xac00 && code <= 0xd7a3) ||
+      (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0xfe10 && code <= 0xfe19) ||
+      (code >= 0xfe30 && code <= 0xfe6f) ||
+      (code >= 0xff01 && code <= 0xff60) ||
+      (code >= 0xffe0 && code <= 0xffe6) ||
+      (code >= 0x1b000 && code <= 0x1b2ff) ||
+      (code >= 0x1f200 && code <= 0x1f251) ||
+      (code >= 0x20000 && code <= 0x3fffd))
+    ? 2
+    : 1;
 }
