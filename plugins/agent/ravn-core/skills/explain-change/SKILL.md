@@ -16,7 +16,7 @@ Teach one code change well enough that the reader could review it. In Claude Cod
 
 The argument names it: a PR (`gh pr diff <number>`), a branch or ref range, a commit, or uncommitted work. With no argument, take the current branch against its merge base with the default branch, plus uncommitted changes.
 
-Read the whole diff, then the code around each hunk: callers, types, tests. Done when you can say what the system did before and after, and every changed file has a place in that story.
+List every file the change touches first (`git diff --stat`, `git show --stat`, or the PR's file list): that list is the walkthrough's checklist. Then read the whole diff, file by file, and the code around each hunk: callers, types, tests. Done when you can say what the system did before and after, and every file on the list, migrations, moves, and deletions included, has a place in that story.
 
 ## 2. Write the lesson
 
@@ -24,7 +24,7 @@ Four parts, each markdown rendered the way an assistant reply is:
 
 - **background**: the existing system the change lives in. Open with a deep background for newcomers, marked as skippable for readers who know the code, then narrow to the part the change touches.
 - **intuition**: the essence of the change, not its details. Walk a concrete example with toy data through the before and the after.
-- **code**: a walkthrough of the diff, grouped and ordered so each group builds on the last. Cite files as `path:line`.
+- **code**: a walkthrough of every file on the checklist, grouped and ordered so each group builds on the last. A schema migration, code moved to a new module, or a deleted file each gets its own sentence, since a reviewer misses those first. Cite files as `path:line` only for lines you read in the diff.
 - **quiz**: five medium questions that take the substance of the change to answer, not gotchas. Each has three or four options, exactly one correct, and every option carries feedback saying why it is right or wrong.
 
 Write in classic style, with the clarity and flow of Martin Kleppmann; transitions carry the reader from one part into the next. Set key concepts, definitions, and edge cases apart as callouts: a blockquote led by a bold label (`> **Edge case:** ...`).
@@ -63,4 +63,10 @@ Show a whole block instead when most of it is new, or when cutting context would
 
 Where the `mcp__explain-change__show` tool exists (Claude Code with the `explain-change` mod), load it with ToolSearch (`select:mcp__explain-change__show`) and call it with `title`, a one-sentence `summary`, `background`, `intuition`, `code`, and `quiz`. A denial names the field to fix: fix it and call again. Then reply in one line saying what the change does, and pass on the tool's result.
 
-Everywhere else, write the four parts in chat, with the quiz answers gathered after the last question.
+Everywhere else, write the four parts in chat. Gather the quiz answers after the last question, so the reader can try the quiz before reading why, with a line for every option, the wrong ones too:
+
+```markdown
+1. **b** is right: <why b holds>.
+   - a: <why a is wrong>
+   - c: <why c is wrong>
+```
