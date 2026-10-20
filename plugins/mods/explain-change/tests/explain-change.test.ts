@@ -276,3 +276,22 @@ test("a mermaid flowchart is laid out to the pane's width, and refits when it ch
   expect(wide).toContain('"language":"mermaid"');
   expect(wide).toContain("sequenceDiagram");
 });
+
+test("control characters in the lesson are stripped before the pane draws it", async ($, on) => {
+  await start($, on);
+
+  const shown = await $.tool.call({
+    tool: TOOL,
+    ...EXPLANATION,
+    title: "Cache\u001b[31m saves\u0007",
+    background: "Line one\nLine\ttwo\u001b]0;pwned\u0007",
+  });
+
+  expect(shown.deny).toBeUndefined();
+
+  const drawn = await draw($);
+  expect(drawn).toContain("Cache[31m saves");
+  expect(drawn).toContain("Line one\\nLine\\ttwo]0;pwned");
+  expect(drawn).not.toContain("\\u001b");
+  expect(drawn).not.toContain("\\u0007");
+});
