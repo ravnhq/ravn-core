@@ -216,7 +216,7 @@ function diffColor(line: string): string | undefined {
 }
 
 function quizView(
-  { Box, Text, Button, Markdown }: Elements,
+  { Box, Text, Button }: Elements,
   quiz: readonly Question[],
   picked: readonly (number | null)[],
   onPick: (question: number, option: number) => void,
@@ -243,6 +243,11 @@ function quizView(
             <Text bold>
               <Text color="claude">{q + 1}.</Text> {question.question}
             </Text>
+            {chosen && (
+              <Text bold color={chosen.isCorrect ? "success" : "error"}>
+                {chosen.isCorrect ? "Correct" : "Not quite"}
+              </Text>
+            )}
             {question.options.map((option, o) => {
               if (chosen === undefined)
                 return (
@@ -257,23 +262,14 @@ function quizView(
               const { glyph, color } = badge(option, o === choice);
 
               return (
-                <Text
-                  key={`answer-${q}-${o}`}
-                  dimColor={color === undefined}
-                  color={color}
-                >
-                  {`${glyph} ${letter(o)}) ${option.text}`}
-                </Text>
+                <Box key={`answer-${q}-${o}`} flexDirection="column">
+                  <Text dimColor={color === undefined} color={color}>
+                    {`${glyph} ${letter(o)}) ${option.text}`}
+                  </Text>
+                  <Text dimColor={color === undefined}>{option.feedback}</Text>
+                </Box>
               );
             })}
-            {chosen && (
-              <Box flexDirection="column">
-                <Text bold color={chosen.isCorrect ? "success" : "error"}>
-                  {chosen.isCorrect ? "Correct" : "Not quite"}
-                </Text>
-                <Markdown text={chosen.feedback} />
-              </Box>
-            )}
           </Box>
         );
       })}

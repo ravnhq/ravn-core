@@ -469,6 +469,8 @@ function paintEdges(
         group.some(
           (target) =>
             source.edge.direction !== target.edge.direction ||
+            (source.edge.to === target.edge.to &&
+              source.edge.label !== target.edge.label) ||
             !group.some(
               ({ edge }) =>
                 edge.from === source.edge.from && edge.to === target.edge.to,

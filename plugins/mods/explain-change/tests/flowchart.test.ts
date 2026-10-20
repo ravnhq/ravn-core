@@ -145,6 +145,48 @@ test("unambiguous fan-out, fan-in, disjoint and complete buses still draw", () =
   }
 });
 
+test("shared destinations with distinct labels list the whole route group", () => {
+  for (const link of ["-->", "---"]) {
+    for (const [first, second] of [
+      ["yes", "no"],
+      ["yes", ""],
+    ]) {
+      for (const sources of [
+        ["A", "B"],
+        ["A", "A"],
+      ]) {
+        const chart = parseFlowchart(
+          `flowchart TD\n${sources[0]} ${link}|${first}| C\n${sources[1]} ${link}${second ? `|${second}|` : ""} C`,
+        );
+
+        if (chart === null) throw new Error("expected a chart");
+
+        for (const width of [24, 40, 70]) {
+          const drawing = drawFlowchart(chart, width);
+          const marker = link === "---" ? "—" : "⇢";
+          const connector = link === "---" ? "—" : "→";
+
+          expect(drawing.join("\n")).not.toContain("▼");
+          expect(drawing.filter((line) => line.startsWith(`  ${marker}`))).toEqual(
+            chart.edges.map(
+              (edge) =>
+                `  ${marker} ${edge.from} ${connector} C${edge.label ? `  (${edge.label})` : ""}`,
+            ),
+          );
+        }
+      }
+    }
+  }
+});
+
+test("shared destinations with matching labels still draw", () => {
+  const chart = parseFlowchart("flowchart TD\nA -->|yes| C\nB -->|yes| C");
+
+  if (chart === null) throw new Error("expected a chart");
+
+  expect(drawFlowchart(chart, 40).join("\n")).toContain("▼ yes");
+});
+
 test("the drawing fits the width it is given and changes with it", () => {
   const chart = parseFlowchart(SAVE);
 
