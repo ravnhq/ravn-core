@@ -47,6 +47,7 @@ export function parseFlowchart(source: string): Flowchart | null {
 
   for (let at = 0; at <= source.length; at += 1) {
     if (source[at] === '"') quoted = !quoted;
+
     if (at === source.length || (!quoted && /[\n;]/.test(source[at] ?? ""))) {
       const statement = source.slice(start, at).trim();
 
@@ -124,6 +125,7 @@ function readNode(text: string): { node: FlowNode; rest: string } | undefined {
 
   for (; end < after.length; end += 1) {
     if (after[end] === '"') quoted = !quoted;
+
     if (!quoted && after.startsWith(close, end)) break;
   }
 
@@ -442,6 +444,7 @@ function paintEdges(
 
       return [{ edge, from, start, end }];
     });
+
     const groups: (typeof routes)[] = [];
 
     for (const route of routes.sort(
@@ -453,7 +456,8 @@ function paintEdges(
         group !== undefined &&
         group.some(
           (other) =>
-            Math.max(other.start, other.end) >= Math.min(route.start, route.end),
+            Math.max(other.start, other.end) >=
+            Math.min(route.start, route.end),
         )
       )
         group.push(route);
@@ -476,6 +480,7 @@ function paintEdges(
 
       for (const { edge, from, start, end } of group) {
         drawn.add(edge);
+
         for (let y = from.y + from.height; y <= bus.y; y += 1)
           join(grid, y, start, UP | DOWN);
 
@@ -487,6 +492,7 @@ function paintEdges(
         }
 
         join(grid, bus.y + 1, end, DOWN);
+
         if (edge.direction === "directed") put(grid, bus.y + 2, end, "▼");
         else join(grid, bus.y + 2, end, UP | DOWN);
 
@@ -500,8 +506,10 @@ function paintEdges(
 
   for (const { edge, y, x } of labels) {
     const text = clip(edge.label, 20);
-    const cells = Array.from({ length: displayWidth(text) }, (_, at) =>
-      grid[y]?.[x + at],
+
+    const cells = Array.from(
+      { length: displayWidth(text) },
+      (_, at) => grid[y]?.[x + at],
     );
 
     const isFree = cells.every(
@@ -539,6 +547,7 @@ function paintText(grid: Cell[][], y: number, x: number, text: string): void {
     }
 
     put(grid, y, x, glyph);
+
     for (let at = 1; at < width; at += 1) put(grid, y, x + at, "");
     previous = x;
     x += width;
@@ -616,6 +625,7 @@ function displayWidth(text: string): number {
 
 function glyphWidth(glyph: string): number {
   if (/^\p{Mark}+$/u.test(glyph)) return 0;
+
   if (
     /\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\u20E3/u.test(
       glyph,

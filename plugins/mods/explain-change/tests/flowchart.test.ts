@@ -61,6 +61,7 @@ test("quoted delimiters, semicolons, and comparisons survive parsing", () => {
     ["{{", "}}"],
   ]) {
     const label = `cache[key] ${close}; x < 10 && y > 5`;
+
     const chart = parseFlowchart(
       `flowchart TD\nA${open}"${label}"${close} -->|"save; now"| B[Save]; B --> C[Done]`,
     );
@@ -138,6 +139,7 @@ test("unambiguous fan-out, fan-in, disjoint and complete buses still draw", () =
     const drawing = drawFlowchart(chart, 70).join("\n");
 
     expect(drawing).toContain("▼");
+
     if (edges.includes("E --> F")) expect(drawing).not.toContain("⇢ E → F");
     else expect(drawing).not.toContain("⇢");
   }
@@ -224,9 +226,7 @@ test("emoji clipping keeps flags and joined sequences intact", () => {
     expect(drawFlowchart(linked, 70).join("\n")).toContain(
       `▼ ${glyph.repeat(9)}…`,
     );
-    expect(drawFlowchart(linked, 16)).toContain(
-      `  ⇢ A → B  (${glyph}…`,
-    );
+    expect(drawFlowchart(linked, 16)).toContain(`  ⇢ A → B  (${glyph}…`);
   }
 });
 
@@ -252,6 +252,7 @@ test("wide node and edge labels wrap, clip and refit without exceeding columns",
     expect(drawing.join("\n")).toContain("e\u0301Ａ𠀀");
     expect(drawing.join("\n")).toContain("↺");
     expect(drawing.join("\n")).toContain("…");
+
     if (width === 70)
       expect(drawing.join("\n")).toContain("▼ 関係関係関係関係関…");
   }
@@ -262,7 +263,9 @@ test("chains retain undirected links and every supported arrow's direction", () 
     "flowchart TD\nA ---|peer| B --> C ==> D -.-> E -- yes --> F",
   );
 
-  expect(chart?.edges.map(({ direction, label }) => [direction, label])).toEqual([
+  expect(
+    chart?.edges.map(({ direction, label }) => [direction, label]),
+  ).toEqual([
     ["undirected", "peer"],
     ["directed", ""],
     ["directed", ""],

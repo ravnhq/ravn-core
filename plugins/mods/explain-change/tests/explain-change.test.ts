@@ -234,9 +234,7 @@ test("fences draw as highlighted code, coloured diffs, and accented diagrams", a
   expect(drawn).toContain(
     '"type":"Code","props":{"source":"const hit = cache.get(key);","language":"ts"}',
   );
-  expect(drawn).toContain(
-    '"wrap":"truncate-end"},"children":[" save(a)"]',
-  );
+  expect(drawn).toContain('"wrap":"truncate-end"},"children":[" save(a)"]');
   expect(drawn).toContain(
     '"color":"success","wrap":"truncate-end"},"children":["+  return cached"]',
   );
