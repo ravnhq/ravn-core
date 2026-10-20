@@ -10,7 +10,7 @@ export type FlowEdge = { from: string; to: string; label: string };
 
 export type Flowchart = { nodes: FlowNode[]; edges: FlowEdge[] };
 
-const HEADER = /^(?:flowchart|graph)\b/i;
+const HEADER = /^(?:flowchart|graph)(?:\s+(?:TD|TB|BT|LR|RL))?$/i;
 
 // Lines that style or group a chart without adding nodes or edges.
 const IGNORED =
@@ -36,18 +36,28 @@ const ARROW = /^\s*(?:-->|---|==>|-\.->)(?:\s*\|([^|]*)\|)?/;
 const NODE_ID = /^\s*([\w-]+)/;
 
 export function parseFlowchart(source: string): Flowchart | null {
-  const statements = source
-    .split(/[\n;]/)
-    .map((line) => line.trim())
-    .filter((line) => line !== "");
+  const statements: string[] = [];
+  let quoted = false;
+  let start = 0;
 
-  if (!HEADER.test(statements[0] ?? "")) return null;
+  for (let at = 0; at <= source.length; at += 1) {
+    if (source[at] === '"') quoted = !quoted;
+    if (at === source.length || (!quoted && /[\n;]/.test(source[at] ?? ""))) {
+      const statement = source.slice(start, at).trim();
+
+      if (statement !== "") statements.push(statement);
+      start = at + 1;
+    }
+  }
+
+  if (quoted || !HEADER.test(statements[0] ?? "")) return null;
 
   const nodes = new Map<string, FlowNode>();
   const edges: FlowEdge[] = [];
 
   for (const statement of statements.slice(1)) {
-    if (!IGNORED.test(statement)) readStatement(statement, nodes, edges);
+    if (!IGNORED.test(statement) && !readStatement(statement, nodes, edges))
+      return null;
   }
 
   return nodes.size === 0 ? null : { nodes: [...nodes.values()], edges };
@@ -58,14 +68,14 @@ function readStatement(
   statement: string,
   nodes: Map<string, FlowNode>,
   edges: FlowEdge[],
-): void {
+): boolean {
   let rest = statement;
   let previous: { id: string; label: string } | undefined;
 
   for (;;) {
     const read = readNode(rest);
 
-    if (read === undefined) return;
+    if (read === undefined) return false;
 
     remember(nodes, read.node);
 
@@ -80,7 +90,7 @@ function readStatement(
 
     const edge = LABELLED.exec(rest) ?? ARROW.exec(rest);
 
-    if (edge === null) return;
+    if (edge === null) return rest.trim() === "";
 
     previous = { id: read.node.id, label: cleanLabel(edge[1] ?? "") };
     rest = rest.slice(edge[0].length);
@@ -99,9 +109,15 @@ function readNode(text: string): { node: FlowNode; rest: string } | undefined {
     return { node: { id: id[1], label: id[1], frame: "box" }, rest: after };
 
   const [open, close, kind] = frame;
-  const end = after.indexOf(close, open.length);
+  let quoted = false;
+  let end = open.length;
 
-  if (end === -1) return undefined;
+  for (; end < after.length; end += 1) {
+    if (after[end] === '"') quoted = !quoted;
+    if (!quoted && after.startsWith(close, end)) break;
+  }
+
+  if (quoted || end === after.length) return undefined;
 
   const label = cleanLabel(after.slice(open.length, end)) || id[1];
 
@@ -121,9 +137,12 @@ function remember(nodes: Map<string, FlowNode>, node: FlowNode): void {
 function cleanLabel(raw: string): string {
   return raw
     .trim()
-    .replace(/^"(.*)"$/, "$1")
+    .replace(/^"([\s\S]*)"$/, "$1")
     .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]+>/g, "")
+    .replace(
+      /<\/?[a-z][a-z0-9]*(?:\s+[a-z_:][\w:.-]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*\s*\/?>/gi,
+      "",
+    )
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -223,8 +242,6 @@ export function drawFlowchart(chart: Flowchart, width: number): string[] {
       (edge) => here.has(edge.from) && next.has(edge.to),
     );
 
-    for (const edge of down) drawn.add(edge);
-
     if (index < rows.length - 1) {
       buses.push({ y, edges: down });
       y += down.length > 0 ? 3 : 1;
@@ -242,7 +259,7 @@ export function drawFlowchart(chart: Flowchart, width: number): string[] {
 
   for (const box of placed.values()) paintBox(grid, box);
 
-  const crowded = paintEdges(grid, buses, placed);
+  const crowded = paintEdges(grid, buses, placed, drawn);
 
   const lines = grid.map((row) =>
     row
@@ -398,34 +415,71 @@ function paintEdges(
   grid: Cell[][],
   buses: readonly { y: number; edges: FlowEdge[] }[],
   placed: ReadonlyMap<string, Placed>,
+  drawn: Set<FlowEdge>,
 ): Set<FlowEdge> {
   const labels: { edge: FlowEdge; y: number; x: number }[] = [];
 
   for (const bus of buses) {
-    for (const edge of bus.edges) {
+    const routes = bus.edges.flatMap((edge) => {
       const from = placed.get(edge.from);
       const to = placed.get(edge.to);
 
-      if (from === undefined || to === undefined) continue;
+      if (from === undefined || to === undefined) return [];
 
       const start = centreOf(from);
       const fromAbove = start > to.x + 1 && start < to.x + to.width - 2;
       const end = fromAbove ? start : centreOf(to);
 
-      for (let y = from.y + from.height; y <= bus.y; y += 1)
-        join(grid, y, start, UP | DOWN);
+      return [{ edge, from, start, end }];
+    });
+    const groups: (typeof routes)[] = [];
 
-      join(grid, bus.y + 1, start, UP);
+    for (const route of routes.sort(
+      (a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end),
+    )) {
+      const group = groups.at(-1);
 
-      for (let x = Math.min(start, end); x < Math.max(start, end); x += 1) {
-        join(grid, bus.y + 1, x, RIGHT);
-        join(grid, bus.y + 1, x + 1, LEFT);
+      if (
+        group !== undefined &&
+        group.some(
+          (other) =>
+            Math.max(other.start, other.end) >= Math.min(route.start, route.end),
+        )
+      )
+        group.push(route);
+      else groups.push([route]);
+    }
+
+    for (const group of groups) {
+      const ambiguous = group.some((source) =>
+        group.some(
+          (target) =>
+            !group.some(
+              ({ edge }) =>
+                edge.from === source.edge.from && edge.to === target.edge.to,
+            ),
+        ),
+      );
+
+      if (ambiguous) continue;
+
+      for (const { edge, from, start, end } of group) {
+        drawn.add(edge);
+        for (let y = from.y + from.height; y <= bus.y; y += 1)
+          join(grid, y, start, UP | DOWN);
+
+        join(grid, bus.y + 1, start, UP);
+
+        for (let x = Math.min(start, end); x < Math.max(start, end); x += 1) {
+          join(grid, bus.y + 1, x, RIGHT);
+          join(grid, bus.y + 1, x + 1, LEFT);
+        }
+
+        join(grid, bus.y + 1, end, DOWN);
+        put(grid, bus.y + 2, end, "▼");
+
+        if (edge.label !== "") labels.push({ edge, y: bus.y + 2, x: end + 2 });
       }
-
-      join(grid, bus.y + 1, end, DOWN);
-      put(grid, bus.y + 2, end, "▼");
-
-      if (edge.label !== "") labels.push({ edge, y: bus.y + 2, x: end + 2 });
     }
   }
 
