@@ -156,6 +156,23 @@ function parseQuestion(entry: Json): Question | undefined {
   return correct === 1 ? { question, options: parsed } : undefined;
 }
 
+// Each question's options in random order, so the right answer's letter says
+// nothing about the order the model wrote them in.
+export function shuffleOptions(
+  quiz: readonly Question[],
+  random: () => number = Math.random,
+): Question[] {
+  return quiz.map((question) => {
+    const pool = [...question.options];
+    const options: QuizOption[] = [];
+
+    while (pool.length > 0)
+      options.push(...pool.splice(Math.floor(random() * pool.length), 1));
+
+    return { ...question, options };
+  });
+}
+
 export function score(
   quiz: readonly Question[],
   answers: readonly (number | null)[],

@@ -25,7 +25,7 @@ Four parts, each markdown rendered the way an assistant reply is:
 - **background**: the existing system the change lives in. Open with a deep background for newcomers, marked as skippable for readers who know the code, then narrow to the part the change touches.
 - **intuition**: the essence of the change, not its details. Walk a concrete example with toy data through the before and the after.
 - **code**: a walkthrough of every file on the checklist, grouped and ordered so each group builds on the last. A schema migration, code moved to a new module, or a deleted file each gets its own sentence, since a reviewer misses those first. Cite files as `path:line` only for lines you read in the diff. Resolve citation paths against the repository containing that diff (`git rev-parse --show-toplevel` from the change's directory). Before showing the lesson, check that every link target identifies that checklist file and a line read in its diff, including when the change lives in a nested repository.
-- **quiz**: five medium questions that take the substance of the change to answer, not gotchas. Each has three or four options, exactly one correct, and every option carries feedback saying why it is right or wrong.
+- **quiz**: five medium questions that take the substance of the change to answer, not gotchas. Each has three or four options, exactly one correct and shuffled so its letter changes from question to question, and every option carries feedback saying why it is right or wrong.
 
 Write in classic style, with the clarity and flow of Martin Kleppmann; transitions carry the reader from one part into the next. Set key concepts, definitions, and edge cases apart as callouts: a blockquote led by a bold label (`> **Edge case:** ...`).
 

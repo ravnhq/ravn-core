@@ -121,6 +121,18 @@ async function textOf(pane: Pane): Promise<string> {
   return elements.map((element) => element.text).join("\n");
 }
 
+// Presses the option shown as `text`, wherever the shuffle put it.
+async function pick(pane: Pane, text: string): Promise<void> {
+  const option = await pane.find({
+    type: "Button",
+    text: new RegExp(`\\) ${text}$`),
+  });
+
+  if (option?.key === undefined) throw new Error(`no option shows ${text}`);
+
+  await pane.press({ key: option.key });
+}
+
 test("a show call opens the pane on the background section", async ($, on) => {
   const { opened } = await start($, on);
 
@@ -161,7 +173,7 @@ test("picking a quiz answer reveals its feedback and the score", async ($, on) =
     await pane.find({ text: "Right: the hash is unchanged." }),
   ).toBeUndefined();
 
-  await pane.press({ key: "answer-0-1" });
+  await pick(pane, "Returns the cached result");
 
   expect(
     await pane.find({ text: "Right: the hash is unchanged." }),
@@ -342,7 +354,7 @@ test("every section draws on every surface", async ($, on) => {
     }
 
     // The session's state is shared, so the first surface answers for all.
-    if (surface === "terminal") await pane.press({ key: "answer-0-1" });
+    if (surface === "terminal") await pick(pane, "Returns the cached result");
 
     expect(await pane.find({ text: "1 of 1 correct." })).toBeDefined();
 
