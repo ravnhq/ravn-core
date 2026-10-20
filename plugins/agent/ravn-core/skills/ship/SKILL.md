@@ -40,8 +40,8 @@ If the change adds a module or reshapes an interface, use the `codebase-design` 
 
 Apply these principles when their conditions hold:
 
-- For types or function signatures in a statically typed language, use [Type System Discipline](../principle-type-system-discipline/SKILL.md).
-- For validation, error handling, or framework adapters, use [Boundary Discipline](../principle-boundary-discipline/SKILL.md). Validate external inputs at entry points; Fix Root Causes' no-guards rule applies to silencing an unexplained internal failure.
+- For types or function signatures in a statically typed language, use [Type System Discipline](../principle-type-system-discipline/SKILL.md), and in TypeScript also [TypeScript Best Practices](../typescript-best-practices/SKILL.md).
+- For validation, error handling, or framework adapters, use [Boundary Discipline](../principle-boundary-discipline/SKILL.md). Validate external inputs at entry points. Inside, a guard is a fix only for a legitimate state, per [Fix Root Causes](../principle-fix-root-causes/SKILL.md); for a state that should never exist, fix what produced it.
 - For mutating commands, lifecycle steps, or processing loops amid retries and interruptions, use [Make Operations Idempotent](../principle-make-operations-idempotent/SKILL.md).
 - For concurrent actors that might write the same object, use [Separate Before Serializing Shared State](../principle-separate-before-serializing-shared-state/SKILL.md).
 

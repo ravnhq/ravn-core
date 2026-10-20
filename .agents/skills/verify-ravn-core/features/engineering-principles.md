@@ -30,7 +30,7 @@ Use the harness isolation and transcript conventions in [ship](ship.md). Use the
 
 ## Gotchas
 
-- Source rules are preserved. Apply Boundary Discipline to external inputs and Fix Root Causes' no-guards rule to attempts to silence unexplained internal failures.
+- Source rules are preserved. Apply Boundary Discipline to external inputs and Fix Root Causes' legitimate-state rule to guards that would hide an unexplained internal failure.
 - The benchmark checklist retains its full-evidence requirements and explicit one-run ballpark exception. A synthetic incomplete run proves rejection of a bad claim, not a real performance improvement.
 - These principles have `proof: subjective`; judge the decisions and code as well as running behavioral checks.
 - A session-limit response verifies nothing about skill behavior. Keep the failed transcript and report that harness as unverified.

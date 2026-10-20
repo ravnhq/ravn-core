@@ -77,4 +77,4 @@ Run the `validate` skill before you push. The per-skill evals are private, so `p
 
 ## License
 
-MIT. 24 of the skills adapt MIT-licensed work from [mattpocock/skills](https://github.com/mattpocock/skills) and [pstack](https://github.com/cursor/plugins/tree/main/pstack); each carries its upstream license in its `LICENSE.txt`.
+MIT. 27 of the skills adapt MIT-licensed work from [mattpocock/skills](https://github.com/mattpocock/skills) and [pstack](https://github.com/cursor/plugins/tree/main/pstack); each carries its upstream license in its `LICENSE.txt`.

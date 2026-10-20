@@ -69,6 +69,7 @@ Apply principles when their conditions occur during any route:
 | Debugging a symptom | [fix-root-causes](../principle-fix-root-causes/SKILL.md) |
 | Designing validation, error handling, or adapters | [boundary-discipline](../principle-boundary-discipline/SKILL.md) |
 | Writing types or signatures in a typed language | [type-system-discipline](../principle-type-system-discipline/SKILL.md) |
+| Writing or reviewing TypeScript | [typescript-best-practices](../typescript-best-practices/SKILL.md) |
 | Handling retries, restarts, or interrupted mutation | [make-operations-idempotent](../principle-make-operations-idempotent/SKILL.md) |
 | Coordinating writers of shared mutable state | [separate-before-serializing-shared-state](../principle-separate-before-serializing-shared-state/SKILL.md) |
 | Trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
