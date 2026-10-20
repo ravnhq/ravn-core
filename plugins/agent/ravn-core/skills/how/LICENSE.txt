@@ -1,4 +1,4 @@
-Adapted from pstack, https://github.com/cursor/plugins/tree/main/pstack.
+Adapted from pstack, https://github.com/cursor/plugins/tree/88d47514b82e7c44f00f2b2a72ff6dd12158038c/pstack.
 
 MIT License
 

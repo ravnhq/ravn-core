@@ -43,6 +43,7 @@ Claude Code mods:
 - [ship idea-to-PR workflow](./ship.md) covers `ship` and the skills it chains: `grilling`, `create-verification-skill`, and `pr`. `research` and `maintain-verification-skill` run only when the change needs outside docs or the repo already has a verification skill.
 - [babysit merge-readiness workflow](./babysit.md) covers gate discovery, thread triage, merge-ready reporting, proof before merging, merging on request, merge-queue drops, and background watching, against a simulated GitHub.
 - [bug-fix workflow](./bug-fix.md) covers the repro, the root cause, red-then-green history on a new branch, and isolating a dirty tree in a worktree.
+- [TypeScript best practices](./typescript-best-practices.md) covers loading the skill unprompted for a TypeScript change, applying its rules, and staying out of other languages.
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
 
 ## Not covered

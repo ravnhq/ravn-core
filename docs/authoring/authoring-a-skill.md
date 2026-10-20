@@ -1,6 +1,6 @@
 ### Authoring or modifying a skill
 
-Adapted from the [pstack](https://github.com/cursor/plugins/tree/main/pstack) `authoring-a-skill` playbook, MIT License, Copyright (c) 2026 Lauren Tan.
+Adapted from the [pstack](https://github.com/cursor/plugins/tree/88d47514b82e7c44f00f2b2a72ff6dd12158038c/pstack) `authoring-a-skill` playbook, MIT License, Copyright (c) 2026 Lauren Tan.
 
 **You own the skill's voice.**
 
