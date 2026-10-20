@@ -189,6 +189,47 @@ test("combining marks, fullwidth and supplementary characters keep box alignment
   ]);
 });
 
+test("emoji graphemes occupy two columns without shifting box borders", () => {
+  for (const glyph of ["🚀", "☀", "🇧🇷", "👩‍💻", "👍🏽", "1️⃣", "↔️"]) {
+    const chart = parseFlowchart(`flowchart TD\nA["${glyph} Deploy"]`);
+
+    if (chart === null) throw new Error("expected a chart");
+
+    expect(drawFlowchart(chart, 30)).toEqual([
+      `        ┌${"─".repeat(11)}┐`,
+      `        │ ${glyph} Deploy │`,
+      `        └${"─".repeat(11)}┘`,
+    ]);
+  }
+});
+
+test("emoji clipping keeps flags and joined sequences intact", () => {
+  for (const glyph of ["🚀", "🇧🇷", "👩‍💻", "👍🏽", "1️⃣"]) {
+    const chart = parseFlowchart(`flowchart TD\nA["${glyph.repeat(12)}"]`);
+
+    if (chart === null) throw new Error("expected a chart");
+
+    expect(drawFlowchart(chart, 16)).toEqual([
+      `┌${"─".repeat(13)}┐`,
+      `│ ${glyph.repeat(5)}… │`,
+      `└${"─".repeat(13)}┘`,
+    ]);
+
+    const linked = parseFlowchart(
+      `flowchart TD\nA -->|"${glyph.repeat(12)}"| B\nB --> A`,
+    );
+
+    if (linked === null) throw new Error("expected a chart");
+
+    expect(drawFlowchart(linked, 70).join("\n")).toContain(
+      `▼ ${glyph.repeat(9)}…`,
+    );
+    expect(drawFlowchart(linked, 16)).toContain(
+      `  ⇢ A → B  (${glyph}…`,
+    );
+  }
+});
+
 test("wide node and edge labels wrap, clip and refit without exceeding columns", () => {
   const chart = parseFlowchart(`flowchart TD
     A["保存保存 保存保存 保存保存 保存保存"] -->|"関係関係関係関係関係関係"| B["終点 e\u0301Ａ𠀀"]

@@ -198,6 +198,8 @@ const MAX_LABEL = 22;
 
 const MIN_LABEL = 8;
 
+const GRAPHEMES = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
 type Placed = {
   node: FlowNode;
   lines: string[];
@@ -526,7 +528,7 @@ function put(grid: Cell[][], y: number, x: number, glyph: string | undefined) {
 function paintText(grid: Cell[][], y: number, x: number, text: string): void {
   let previous = x - 1;
 
-  for (const glyph of text) {
+  for (const { segment: glyph } of GRAPHEMES.segment(text)) {
     const width = glyphWidth(glyph);
 
     if (width === 0) {
@@ -592,7 +594,7 @@ function clip(text: string, width: number): string {
   let result = "";
   let used = 0;
 
-  for (const glyph of text) {
+  for (const { segment: glyph } of GRAPHEMES.segment(text)) {
     const columns = glyphWidth(glyph);
 
     if (used + columns > width - 1) break;
@@ -604,11 +606,22 @@ function clip(text: string, width: number): string {
 }
 
 function displayWidth(text: string): number {
-  return [...text].reduce((width, glyph) => width + glyphWidth(glyph), 0);
+  let width = 0;
+
+  for (const { segment: glyph } of GRAPHEMES.segment(text))
+    width += glyphWidth(glyph);
+
+  return width;
 }
 
 function glyphWidth(glyph: string): number {
-  if (/\p{Mark}/u.test(glyph)) return 0;
+  if (/^\p{Mark}+$/u.test(glyph)) return 0;
+  if (
+    /\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\u20E3/u.test(
+      glyph,
+    )
+  )
+    return 2;
 
   const code = glyph.codePointAt(0) ?? 0;
 

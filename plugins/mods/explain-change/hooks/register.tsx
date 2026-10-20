@@ -169,7 +169,11 @@ function segmentView(
     return (
       <Box key={`diff-${index}`} flexDirection="column">
         {segment.source.split("\n").map((line, at) => (
-          <Text key={`diff-${index}-${at}`} color={diffColor(line)}>
+          <Text
+            key={`diff-${index}-${at}`}
+            color={diffColor(line)}
+            wrap="truncate-end"
+          >
             {line === "" ? " " : line}
           </Text>
         ))}
