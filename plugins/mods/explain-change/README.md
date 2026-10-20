@@ -7,7 +7,7 @@ Explain Change gives `ravn-core`'s `explain-change` skill a pane inside Claude C
 - **Code**: the diff in reading order, with `path:line` references.
 - **Quiz**: five multiple-choice questions. Pick an answer to see why it's right or wrong, and your score once you finish.
 
-Flows are Mermaid flowcharts that the pane draws as boxes and arrows at its own width. Widen or narrow the pane and they lay out again. Other diagrams are text: call trees, file trees, component trees, and diff-shaped sketches of what changed. Code is syntax-highlighted, and diff sketches show added lines in green and removed ones in red.
+Flows are Mermaid flowcharts that the pane draws as boxes and connectors at its own width. Widen or narrow the pane and they lay out again. Connections it cannot draw are listed below the drawing; Mermaid it cannot parse stays as source. Other diagrams are text: call trees, file trees, component trees, and diff-shaped sketches of what changed. Text diagrams and diff sketches clip at the pane's width. Code is syntax-highlighted, and diff sketches show added lines in green and removed ones in red.
 
 ```
 Cache saves by content hash

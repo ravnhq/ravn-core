@@ -3,6 +3,7 @@
 Ravn's agent plugins, open source under the MIT license.
 
 - **`ravn-core`** packages the engineering workflows Ravn uses with coding agents: an idea-to-PR flow (`ship`), code archaeology (`how`, `why`), verification, design vocabulary, and handoffs. It runs in Claude Code, Codex, Cursor, and Pi.
+- **[`explain-change`](plugins/mods/explain-change/README.md)** is a Claude Code mod that shows the `ravn-core` skill's change lessons in a pane, with diagrams and an interactive quiz.
 - **`skill-nudge`** is a Claude Code mod. A background Haiku watches the session and suggests one of your installed skills above the prompt when it fits.
 
 ## Install `ravn-core`
@@ -52,7 +53,7 @@ The repo-root `package.json` points Pi at the `ravn-core` skills. From a checkou
 | Codex | `$ask-ravn` | `$ship` |
 | Pi | `/skill:ask-ravn` | `/skill:ship` |
 
-Most `ravn-core` skills, including `ask-ravn`, `ship`, `why`, and the principles, set `disable-model-invocation: true`. They run only when you invoke them, so the agent's list of available skills shows just the nine it can start on its own: `agent-readiness`, `codebase-design`, `domain-modeling`, `grilling`, `pause-safely`, `pr`, `research`, `session-pickup`, and `writing-for-agents`.
+Most `ravn-core` skills, including `ask-ravn`, `ship`, `why`, and the principles, set `disable-model-invocation: true`. They run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
 
 Evals prove `ravn-core` in Claude Code, Codex, and Pi. Cursor installs the same package but isn't in the eval matrix yet.
 
@@ -77,4 +78,4 @@ Run the `validate` skill before you push. The per-skill evals are private, so `p
 
 ## License
 
-MIT. 27 of the skills adapt MIT-licensed work from [mattpocock/skills](https://github.com/mattpocock/skills) and [pstack](https://github.com/cursor/plugins/tree/main/pstack); each carries its upstream license in its `LICENSE.txt`.
+MIT. Some skills adapt MIT-licensed work from [mattpocock/skills](https://github.com/mattpocock/skills), [pstack](https://github.com/cursor/plugins/tree/main/pstack), and [HumanLayer](https://github.com/humanlayer/skills); each carries its upstream license in its `LICENSE.txt`.
