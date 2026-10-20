@@ -23,9 +23,24 @@ test("parses nodes, frames, labelled edges, and chains; skips styling", () => {
     "E:box",
     "F:box",
   ]);
-  expect(chart?.edges).toContainEqual({ from: "B", to: "C", label: "yes" });
-  expect(chart?.edges).toContainEqual({ from: "B", to: "D", label: "no" });
-  expect(chart?.edges).toContainEqual({ from: "E", to: "F", label: "" });
+  expect(chart?.edges).toContainEqual({
+    from: "B",
+    to: "C",
+    label: "yes",
+    direction: "directed",
+  });
+  expect(chart?.edges).toContainEqual({
+    from: "B",
+    to: "D",
+    label: "no",
+    direction: "directed",
+  });
+  expect(chart?.edges).toContainEqual({
+    from: "E",
+    to: "F",
+    label: "",
+    direction: "directed",
+  });
   expect(chart?.edges).toHaveLength(7);
 });
 
@@ -56,8 +71,8 @@ test("quoted delimiters, semicolons, and comparisons survive parsing", () => {
       "Done",
     ]);
     expect(chart?.edges).toEqual([
-      { from: "A", to: "B", label: "save; now" },
-      { from: "B", to: "C", label: "" },
+      { from: "A", to: "B", label: "save; now", direction: "directed" },
+      { from: "B", to: "C", label: "", direction: "directed" },
     ]);
   }
 });
@@ -148,4 +163,73 @@ test("the drawing fits the width it is given and changes with it", () => {
   expect(narrow).not.toEqual(wide);
   // The edge back up to the start cannot be drawn downward, so it is listed.
   expect(wide.join("\n")).toContain("↺ Done → Editor saves");
+});
+
+test("chains retain undirected links and every supported arrow's direction", () => {
+  const chart = parseFlowchart(
+    "flowchart TD\nA ---|peer| B --> C ==> D -.-> E -- yes --> F",
+  );
+
+  expect(chart?.edges.map(({ direction, label }) => [direction, label])).toEqual([
+    ["undirected", "peer"],
+    ["directed", ""],
+    ["directed", ""],
+    ["directed", ""],
+    ["directed", "yes"],
+  ]);
+});
+
+test("undirected links draw continuous plain connectors after resizing", () => {
+  for (const direction of ["TD", "TB", "BT", "LR", "RL"]) {
+    const chart = parseFlowchart(
+      `flowchart ${direction}\nA[Editor] --- B[Cache]`,
+    );
+
+    if (chart === null) throw new Error("expected a chart");
+
+    for (const width of [24, 70]) {
+      const drawing = drawFlowchart(chart, width);
+
+      expect(drawing.filter((line) => line.trim() === "│")).toHaveLength(3);
+      expect(drawing.join("\n")).not.toContain("▼");
+      expect(drawing.join("\n")).not.toContain("→");
+      expect(drawing.join("\n")).not.toContain("  —");
+    }
+  }
+});
+
+test("undirected fallback links keep their marker and labels", () => {
+  const chart = parseFlowchart(
+    "flowchart TD\nA --- B --> C\nA ---|pair| C\nC --- A\nA --- A",
+  );
+
+  if (chart === null) throw new Error("expected a chart");
+
+  const drawing = drawFlowchart(chart, 40);
+
+  expect(drawing).toContain("  — A — C  (pair)");
+  expect(drawing).toContain("  — C — A");
+  expect(drawing).toContain("  — A — A");
+  expect(drawing.join("\n")).toContain("▼");
+});
+
+test("merging directed and undirected routes lists their distinct meanings", () => {
+  const chart = parseFlowchart("flowchart TD\nA ---|peer| B\nA --> C");
+
+  if (chart === null) throw new Error("expected a chart");
+
+  const drawing = drawFlowchart(chart, 40);
+
+  expect(drawing).toContain("  — A — B  (peer)");
+  expect(drawing).toContain("  ⇢ A → C");
+  expect(drawing.join("\n")).not.toContain("▼");
+});
+
+test("undirected labels draw beside connectors or fall back when crowded", () => {
+  const chart = parseFlowchart("flowchart TD\nA ---|relation| B");
+
+  if (chart === null) throw new Error("expected a chart");
+
+  expect(drawFlowchart(chart, 40).join("\n")).toContain("│ relation");
+  expect(drawFlowchart(chart, 16)).toContain("  — A — B  (rel…");
 });

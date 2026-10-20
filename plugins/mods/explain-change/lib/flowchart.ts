@@ -6,7 +6,12 @@ export type Frame = "box" | "round" | "decision";
 
 export type FlowNode = { id: string; label: string; frame: Frame };
 
-export type FlowEdge = { from: string; to: string; label: string };
+export type FlowEdge = {
+  from: string;
+  to: string;
+  label: string;
+  direction: "directed" | "undirected";
+};
 
 export type Flowchart = { nodes: FlowNode[]; edges: FlowEdge[] };
 
@@ -31,7 +36,7 @@ const OPENERS: readonly (readonly [string, string, Frame])[] = [
 // An edge between two nodes: `-- label -->`, `-->|label|`, or a bare arrow.
 const LABELLED = /^\s*--\s+(.+?)\s+-->/;
 
-const ARROW = /^\s*(?:-->|---|==>|-\.->)(?:\s*\|([^|]*)\|)?/;
+const ARROW = /^\s*(-->|---|==>|-\.->)(?:\s*\|([^|]*)\|)?/;
 
 const NODE_ID = /^\s*([\w-]+)/;
 
@@ -70,7 +75,7 @@ function readStatement(
   edges: FlowEdge[],
 ): boolean {
   let rest = statement;
-  let previous: { id: string; label: string } | undefined;
+  let previous: Omit<FlowEdge, "to"> | undefined;
 
   for (;;) {
     const read = readNode(rest);
@@ -81,18 +86,23 @@ function readStatement(
 
     if (previous !== undefined)
       edges.push({
-        from: previous.id,
+        ...previous,
         to: read.node.id,
-        label: previous.label,
       });
 
     rest = read.rest;
 
-    const edge = LABELLED.exec(rest) ?? ARROW.exec(rest);
+    const labelled = LABELLED.exec(rest);
+    const arrow = labelled === null ? ARROW.exec(rest) : null;
+    const edge = labelled ?? arrow;
 
     if (edge === null) return rest.trim() === "";
 
-    previous = { id: read.node.id, label: cleanLabel(edge[1] ?? "") };
+    previous = {
+      from: read.node.id,
+      label: cleanLabel(labelled?.[1] ?? arrow?.[2] ?? ""),
+      direction: arrow?.[1] === "---" ? "undirected" : "directed",
+    };
     rest = rest.slice(edge[0].length);
   }
 }
@@ -280,12 +290,11 @@ export function drawFlowchart(chart: Flowchart, width: number): string[] {
     const to = placed.get(edge.to);
     const isBack = from !== undefined && to !== undefined && to.row <= from.row;
     const note = edge.label === "" ? "" : `  (${edge.label})`;
+    const marker = edge.direction === "undirected" ? "—" : isBack ? "↺" : "⇢";
+    const link = edge.direction === "undirected" ? "—" : "→";
 
     lines.push(
-      clip(
-        `  ${isBack ? "↺" : "⇢"} ${labelOf(from)} → ${labelOf(to)}${note}`,
-        width,
-      ),
+      clip(`  ${marker} ${labelOf(from)} ${link} ${labelOf(to)}${note}`, width),
     );
   }
 
@@ -454,6 +463,7 @@ function paintEdges(
       const ambiguous = group.some((source) =>
         group.some(
           (target) =>
+            source.edge.direction !== target.edge.direction ||
             !group.some(
               ({ edge }) =>
                 edge.from === source.edge.from && edge.to === target.edge.to,
@@ -476,7 +486,8 @@ function paintEdges(
         }
 
         join(grid, bus.y + 1, end, DOWN);
-        put(grid, bus.y + 2, end, "▼");
+        if (edge.direction === "directed") put(grid, bus.y + 2, end, "▼");
+        else join(grid, bus.y + 2, end, UP | DOWN);
 
         if (edge.label !== "") labels.push({ edge, y: bus.y + 2, x: end + 2 });
       }
