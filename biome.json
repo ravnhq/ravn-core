@@ -14,7 +14,7 @@
       ".cursor-plugin/marketplace.json",
       "plugins/*/*/.claude-plugin/plugin.json",
       "plugins/agent/ravn-core/**",
-      "plugins/mods/skill-nudge/**",
+      "plugins/mods/*/**",
       "!plugins/*/*/.claude-plugin/types",
       "evals/**",
       "test/**",

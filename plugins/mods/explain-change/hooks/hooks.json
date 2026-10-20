@@ -1,0 +1,4 @@
+{
+  "description": "The explain-change sidebar, filled by the explain-change skill through its show tool",
+  "modules": ["./register.tsx"]
+}

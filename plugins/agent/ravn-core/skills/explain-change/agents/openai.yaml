@@ -1,0 +1,3 @@
+interface:
+  display_name: "Explain Change"
+  short_description: "Teach a code change with diagrams and a quiz"

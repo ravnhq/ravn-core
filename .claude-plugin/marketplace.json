@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ravn",
   "metadata": {
-    "description": "Ravn's open-source agent plugins: ravn-core for Claude Code, Codex, Cursor, and Pi, and the skill-nudge Claude Code mod.",
+    "description": "Ravn's open-source agent plugins: ravn-core for Claude Code, Codex, Cursor, and Pi, and the explain-change and skill-nudge Claude Code mods.",
     "version": "1.0.0"
   },
   "owner": {
@@ -21,6 +21,20 @@
       "keywords": ["ravn", "skills", "agent-plugin"],
       "homepage": "https://github.com/ravnhq/ravn-core",
       "repository": "https://github.com/ravnhq/ravn-core",
+      "category": "engineering"
+    },
+    {
+      "name": "explain-change",
+      "version": "0.1.0",
+      "license": "MIT",
+      "description": "Shows ravn-core's explain-change lessons in a Claude Code pane: background, intuition, a code walkthrough with text diagrams, and a clickable quiz.",
+      "author": {
+        "name": "Ravn AI Enablement Team"
+      },
+      "homepage": "https://github.com/ravnhq/ravn-core",
+      "repository": "https://github.com/ravnhq/ravn-core",
+      "keywords": ["diff", "code-review", "explain", "mod", "claude-code"],
+      "source": "./plugins/mods/explain-change",
       "category": "engineering"
     },
     {
