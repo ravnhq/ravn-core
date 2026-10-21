@@ -249,16 +249,17 @@ test("emoji graphemes occupy two columns without shifting box borders", () => {
   }
 });
 
-test("emoji clipping keeps flags and joined sequences intact", () => {
+test("long emoji labels wrap whole graphemes instead of clipping", () => {
   for (const glyph of ["🚀", "🇧🇷", "👩‍💻", "👍🏽", "1️⃣"]) {
     const chart = parseFlowchart(`flowchart TD\nA["${glyph.repeat(12)}"]`);
 
     if (chart === null) throw new Error("expected a chart");
 
     expect(drawFlowchart(chart, 16)).toEqual([
-      `┌${"─".repeat(13)}┐`,
-      `│ ${glyph.repeat(5)}… │`,
-      `└${"─".repeat(13)}┘`,
+      `┌${"─".repeat(14)}┐`,
+      `│ ${glyph.repeat(6)} │`,
+      `│ ${glyph.repeat(6)} │`,
+      `└${"─".repeat(14)}┘`,
     ]);
 
     const linked = parseFlowchart(
@@ -268,13 +269,13 @@ test("emoji clipping keeps flags and joined sequences intact", () => {
     if (linked === null) throw new Error("expected a chart");
 
     expect(drawFlowchart(linked, 70).join("\n")).toContain(
-      `▼ ${glyph.repeat(9)}…`,
+      `▼ ${glyph.repeat(12)}`,
     );
-    expect(drawFlowchart(linked, 16)).toContain(`  ⇢ A → B  (${glyph}…`);
+    expect(drawFlowchart(linked, 16).join("")).toContain(glyph.repeat(5));
   }
 });
 
-test("wide node and edge labels wrap, clip and refit without exceeding columns", () => {
+test("wide node and edge labels wrap and refit without exceeding columns", () => {
   const chart = parseFlowchart(`flowchart TD
     A["保存保存 保存保存 保存保存 保存保存"] -->|"関係関係関係関係関係関係"| B["終点 e\u0301Ａ𠀀"]
     B -->|"関係関係関係関係関係関係"| A`);
@@ -295,11 +296,52 @@ test("wide node and edge labels wrap, clip and refit without exceeding columns",
 
     expect(drawing.join("\n")).toContain("e\u0301Ａ𠀀");
     expect(drawing.join("\n")).toContain("↺");
-    expect(drawing.join("\n")).toContain("…");
+    expect(drawing.join("\n")).not.toContain("…");
 
     if (width === 70)
-      expect(drawing.join("\n")).toContain("▼ 関係関係関係関係関…");
+      expect(drawing.join("\n")).toContain("▼ 関係関係関係関係関係関係");
   }
+});
+
+test("long edge labels wrap beside their arrow and deepen the bus", () => {
+  const chart = parseFlowchart(
+    'flowchart TD\nA -->|"one two three four five six"| B',
+  );
+
+  if (chart === null) throw new Error("expected a chart");
+
+  const drawing = drawFlowchart(chart, 20);
+
+  expect(drawing.map((line) => line.trim())).toEqual([
+    "┌───┐",
+    "│ A │",
+    "└───┘",
+    "│",
+    "│",
+    "│ one two",
+    "│ three",
+    "│ four five",
+    "▼ six",
+    "┌───┐",
+    "│ B │",
+    "└───┘",
+  ]);
+});
+
+test("a label squeezed by its neighbour's arrow wraps in the room between", () => {
+  const chart = parseFlowchart(
+    'flowchart TD\nV{Valid?} -->|"no: quiz needs one correct option"| D[deny to model]\nV -->|yes| U[update view atom]',
+  );
+
+  if (chart === null) throw new Error("expected a chart");
+
+  const drawing = drawFlowchart(chart, 60).join("\n");
+
+  expect(drawing).not.toContain("⇢");
+  expect(drawing).toContain("▼ yes");
+
+  for (const word of ["no:", "quiz", "needs", "one", "correct", "option"])
+    expect(drawing).toContain(word);
 });
 
 test("chains retain undirected links and every supported arrow's direction", () => {
@@ -370,5 +412,8 @@ test("undirected labels draw beside connectors or fall back when crowded", () =>
   if (chart === null) throw new Error("expected a chart");
 
   expect(drawFlowchart(chart, 40).join("\n")).toContain("│ relation");
-  expect(drawFlowchart(chart, 16)).toContain("  — A — B  (rel…");
+  expect(drawFlowchart(chart, 16).slice(-2)).toEqual([
+    "  — A — B",
+    "    (relation)",
+  ]);
 });
