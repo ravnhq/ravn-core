@@ -79,6 +79,11 @@ export function world(
   on("session.start", async (_$, e) => ({ cwd: e.cwd }));
   on("command.register", async (_$, e) => ({ value: { command: e.name } }));
   on("command.list", async () => ({ value: COMMANDS }));
+  on("ui.invalidate", async () => ({ value: undefined }));
+  on("command.describe", async (_$, e) => ({
+    description: e.description,
+    isHidden: e.isHidden,
+  }));
   on("session.id", async () => ({ value: "session-1" }));
   on("ui.copy", async (_$, e) => {
     copies.push(e.text);
@@ -149,6 +154,17 @@ export function world(
 
       return release;
     },
+  };
+}
+
+/** How the engine presents one plugin command in the `/` menu. */
+export function describe(command: string, isHidden: boolean) {
+  return {
+    command,
+    description: "",
+    isHidden,
+    immediate: false,
+    provider: { plugin: "ravn-core", tier: "user" as const },
   };
 }
 

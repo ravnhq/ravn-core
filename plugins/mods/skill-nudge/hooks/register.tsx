@@ -2,6 +2,7 @@ import { atom, read, update } from "claude-code";
 import type { EngineInterface, Register } from "claude-code";
 
 import {
+  MAX_TOKENS,
   SYSTEM,
   catalog,
   listing,
@@ -51,6 +52,11 @@ async function isEnabled($: EngineInterface): Promise<boolean> {
 let isInteractive = false;
 
 let isJudging = false;
+
+// Commands the engine keeps out of the typeahead, `user-invocable: false` skills
+// among them. `$.command.list()` still returns them, but typing one fails, so
+// Use asks Claude to run it instead.
+let hidden = new Set<string>();
 
 // Bumped by each prompt, so a judgment that lands after the user moved on is dropped.
 let epoch = 0;
@@ -152,7 +158,7 @@ async function judge($: EngineInterface, at: number): Promise<void> {
       { text: listing(skills), cache: true },
       { text: transcript(messages) },
     ],
-    maxTokens: 200,
+    maxTokens: MAX_TOKENS,
     timeoutMs: 20000,
   });
 
@@ -163,7 +169,10 @@ async function judge($: EngineInterface, at: number): Promise<void> {
 
   // The tip shows first; recording it never delays it.
   if (shows) {
-    await update($, nudge, () => found);
+    await update($, nudge, () => ({
+      ...found,
+      asksClaude: hidden.has(found.skill),
+    }));
     await update($, offered, (list) => [...list, found.skill]);
   }
 
@@ -191,6 +200,7 @@ export const register: Register = (on) => {
   // Each load starts fresh, as a reload's new environment does.
   isInteractive = false;
   isJudging = false;
+  hidden = new Set();
   epoch = 0;
   recording = Promise.resolve();
 
@@ -202,8 +212,19 @@ export const register: Register = (on) => {
       argumentHint: "[stats]",
     });
     await prepareTelemetry($).catch(() => undefined);
+    // A reload starts with an empty set, so ask the engine to describe every command again.
+    $.ui.invalidate("command.describe");
 
     return next(e);
+  });
+
+  on("command.describe", async ($, e, next) => {
+    const result = await next(e);
+
+    if (result.isHidden) hidden.add(e.command);
+    else hidden.delete(e.command);
+
+    return result;
   });
 
   on("command.run", { command: COMMAND }, async ($, e) => {
@@ -270,7 +291,12 @@ export const register: Register = (on) => {
     const use = async () => {
       // A draft the user already typed becomes the skill's arguments.
       const { text } = await $.prompt.read();
-      await $.prompt.fill({ text: `/${shown.skill} ${text.trimStart()}` });
+      const draft = text.trimStart();
+      await $.prompt.fill({
+        text: shown.asksClaude
+          ? `Use the ${shown.skill} skill.${draft ? ` ${draft}` : ""}`
+          : `/${shown.skill} ${draft}`,
+      });
       await update($, nudge, () => null);
       await fate($, "used", shown.skill);
     };
@@ -284,7 +310,10 @@ export const register: Register = (on) => {
             ✦ Skill tip
           </Text>
           <Text dimColor> · </Text>
-          <Text bold>/{shown.skill}</Text>
+          <Text bold>
+            {shown.asksClaude ? "" : "/"}
+            {shown.skill}
+          </Text>
         </Text>
         <Box paddingLeft={2} flexDirection="column">
           <Text>{shown.reason}</Text>
