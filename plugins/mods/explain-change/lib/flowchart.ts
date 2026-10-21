@@ -214,12 +214,22 @@ type Placed = {
 
 type Cell = { glyph: string; joins: number };
 
+type Route = {
+  edge: FlowEdge;
+  from: Placed;
+  start: number;
+  end: number;
+  label: string[];
+};
+
+type Bus = { y: number; depth: number; edges: number; routes: Route[] };
+
 export function drawFlowchart(chart: Flowchart, width: number): string[] {
   const labelWidth = Math.max(MIN_LABEL, Math.min(MAX_LABEL, width - 4));
 
   const sized = new Map(
     chart.nodes.map((node) => {
-      const lines = wrapLabel(node.label, labelWidth);
+      const lines = wrapText(node.label, labelWidth);
 
       return [node.id, { node, lines, width: widest(lines) + 4 }] as const;
     }),
@@ -227,10 +237,9 @@ export function drawFlowchart(chart: Flowchart, width: number): string[] {
 
   const rows = packRows(chart, width, (id) => sized.get(id)?.width ?? 0);
   const placed = new Map<string, Placed>();
-  const drawn = new Set<FlowEdge>();
-  const buses: { y: number; edges: FlowEdge[] }[] = [];
-  let y = 0;
 
+  // Columns first: where each arrow lands decides how its label wraps, and the
+  // wrapped labels decide how tall each bus between rows is.
   for (const [index, row] of rows.entries()) {
     const boxes = row.flatMap((node) => sized.get(node.id) ?? []);
     const span = boxes.reduce((sum, box) => sum + box.width + GAP, -GAP);
@@ -240,25 +249,49 @@ export function drawFlowchart(chart: Flowchart, width: number): string[] {
       placed.set(box.node.id, {
         ...box,
         x,
-        y,
+        y: 0,
         height: box.lines.length + 2,
         row: index,
       });
       x += box.width + GAP;
     }
+  }
 
-    y += Math.max(...boxes.map((box) => box.lines.length + 2));
+  const crowded = new Set<FlowEdge>();
 
-    const next = new Set((rows[index + 1] ?? []).map((node) => node.id));
+  const buses: Bus[] = rows.slice(0, -1).map((row, index) => {
     const here = new Set(row.map((node) => node.id));
+    const next = new Set((rows[index + 1] ?? []).map((node) => node.id));
 
     const down = chart.edges.filter(
       (edge) => here.has(edge.from) && next.has(edge.to),
     );
 
-    if (index < rows.length - 1) {
-      buses.push({ y, edges: down });
-      y += down.length > 0 ? 3 : 1;
+    const routes = routeBus(down, placed);
+
+    wrapEdgeLabels(routes, width, crowded);
+
+    return {
+      y: 0,
+      depth: Math.max(1, ...routes.map((route) => route.label.length)),
+      edges: down.length,
+      routes,
+    };
+  });
+
+  let y = 0;
+
+  for (const [index, row] of rows.entries()) {
+    const boxes = row.flatMap((node) => placed.get(node.id) ?? []);
+
+    for (const box of boxes) box.y = y;
+    y += Math.max(...boxes.map((box) => box.height));
+
+    const bus = buses[index];
+
+    if (bus !== undefined) {
+      bus.y = y;
+      y += bus.edges > 0 ? 2 + bus.depth : 1;
     }
   }
 
@@ -273,7 +306,9 @@ export function drawFlowchart(chart: Flowchart, width: number): string[] {
 
   for (const box of placed.values()) paintBox(grid, box);
 
-  const crowded = paintEdges(grid, buses, placed, drawn);
+  const drawn = new Set<FlowEdge>();
+
+  for (const bus of buses) paintBus(grid, bus, drawn);
 
   const lines = grid.map((row) =>
     row
@@ -297,9 +332,12 @@ export function drawFlowchart(chart: Flowchart, width: number): string[] {
     const marker = edge.direction === "undirected" ? "—" : isBack ? "↺" : "⇢";
     const link = edge.direction === "undirected" ? "—" : "→";
 
-    lines.push(
-      clip(`  ${marker} ${labelOf(from)} ${link} ${labelOf(to)}${note}`, width),
+    const [first = "", ...rest] = wrapText(
+      `${marker} ${labelOf(from)} ${link} ${labelOf(to)}${note}`,
+      Math.max(1, width - 4),
     );
+
+    lines.push(`  ${first}`, ...rest.map((line) => `    ${line}`));
   }
 
   return lines;
@@ -421,112 +459,117 @@ function paintBox(grid: Cell[][], box: Placed): void {
   }
 }
 
-// Each edge leaves its box's bottom, runs along the bus row under that row of
-// boxes, and drops into its target. Returns the edges whose label had no room.
-function paintEdges(
-  grid: Cell[][],
-  buses: readonly { y: number; edges: FlowEdge[] }[],
+// The edges from one row to the next that can be drawn without implying a
+// link that is not there. Each leaves its box's bottom, runs along the bus row
+// under that row of boxes, and drops into its target.
+function routeBus(
+  edges: readonly FlowEdge[],
   placed: ReadonlyMap<string, Placed>,
-  drawn: Set<FlowEdge>,
-): Set<FlowEdge> {
-  const labels: { edge: FlowEdge; y: number; x: number }[] = [];
+): Route[] {
+  const routes = edges.flatMap((edge) => {
+    const from = placed.get(edge.from);
+    const to = placed.get(edge.to);
 
-  for (const bus of buses) {
-    const routes = bus.edges.flatMap((edge) => {
-      const from = placed.get(edge.from);
-      const to = placed.get(edge.to);
+    if (from === undefined || to === undefined) return [];
 
-      if (from === undefined || to === undefined) return [];
+    const start = centreOf(from);
+    const fromAbove = start > to.x + 1 && start < to.x + to.width - 2;
+    const end = fromAbove ? start : centreOf(to);
 
-      const start = centreOf(from);
-      const fromAbove = start > to.x + 1 && start < to.x + to.width - 2;
-      const end = fromAbove ? start : centreOf(to);
+    return [{ edge, from, start, end, label: [] }];
+  });
 
-      return [{ edge, from, start, end }];
-    });
+  const groups: Route[][] = [];
 
-    const groups: (typeof routes)[] = [];
+  for (const route of routes.sort(
+    (a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end),
+  )) {
+    const group = groups.at(-1);
 
-    for (const route of routes.sort(
-      (a, b) => Math.min(a.start, a.end) - Math.min(b.start, b.end),
-    )) {
-      const group = groups.at(-1);
-
-      if (
-        group !== undefined &&
-        group.some(
-          (other) =>
-            Math.max(other.start, other.end) >=
-            Math.min(route.start, route.end),
-        )
+    if (
+      group !== undefined &&
+      group.some(
+        (other) =>
+          Math.max(other.start, other.end) >= Math.min(route.start, route.end),
       )
-        group.push(route);
-      else groups.push([route]);
-    }
-
-    for (const group of groups) {
-      const ambiguous = group.some((source) =>
-        group.some(
-          (target) =>
-            source.edge.direction !== target.edge.direction ||
-            (source.edge.to === target.edge.to &&
-              source.edge.label !== target.edge.label) ||
-            !group.some(
-              ({ edge }) =>
-                edge.from === source.edge.from && edge.to === target.edge.to,
-            ),
-        ),
-      );
-
-      if (ambiguous) continue;
-
-      for (const { edge, from, start, end } of group) {
-        drawn.add(edge);
-
-        for (let y = from.y + from.height; y <= bus.y; y += 1)
-          join(grid, y, start, UP | DOWN);
-
-        join(grid, bus.y + 1, start, UP);
-
-        for (let x = Math.min(start, end); x < Math.max(start, end); x += 1) {
-          join(grid, bus.y + 1, x, RIGHT);
-          join(grid, bus.y + 1, x + 1, LEFT);
-        }
-
-        join(grid, bus.y + 1, end, DOWN);
-
-        if (edge.direction === "directed") put(grid, bus.y + 2, end, "▼");
-        else join(grid, bus.y + 2, end, UP | DOWN);
-
-        if (edge.label !== "") labels.push({ edge, y: bus.y + 2, x: end + 2 });
-      }
-    }
+    )
+      group.push(route);
+    else groups.push([route]);
   }
 
-  // Labels go down once every arrow is drawn, so none covers another.
-  const crowded = new Set<FlowEdge>();
-
-  for (const { edge, y, x } of labels) {
-    const text = clip(edge.label, 20);
-
-    const cells = Array.from(
-      { length: displayWidth(text) },
-      (_, at) => grid[y]?.[x + at],
+  return groups.flatMap((group) => {
+    const ambiguous = group.some((source) =>
+      group.some(
+        (target) =>
+          source.edge.direction !== target.edge.direction ||
+          (source.edge.to === target.edge.to &&
+            source.edge.label !== target.edge.label) ||
+          !group.some(
+            ({ edge }) =>
+              edge.from === source.edge.from && edge.to === target.edge.to,
+          ),
+      ),
     );
 
-    const isFree = cells.every(
-      (cell) => cell !== undefined && cell.glyph === " " && cell.joins === 0,
+    return ambiguous ? [] : group;
+  });
+}
+
+// Each label wraps beside its arrow, in the columns left before the next arrow
+// to its right. One with too few columns goes in `crowded`, to be listed.
+function wrapEdgeLabels(
+  routes: readonly Route[],
+  width: number,
+  crowded: Set<FlowEdge>,
+): void {
+  for (const route of routes) {
+    const { label } = route.edge;
+
+    if (label === "") continue;
+
+    const x = route.end + 2;
+
+    const next = Math.min(
+      width + 1,
+      ...routes.flatMap((other) => (other.end > route.end ? [other.end] : [])),
     );
 
-    if (!isFree) {
-      crowded.add(edge);
-      continue;
+    const room = next - 1 - x;
+
+    if (room < Math.min(MIN_LABEL, displayWidth(label)))
+      crowded.add(route.edge);
+    else route.label = wrapText(label, room);
+  }
+}
+
+// Arrows drop through the bus's label rows; labels sit beside them, their last
+// line level with the arrowhead.
+function paintBus(grid: Cell[][], bus: Bus, drawn: Set<FlowEdge>): void {
+  const tip = bus.y + 1 + bus.depth;
+
+  for (const { edge, from, start, end, label } of bus.routes) {
+    drawn.add(edge);
+
+    for (let y = from.y + from.height; y <= bus.y; y += 1)
+      join(grid, y, start, UP | DOWN);
+
+    join(grid, bus.y + 1, start, UP);
+
+    for (let x = Math.min(start, end); x < Math.max(start, end); x += 1) {
+      join(grid, bus.y + 1, x, RIGHT);
+      join(grid, bus.y + 1, x + 1, LEFT);
     }
 
-    paintText(grid, y, x, text);
-  }
+    join(grid, bus.y + 1, end, DOWN);
 
-  return crowded;
+    for (let y = bus.y + 2; y < tip; y += 1) join(grid, y, end, UP | DOWN);
+
+    if (edge.direction === "directed") put(grid, tip, end, "▼");
+    else join(grid, tip, end, UP | DOWN);
+
+    for (const [at, line] of label.entries())
+      paintText(grid, tip - label.length + 1 + at, end + 2, line);
+  }
 }
 
 function put(grid: Cell[][], y: number, x: number, glyph: string | undefined) {
@@ -567,53 +610,52 @@ function centreOf(box: Placed): number {
 }
 
 function labelOf(box: Placed | undefined): string {
-  return clip(box?.node.label ?? "?", 18);
+  return box?.node.label ?? "?";
 }
 
-// Word-wrap into at most three lines of `width` columns.
-function wrapLabel(label: string, width: number): string[] {
+// Word-wrap into lines of at most `width` columns. A word wider than that
+// breaks between graphemes, so no text is ever cut.
+function wrapText(text: string, width: number): string[] {
   const lines: string[] = [];
   let line = "";
 
-  for (const word of label.split(" ")) {
-    const piece = clip(word, width);
-
-    if (line === "") line = piece;
-    else if (displayWidth(line) + 1 + displayWidth(piece) <= width)
-      line += ` ${piece}`;
-    else {
-      lines.push(line);
-      line = piece;
+  for (const word of text.split(" ")) {
+    for (const piece of breakWord(word, width)) {
+      if (line === "") line = piece;
+      else if (displayWidth(line) + 1 + displayWidth(piece) <= width)
+        line += ` ${piece}`;
+      else {
+        lines.push(line.trimEnd());
+        line = piece;
+      }
     }
   }
 
-  if (line !== "") lines.push(line);
-
-  if (lines.length > 3)
-    return [...lines.slice(0, 2), clip(`${lines[2]} …`, width)];
+  if (line !== "") lines.push(line.trimEnd());
 
   return lines.length === 0 ? ["?"] : lines;
 }
 
-function widest(lines: readonly string[]): number {
-  return Math.max(...lines.map(displayWidth));
-}
+function breakWord(word: string, width: number): string[] {
+  if (displayWidth(word) <= width) return [word];
 
-function clip(text: string, width: number): string {
-  if (displayWidth(text) <= width) return text;
+  const pieces: string[] = [];
+  let piece = "";
 
-  let result = "";
-  let used = 0;
+  for (const { segment: glyph } of GRAPHEMES.segment(word)) {
+    if (piece !== "" && displayWidth(piece) + glyphWidth(glyph) > width) {
+      pieces.push(piece);
+      piece = "";
+    }
 
-  for (const { segment: glyph } of GRAPHEMES.segment(text)) {
-    const columns = glyphWidth(glyph);
-
-    if (used + columns > width - 1) break;
-    result += glyph;
-    used += columns;
+    piece += glyph;
   }
 
-  return width > 0 ? `${result}…` : "";
+  return [...pieces, piece];
+}
+
+function widest(lines: readonly string[]): number {
+  return Math.max(...lines.map(displayWidth));
 }
 
 function displayWidth(text: string): number {
