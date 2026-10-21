@@ -25,7 +25,7 @@
     },
     {
       "name": "explain-change",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "license": "MIT",
       "description": "Shows ravn-core's explain-change lessons in a Claude Code pane: background, intuition, a code walkthrough with text diagrams, and a clickable quiz.",
       "author": {
