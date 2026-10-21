@@ -1,6 +1,6 @@
 ---
 name: pr
-description: "Use when writing a PR body."
+description: "Write a pull request body. Use when opening a PR for pushed work or rewriting an existing PR's body."
 license: See LICENSE.txt
 metadata:
   proof: subjective
