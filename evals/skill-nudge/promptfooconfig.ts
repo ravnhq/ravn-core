@@ -9,6 +9,7 @@ import type {
 import { parse as parseYaml } from "yaml";
 
 import {
+  MAX_TOKENS,
   SYSTEM,
   catalog,
   listing,
@@ -70,6 +71,20 @@ const prompt: PromptFunction = async ({ vars }) => {
   return listing(skillsFor(id)) + transcript(messagesOf(id));
 };
 
+// The mod caps Haiku's reply at MAX_TOKENS. The provider cannot: under
+// CLAUDE_CODE_MAX_OUTPUT_TOKENS, Claude Code tells the model it hit the limit and
+// lets it continue, which the mod never does. So cut an over-long reply here
+// instead, keeping the share of its text that the first MAX_TOKENS tokens cover.
+function capped(output: string, completionTokens: number | undefined): string {
+  if (completionTokens === undefined || completionTokens <= MAX_TOKENS)
+    return output;
+
+  return output.slice(
+    0,
+    Math.floor((output.length * MAX_TOKENS) / completionTokens),
+  );
+}
+
 function grade(output: string, id: string): GradingResult {
   const expected = (byId.get(id)?.expect ?? []).map(
     (skill) => `ravn-core:${skill}`,
@@ -98,7 +113,11 @@ const tests: TestCase[] = cases.map((one) => ({
     {
       type: "javascript",
       metric: one.kind,
-      value: (output: string) => grade(output, one.id),
+      value: (output: string, context) =>
+        grade(
+          capped(output, context.providerResponse?.tokenUsage?.completion),
+          one.id,
+        ),
     },
   ],
 }));

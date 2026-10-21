@@ -8,7 +8,7 @@ Skill Nudge watches your Claude Code session in the background and tells you whe
   1: Use  2: Dismiss
 ```
 
-Type `1` or `2` into the empty prompt to pick, as you answer a survey, or click. **Use** puts `/<skill>` in the prompt box, ahead of anything you already typed, so your draft becomes the skill's arguments. **Dismiss** hides the tip. Sending your next prompt also clears it.
+Type `1` or `2` into the empty prompt to pick, as you answer a survey, or click. **Use** puts `/<skill>` in the prompt box, ahead of anything you already typed, so your draft becomes the skill's arguments. A skill marked `user-invocable: false` can't be typed as a command, so for one of those **Use** writes `Use the <skill> skill.` ahead of your draft instead, and Claude runs it. **Dismiss** hides the tip. Sending your next prompt also clears it.
 
 Requires Claude Code 2.1.287 or later.
 

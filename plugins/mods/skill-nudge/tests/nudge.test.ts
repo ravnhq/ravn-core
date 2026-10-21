@@ -4,6 +4,7 @@ import type { Engine } from "claude-code/testing";
 import {
   STOCK_TEXT,
   band,
+  describe,
   sessionStart,
   textOf,
   turn,
@@ -165,6 +166,34 @@ test("never offers the same skill twice, nor one the session already ran", async
   await clock.settle();
   // research was offered; nothing else is left, so Haiku is not asked again.
   expect(requests.length).toBe(1);
+});
+
+test("a reply that drops the plugin prefix still names the one listed skill", async ($, on) => {
+  const { judged, fills } = world(on, {
+    reply: '{"skill": "research", "reason": "You are weighing approaches."}',
+  });
+
+  await $.session.start(sessionStart);
+  await finishTurns($, 2);
+  await judged(1);
+  await $.ui.render(band);
+  await $.ui.press({ plugin: "skill-nudge", key: "use" });
+  expect(fills).toEqual(["/ravn-core:research "]);
+});
+
+test("Use asks Claude to run a skill hidden from the / menu, as a user-invocable: false skill is", async ($, on) => {
+  const { judged, fills } = world(on, { reply: RESEARCH, draft: "on auth" });
+  await $.session.start(sessionStart);
+  await $.command.describe(describe("ravn-core:research", true));
+  await finishTurns($, 2);
+  await judged(1);
+
+  const drawn = textOf(await $.ui.render(band));
+  expect(drawn).toContain("ravn-core:research");
+  expect(drawn).not.toContain("/ravn-core:research");
+
+  await $.ui.press({ plugin: "skill-nudge", key: "use" });
+  expect(fills).toEqual(["Use the ravn-core:research skill. on auth"]);
 });
 
 test("/skill-nudge turns judging off and back on, saved in the store", async ($, on) => {
