@@ -1,11 +1,12 @@
 ---
 name: session-pickup
 description: >-
-  Resume or take over work from a prior session: a handoff note, transcript,
-  agent URL, or pushed branch. Recovers the resume point and continues the
-  pending work without redoing what already landed. Use when the user says
-  pick up, resume, continue where you left off, or take over. Use
-  pause-safely to write a handoff.
+  Resume unfinished work from a handoff note or prior coding-agent session.
+  Use before reading a supplied handoff to recover the resume point or take
+  its next action, even when that action is only an inspection or report.
+  Also use for requests to pick up, continue where you left off, or take over
+  from a transcript, agent URL, or pushed branch. Continues pending work
+  without redoing what already landed. Use pause-safely to write a handoff.
 license: See LICENSE.txt
 ---
 
