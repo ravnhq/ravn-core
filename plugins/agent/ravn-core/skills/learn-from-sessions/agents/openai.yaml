@@ -1,0 +1,3 @@
+interface:
+  display_name: "Learn from Sessions"
+  short_description: "Turn session lessons into checks before instructions"
