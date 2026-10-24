@@ -113,11 +113,15 @@ export function pluginSkillDirs(pluginsDir: string): string[] {
     .filter((dir) => existsSync(dir));
 }
 
-const cursorPluginManifest = {
-  name: "ravn-core",
-  description:
-    "Core Ravn agent plugin. Bundles reusable skills and MCP server configuration.",
-};
+const cursorPluginManifest = join(
+  import.meta.dirname,
+  "..",
+  "plugins",
+  "agent",
+  "ravn-core",
+  ".cursor-plugin",
+  "plugin.json",
+);
 
 // Skills go where Claude Code and Codex read project skills. A plugin's
 // agents, beside its skills, become Claude Code project agents; Codex reads no
@@ -127,7 +131,7 @@ const cursorPluginManifest = {
 export function installSkills(
   workspaceDir: string,
   skillDirs: string[],
-  harness = "",
+  harness: string,
 ) {
   if (harness === "cursor") {
     installCursorPlugin(workspaceDir, skillDirs);
@@ -156,15 +160,13 @@ export function installSkills(
 }
 
 function installCursorPlugin(workspaceDir: string, skillDirs: string[]) {
-  if (skillDirs.length === 0) return;
-
   const pluginDir = cursorPluginDir(workspaceDir);
 
   mkdirSync(join(pluginDir, ".cursor-plugin"), { recursive: true });
 
-  writeFileSync(
+  cpSync(
+    cursorPluginManifest,
     join(pluginDir, ".cursor-plugin", "plugin.json"),
-    `${JSON.stringify(cursorPluginManifest, null, 2)}\n`,
   );
 
   mkdirSync(join(pluginDir, "skills"), { recursive: true });

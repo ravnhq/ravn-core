@@ -64,14 +64,16 @@ test("cursor launch args load the local plugin and pin the model", (t) => {
   assert.equal(args.at(-1), "/greet please");
 });
 
-test("cursor launch args omit --plugin-dir when the arm has no skills", () => {
-  const args = cursorLaunchArgs(
-    "composer-2.5",
-    join(tmpdir(), "missing-cursor-plugin"),
-    "hello",
+test("cursor launch args throw when the arm has no plugin directory", () => {
+  assert.throws(
+    () =>
+      cursorLaunchArgs(
+        "composer-2.5",
+        join(tmpdir(), "missing-cursor-plugin"),
+        "hello",
+      ),
+    /Cursor plugin directory is missing/,
   );
-
-  assert.equal(args.includes("--plugin-dir"), false);
 });
 
 test("cursor child env keeps the API key and drops other tokens", (t) => {
@@ -169,14 +171,51 @@ test("a cursor result error is reported", () => {
   assert.equal(resultError(events), "cursor-agent result error: boom");
 });
 
-test("the cursor provider points at cursor-agent and the workspace", () => {
+test("a cursor provider throws when CURSOR_API_KEY is unset", () => {
   const previous = {
     RAVN_EVALS_WORKSPACES: process.env.RAVN_EVALS_WORKSPACES,
     RAVN_EVALS_HOME: process.env.RAVN_EVALS_HOME,
+    CURSOR_API_KEY: process.env.CURSOR_API_KEY,
   };
 
   process.env.RAVN_EVALS_WORKSPACES = "/workspaces";
   process.env.RAVN_EVALS_HOME = "/home";
+  delete process.env.CURSOR_API_KEY;
+
+  try {
+    assert.throws(
+      () =>
+        provider("repo-a", "current", {
+          harness: "cursor",
+          model: "composer-2.5",
+        }),
+      /CURSOR_API_KEY is unset/,
+    );
+
+    const pi = provider("repo-a", "current", {
+      harness: "pi",
+      model: "openai/gpt-6-luna",
+    });
+
+    assert.match(String(pi.id), /providers\/pi\.ts$/);
+  } finally {
+    for (const [name, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
+});
+
+test("the cursor provider points at cursor-agent and the workspace", () => {
+  const previous = {
+    RAVN_EVALS_WORKSPACES: process.env.RAVN_EVALS_WORKSPACES,
+    RAVN_EVALS_HOME: process.env.RAVN_EVALS_HOME,
+    CURSOR_API_KEY: process.env.CURSOR_API_KEY,
+  };
+
+  process.env.RAVN_EVALS_WORKSPACES = "/workspaces";
+  process.env.RAVN_EVALS_HOME = "/home";
+  process.env.CURSOR_API_KEY = "cursor-key";
 
   try {
     const cursor = provider("repo-a", "current", {

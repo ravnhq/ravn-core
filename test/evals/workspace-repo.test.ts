@@ -3,6 +3,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -105,11 +106,20 @@ test("cursor installs skills as a local plugin and preserves that directory", (t
 
   const pluginDir = cursorPluginDir(workspace);
 
-  assert.equal(
-    JSON.parse(
-      readFileSync(join(pluginDir, ".cursor-plugin", "plugin.json"), "utf8"),
-    ).name,
+  const manifest = join(
+    import.meta.dirname,
+    "..",
+    "..",
+    "plugins",
+    "agent",
     "ravn-core",
+    ".cursor-plugin",
+    "plugin.json",
+  );
+
+  assert.equal(
+    readFileSync(join(pluginDir, ".cursor-plugin", "plugin.json"), "utf8"),
+    readFileSync(manifest, "utf8"),
   );
 
   assert.equal(
@@ -135,12 +145,31 @@ test("cursor installs skills as a local plugin and preserves that directory", (t
   assert.ok(workspaceCleanExcludes.includes("/.cursor/plugins/"));
 });
 
-test("a cursor workspace with no skills has no plugin directory", (t) => {
+test("a cursor workspace with no skills still installs the plugin manifest", (t) => {
   const workspace = mkdtempSync(join(tmpdir(), "cursor-empty-"));
 
   t.after(() => rmSync(workspace, { recursive: true, force: true }));
 
   installSkills(workspace, [], "cursor");
 
-  assert.equal(existsSync(cursorPluginDir(workspace)), false);
+  const manifest = join(
+    import.meta.dirname,
+    "..",
+    "..",
+    "plugins",
+    "agent",
+    "ravn-core",
+    ".cursor-plugin",
+    "plugin.json",
+  );
+
+  assert.equal(
+    readFileSync(
+      join(cursorPluginDir(workspace), ".cursor-plugin", "plugin.json"),
+      "utf8",
+    ),
+    readFileSync(manifest, "utf8"),
+  );
+
+  assert.deepEqual(readdirSync(join(cursorPluginDir(workspace), "skills")), []);
 });

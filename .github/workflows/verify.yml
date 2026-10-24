@@ -51,7 +51,7 @@ jobs:
           ln -sfn "$dest/cursor-agent" "$HOME/.local/bin/cursor-agent"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           claude --version
-          "$HOME/.local/bin/cursor-agent" --version
+          "$HOME/.local/bin/cursor-agent" --disable-auto-update --version
       - name: Write logins
         env:
           CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}

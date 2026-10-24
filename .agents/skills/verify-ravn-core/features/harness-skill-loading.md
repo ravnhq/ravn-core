@@ -24,5 +24,5 @@ Preconditions: doctor prints `ok codex login`, `ok pi login`, and `ok cursor log
 
 - `--runners` takes `runnerName` values from `evals/skill-eval.ts`; an unknown name throws before any run.
 - Codex may refresh the copied login and stale your real one. Fix with `codex login`.
-- Omitting `--runners` also runs the Opus, Sol, Cursor, and OpenRouter runners. Codex OpenRouter runners throw at config load without `OPENROUTER_API_KEY`; Claude Code OpenRouter runners start and then fail at auth. A Cursor runner throws at startup without `CURSOR_API_KEY`.
+- Omitting `--runners` also runs the Opus, Sol, Cursor, and OpenRouter runners. Codex OpenRouter runners throw at config load without `OPENROUTER_API_KEY`; Claude Code OpenRouter runners start and then fail at auth. A Cursor runner throws at config load without `CURSOR_API_KEY`.
 - `evals/run.ts` reads `~/.codex/auth.json` even when `--runners` names no Codex runner, so a run without a Codex login crashes.

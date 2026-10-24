@@ -163,17 +163,18 @@ export function provider(fixture: string, arm: string, runner: Runner) {
         config: { model: runner.model, working_dir: workingDir },
       };
 
-    case "cursor":
+    case "cursor": {
+      if (!process.env.CURSOR_API_KEY) {
+        throw new Error(
+          "CURSOR_API_KEY is unset. Create a user API key in the Cursor dashboard and export it, or pick other runners with --runners.",
+        );
+      }
+
       return {
         id: cursorProvider,
         label,
         config: { model: runner.model, working_dir: workingDir },
       };
-
-    default: {
-      const unexpected: never = runner;
-
-      throw new Error(`Unknown harness: ${unexpected}`);
     }
   }
 }

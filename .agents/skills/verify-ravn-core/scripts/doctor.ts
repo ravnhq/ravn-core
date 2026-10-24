@@ -31,7 +31,12 @@ console.log(
 );
 
 for (const tool of ["claude", "codex", "pi", "cursor-agent"]) {
-  console.log(`${tool}: ${firstLine(run(tool, ["--version"]).stdout ?? "")}`);
+  const args =
+    tool === "cursor-agent"
+      ? ["--disable-auto-update", "--version"]
+      : ["--version"];
+
+  console.log(`${tool}: ${firstLine(run(tool, args).stdout ?? "")}`);
 }
 
 for (const line of run("git", ["status", "--short"]).stdout.split("\n")) {
@@ -87,7 +92,8 @@ const harnessChecks = [
     label: "cursor login",
     ok: () =>
       Boolean(process.env.CURSOR_API_KEY) &&
-      run("cursor-agent", ["--list-models"]).status === 0,
+      run("cursor-agent", ["--disable-auto-update", "--list-models"]).status ===
+        0,
   },
   {
     tool: "gh",

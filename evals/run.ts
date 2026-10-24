@@ -118,16 +118,6 @@ if (needsClaudeLogin && !process.env.CLAUDE_CODE_OAUTH_TOKEN) {
   );
 }
 
-const needsCursorLogin = selectedRunners.some((runner) =>
-  runner.startsWith("cursor/"),
-);
-
-if (needsCursorLogin && !process.env.CURSOR_API_KEY) {
-  throw new Error(
-    "CURSOR_API_KEY is unset. Create a user API key in the Cursor dashboard and export it, or pick other runners with --runners.",
-  );
-}
-
 const skillConfigs = agentPluginDirs(pluginsDir).flatMap((dir) => {
   const plugin = basename(dir);
 

@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import type { ApiProvider, ProviderOptions, ProviderResponse } from "promptfoo";
 import { z } from "zod";
 import { cursorPluginDir } from "../workspace-repo.ts";
@@ -209,9 +209,11 @@ export function cursorLaunchArgs(
 
   const pluginDir = cursorPluginDir(workingDir);
 
-  if (existsSync(join(pluginDir, ".cursor-plugin", "plugin.json"))) {
-    args.push("--plugin-dir", pluginDir);
+  if (!existsSync(pluginDir)) {
+    throw new Error(`Cursor plugin directory is missing at ${pluginDir}.`);
   }
+
+  args.push("--plugin-dir", pluginDir);
 
   args.push(prompt);
 

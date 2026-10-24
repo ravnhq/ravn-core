@@ -13,6 +13,7 @@ test("explicit triggers use semantic acceptance grading on every runner", (t) =>
     "RAVN_EVALS_WORKSPACES",
     "RAVN_EVALS_HOME",
     "OPENROUTER_API_KEY",
+    "CURSOR_API_KEY",
     "RAVN_EVALS_RUNNER",
   ];
 
@@ -28,6 +29,7 @@ test("explicit triggers use semantic acceptance grading on every runner", (t) =>
   process.env.RAVN_EVALS_WORKSPACES = "/workspaces";
   process.env.RAVN_EVALS_HOME = "/home";
   process.env.OPENROUTER_API_KEY = "test-key";
+  process.env.CURSOR_API_KEY = "cursor-key";
 
   const schema = z.object({
     tests: z.array(
