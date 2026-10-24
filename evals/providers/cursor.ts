@@ -143,19 +143,17 @@ function textOf(message: z.infer<typeof assistantSchema>["message"]): string {
 }
 
 export function replyText(events: CursorEvent[]): string | undefined {
-  const replies = events.flatMap((event) =>
-    event.type === "assistant" && event.message.role === "assistant"
-      ? [textOf(event.message)]
-      : [],
-  );
+  const last = events
+    .flatMap((event) =>
+      event.type === "assistant" && event.message.role === "assistant"
+        ? [textOf(event.message)]
+        : [],
+    )
+    .at(-1);
 
-  const last = replies.at(-1);
+  if (last === undefined || last === "") return undefined;
 
-  if (last !== undefined && last !== "") return last;
-
-  const result = events.findLast((event) => event.type === "result");
-
-  return result?.type === "result" ? result.result : undefined;
+  return last;
 }
 
 export function resultError(events: CursorEvent[]): string | undefined {

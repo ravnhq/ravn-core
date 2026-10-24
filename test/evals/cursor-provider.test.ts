@@ -129,6 +129,13 @@ test("skill calls come from SKILL.md tool paths and ignore failed reads", () => 
       type: "assistant",
       message: {
         role: "assistant",
+        content: [{ type: "text", text: "Reading the skill." }],
+      },
+    }),
+    JSON.stringify({
+      type: "assistant",
+      message: {
+        role: "assistant",
         content: [{ type: "text", text: "Hello, I can help." }],
       },
     }),
@@ -136,7 +143,7 @@ test("skill calls come from SKILL.md tool paths and ignore failed reads", () => 
       type: "result",
       subtype: "success",
       is_error: false,
-      result: "Hello, I can help.",
+      result: "Reading the skill.Hello, I can help.",
     }),
   ].join("\n");
 
@@ -156,6 +163,32 @@ test("skill calls come from SKILL.md tool paths and ignore failed reads", () => 
 
   assert.equal(replyText(events), "Hello, I can help.");
   assert.equal(resultError(events), undefined);
+});
+
+test("an empty last assistant segment is no reply", () => {
+  const events = parseEvents(
+    [
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Reading the skill." }],
+        },
+      }),
+      JSON.stringify({
+        type: "assistant",
+        message: { role: "assistant", content: [{ type: "text", text: "" }] },
+      }),
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        is_error: false,
+        result: "Reading the skill.",
+      }),
+    ].join("\n"),
+  );
+
+  assert.equal(replyText(events), undefined);
 });
 
 test("a cursor result error is reported", () => {
