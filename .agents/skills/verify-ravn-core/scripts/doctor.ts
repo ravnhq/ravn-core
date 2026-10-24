@@ -2,7 +2,6 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
-import { z } from "zod";
 import { pluginDirs } from "../../../../scripts/plugins.ts";
 
 const repoDir = join(import.meta.dirname, "..", "..", "..", "..");
@@ -76,8 +75,6 @@ const codexAuth = join(
   "auth.json",
 );
 
-const cursorStatusSchema = z.object({ isAuthenticated: z.boolean() });
-
 const harnessChecks = [
   { tool: "codex", label: "codex login", ok: () => existsSync(codexAuth) },
   {
@@ -88,20 +85,9 @@ const harnessChecks = [
   {
     tool: "cursor-agent",
     label: "cursor login",
-    ok: () => {
-      const status = run("cursor-agent", ["status", "--format", "json"]);
-
-      if (status.status !== 0) return false;
-
-      try {
-        return (
-          cursorStatusSchema.safeParse(JSON.parse(status.stdout)).data
-            ?.isAuthenticated === true
-        );
-      } catch {
-        return false;
-      }
-    },
+    ok: () =>
+      Boolean(process.env.CURSOR_API_KEY) &&
+      run("cursor-agent", ["--list-models"]).status === 0,
   },
   {
     tool: "gh",

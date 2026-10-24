@@ -102,8 +102,9 @@ function toolCallFailed(event: ToolCallEvent): boolean {
   return false;
 }
 
-// stream-json reports each tool call twice. A path inside either event counts,
-// and a completed call without `result.success` is a failed read.
+// stream-json reports each tool call twice. `seen` keeps the first event for a
+// call id (normally `started`), and only that event is scanned for a SKILL.md
+// path. A completed call without `result.success` is a failed read.
 export function skillCallsFrom(events: CursorEvent[]): SkillCall[] {
   const failedIds = new Set(
     events.flatMap((event) =>
@@ -271,13 +272,6 @@ export default class CursorProvider implements ApiProvider {
     if (home === undefined || home === "") {
       return {
         error: "RAVN_EVALS_HOME is unset; run evals through `pnpm eval`.",
-      };
-    }
-
-    if (!process.env.CURSOR_API_KEY) {
-      return {
-        error:
-          "CURSOR_API_KEY is unset. Create a user API key in the Cursor dashboard and export it.",
       };
     }
 

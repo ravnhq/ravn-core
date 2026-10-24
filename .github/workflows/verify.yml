@@ -40,14 +40,15 @@ jobs:
           npm install -g --ignore-scripts @earendil-works/pi-coding-agent@1.3.0 @openai/codex@0.159.3 @anthropic-ai/claude-code@2.1.287
           (cd "$(npm root -g)/@anthropic-ai/claude-code" && node install.cjs)
           # The official installer has no version argument. This is the package
-          # it fetched for linux/x64 on 2026-10-24; `cursor-agent` and `agent`
-          # are the same binary.
+          # it fetched for linux/x64 on 2026-10-24.
           version=2026.10.22-27dcf5f
+          archive="$RUNNER_TEMP/cursor-agent.tar.gz"
           dest="$HOME/.local/share/cursor-agent/versions/$version"
           mkdir -p "$dest" "$HOME/.local/bin"
-          curl -fsSL "https://downloads.cursor.com/lab/${version}/linux/x64/agent-cli-package.tar.gz" | tar --strip-components=1 -xz -C "$dest"
+          curl -fsSL -o "$archive" "https://downloads.cursor.com/lab/${version}/linux/x64/agent-cli-package.tar.gz"
+          echo "85296944e4600a83c4b764f578d1502bf9c416db200d33a593e8f3ecabfdc294  $archive" | sha256sum -c -
+          tar --strip-components=1 -xz -C "$dest" -f "$archive"
           ln -sfn "$dest/cursor-agent" "$HOME/.local/bin/cursor-agent"
-          ln -sfn "$dest/cursor-agent" "$HOME/.local/bin/agent"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           claude --version
           "$HOME/.local/bin/cursor-agent" --version
