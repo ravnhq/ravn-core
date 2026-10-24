@@ -11,6 +11,8 @@ export const runners = [
   { harness: "codex", model: "gpt-6-luna" },
   { harness: "codex", model: "gpt-6-sol" },
   { harness: "pi", model: "openai/gpt-6-luna" },
+  // Composer 2.5 is the model a new Cursor CLI session starts on.
+  { harness: "cursor", model: "composer-2.5" },
   { harness: "claude-code", model: "openrouter/anthropic/claude-sonnet-5.5" },
   { harness: "claude-code", model: "openrouter/anthropic/claude-opus-5.5" },
   { harness: "codex", model: "openrouter/openai/gpt-6-luna" },
@@ -32,6 +34,8 @@ export const grader = {
 };
 
 const piProvider = `file://${join(import.meta.dirname, "providers", "pi.ts")}`;
+
+const cursorProvider = `file://${join(import.meta.dirname, "providers", "cursor.ts")}`;
 
 export const runnerName = (runner: Runner) =>
   `${runner.harness}/${runner.model.split("/").at(-1)}${
@@ -158,6 +162,19 @@ export function provider(fixture: string, arm: string, runner: Runner) {
         label,
         config: { model: runner.model, working_dir: workingDir },
       };
+
+    case "cursor":
+      return {
+        id: cursorProvider,
+        label,
+        config: { model: runner.model, working_dir: workingDir },
+      };
+
+    default: {
+      const unexpected: never = runner;
+
+      throw new Error(`Unknown harness: ${unexpected}`);
+    }
   }
 }
 
@@ -214,6 +231,7 @@ const invocations = {
   "claude-code": (skill: string) => `/${skill}`,
   codex: (skill: string) => `$${skill}`,
   pi: (skill: string) => `/skill:${skill}`,
+  cursor: (skill: string) => `/${skill}`,
 } as const;
 
 function toTest(

@@ -1,9 +1,21 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { pluginSkillDirs } from "../../evals/workspace-repo.ts";
+import {
+  cursorPluginDir,
+  installSkills,
+  pluginSkillDirs,
+  workspaceCleanExcludes,
+} from "../../evals/workspace-repo.ts";
 
 test("pluginSkillDirs returns only agent plugin skills", (t) => {
   const pluginsDir = mkdtempSync(join(tmpdir(), "plugins-"));
@@ -57,4 +69,78 @@ test("pluginSkillDirs finds agent plugins inside tier folders", (t) => {
   assert.deepEqual(pluginSkillDirs(pluginsDir), [
     join(pluginsDir, "agent", "agent-plugin", "skills"),
   ]);
+});
+
+test("cursor installs skills as a local plugin and preserves that directory", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "cursor-plugin-"));
+
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+
+  const source = join(root, "source");
+
+  mkdirSync(join(source, "skills", "greet"), { recursive: true });
+
+  writeFileSync(join(source, "skills", "greet", "SKILL.md"), "# greet\n");
+
+  mkdirSync(join(source, "agents"), { recursive: true });
+
+  writeFileSync(join(source, "agents", "verifier.md"), "# verifier\n");
+
+  const smoke = join(root, "smoke");
+
+  mkdirSync(join(smoke, "skills", "greet-explicit"), { recursive: true });
+
+  writeFileSync(
+    join(smoke, "skills", "greet-explicit", "SKILL.md"),
+    "# explicit\n",
+  );
+
+  const workspace = join(root, "workspace");
+
+  installSkills(
+    workspace,
+    [join(source, "skills"), join(smoke, "skills")],
+    "cursor",
+  );
+
+  const pluginDir = cursorPluginDir(workspace);
+
+  assert.equal(
+    JSON.parse(
+      readFileSync(join(pluginDir, ".cursor-plugin", "plugin.json"), "utf8"),
+    ).name,
+    "ravn-core",
+  );
+
+  assert.equal(
+    readFileSync(join(pluginDir, "skills", "greet", "SKILL.md"), "utf8"),
+    "# greet\n",
+  );
+
+  assert.equal(
+    readFileSync(
+      join(pluginDir, "skills", "greet-explicit", "SKILL.md"),
+      "utf8",
+    ),
+    "# explicit\n",
+  );
+
+  assert.equal(
+    readFileSync(join(pluginDir, "agents", "verifier.md"), "utf8"),
+    "# verifier\n",
+  );
+
+  assert.equal(existsSync(join(workspace, ".agents", "skills")), false);
+
+  assert.ok(workspaceCleanExcludes.includes("/.cursor/plugins/"));
+});
+
+test("a cursor workspace with no skills has no plugin directory", (t) => {
+  const workspace = mkdtempSync(join(tmpdir(), "cursor-empty-"));
+
+  t.after(() => rmSync(workspace, { recursive: true, force: true }));
+
+  installSkills(workspace, [], "cursor");
+
+  assert.equal(existsSync(cursorPluginDir(workspace)), false);
 });

@@ -55,7 +55,7 @@ The repo-root `package.json` points Pi at the `ravn-core` skills. From a checkou
 
 Most `ravn-core` skills, including `ask-ravn`, `ship`, `why`, and the principles, set `disable-model-invocation: true`. They run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
 
-Evals prove `ravn-core` in Claude Code, Codex, and Pi. Cursor installs the same package but isn't in the eval matrix yet.
+Evals prove `ravn-core` in Claude Code, Codex, Cursor, and Pi. The Cursor runner is `cursor/composer-2.5` and authenticates with `CURSOR_API_KEY`.
 
 ## Install `skill-nudge`
 

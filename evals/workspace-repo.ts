@@ -47,6 +47,18 @@ export function createWorkspaceRepo(workspaceDir: string, fixture: string) {
   git(["remote", "remove", "origin"], workspaceDir);
 }
 
+// Cursor reads project skills from `.agents/skills` and `.claude/skills`, so a
+// Cursor workspace keeps the arm's skills only in this plugin directory.
+export const cursorPluginDir = (workspaceDir: string) =>
+  join(workspaceDir, ".cursor", "plugins", "ravn-core");
+
+export const workspaceCleanExcludes = [
+  "/.claude/skills/",
+  "/.agents/skills/",
+  "/.claude/agents/",
+  "/.cursor/plugins/",
+];
+
 export function resetWorkspaceRepo(workspaceDir: string, fixture: string) {
   git(
     ["fetch", "-q", join(fixturesDir, `${fixture}.git`), "main"],
@@ -67,21 +79,13 @@ export function resetWorkspaceRepo(workspaceDir: string, fixture: string) {
 
   git(["gc", "-q", "--prune=now"], workspaceDir);
 
-  git(
-    [
-      "clean",
-      "-q",
-      "-f",
-      "-d",
-      "-e",
-      "/.claude/skills/",
-      "-e",
-      "/.agents/skills/",
-      "-e",
-      "/.claude/agents/",
-    ],
-    workspaceDir,
-  );
+  const args = ["clean", "-q", "-f", "-d"];
+
+  for (const path of workspaceCleanExcludes) {
+    args.push("-e", path);
+  }
+
+  git(args, workspaceDir);
 }
 
 export function applyEdits(
@@ -109,10 +113,28 @@ export function pluginSkillDirs(pluginsDir: string): string[] {
     .filter((dir) => existsSync(dir));
 }
 
+const cursorPluginManifest = {
+  name: "ravn-core",
+  description:
+    "Core Ravn agent plugin. Bundles reusable skills and MCP server configuration.",
+};
+
 // Skills go where Claude Code and Codex read project skills. A plugin's
 // agents, beside its skills, become Claude Code project agents; Codex reads no
 // agents from a plugin, so its skills spawn fresh subagents instead.
-export function installSkills(workspaceDir: string, skillDirs: string[]) {
+// Cursor loads a local plugin through `--plugin-dir` and `.cursor-plugin/plugin.json`,
+// the same shape as `plugins/agent/ravn-core`.
+export function installSkills(
+  workspaceDir: string,
+  skillDirs: string[],
+  harness = "",
+) {
+  if (harness === "cursor") {
+    installCursorPlugin(workspaceDir, skillDirs);
+
+    return;
+  }
+
   for (const harnessDir of [".claude", ".agents"]) {
     mkdirSync(join(workspaceDir, harnessDir, "skills"), { recursive: true });
 
@@ -130,6 +152,31 @@ export function installSkills(workspaceDir: string, skillDirs: string[]) {
       cpSync(agentsDir, join(workspaceDir, ".claude", "agents"), {
         recursive: true,
       });
+  }
+}
+
+function installCursorPlugin(workspaceDir: string, skillDirs: string[]) {
+  if (skillDirs.length === 0) return;
+
+  const pluginDir = cursorPluginDir(workspaceDir);
+
+  mkdirSync(join(pluginDir, ".cursor-plugin"), { recursive: true });
+
+  writeFileSync(
+    join(pluginDir, ".cursor-plugin", "plugin.json"),
+    `${JSON.stringify(cursorPluginManifest, null, 2)}\n`,
+  );
+
+  mkdirSync(join(pluginDir, "skills"), { recursive: true });
+
+  for (const skillDir of skillDirs) {
+    cpSync(skillDir, join(pluginDir, "skills"), { recursive: true });
+
+    const agentsDir = join(dirname(skillDir), "agents");
+
+    if (existsSync(agentsDir)) {
+      cpSync(agentsDir, join(pluginDir, "agents"), { recursive: true });
+    }
   }
 }
 

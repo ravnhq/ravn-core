@@ -34,7 +34,7 @@ Mods act only in an interactive terminal, so the collector cannot show them. Dri
 node .agents/skills/verify-ravn-core/scripts/doctor.ts   # read-only
 ```
 
-Require exit 0. Doctor prints the revision, any uncommitted files, and the `claude`, `codex`, and `pi` versions. It checks Node 24 or later, pnpm, and promptfoo, and validates the marketplace and every plugin. It fails when `codex`, `pi`, or `gh` is installed but not logged in, and skips each one that is absent; features that need a skipped tool report as unverified.
+Require exit 0. Doctor prints the revision, any uncommitted files, and the `claude`, `codex`, `pi`, and `cursor-agent` versions. It checks Node 24 or later, pnpm, and promptfoo, and validates the marketplace and every plugin. It fails when `codex`, `pi`, `cursor-agent`, or `gh` is installed but not logged in, and skips each one that is absent; features that need a skipped tool report as unverified. Cursor login is `CURSOR_API_KEY` or `cursor-agent login`.
 
 ## Drive
 

@@ -20,7 +20,7 @@
 Preconditions: doctor passes, private evals are fetched, and the user approves the targeted token-spending run. Use the collector and `RUN_ID` from the parent verification skill.
 
 1. Run `node .agents/skills/verify-ravn-core/scripts/collect.ts repo-check bun run check`. Expect the private grader tests and the skill's config-contract tests to pass.
-2. Run `node .agents/skills/verify-ravn-core/scripts/collect.ts skill-evals bun run eval --skills learn-from-sessions --runners claude-code/claude-sonnet-5-5,codex/gpt-6-luna,pi/gpt-6-luna --jobs 3`.
+2. Run `node .agents/skills/verify-ravn-core/scripts/collect.ts skill-evals bun run eval --skills learn-from-sessions --runners claude-code/claude-sonnet-5-5,codex/gpt-6-luna,pi/gpt-6-luna,cursor/composer-2.5 --jobs 4`.
 3. Inspect `skill-evals/results/ravn-core-learn-from-sessions-*.json` under the evidence directory. Require five passing cases and zero failures or errors for each harness. Inspect the approved-application response and trajectory for the initial failing check, corrected boundary, passing rerun, and final review. Inspect proposal-only trajectories for unauthorized side effects as well as the final JSON.
 4. Preserve failed attempts under a separate `RUN_ID` before rerunning; report every failed attempt and its correction.
 

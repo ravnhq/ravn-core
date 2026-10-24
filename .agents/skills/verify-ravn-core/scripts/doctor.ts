@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
+import { z } from "zod";
 import { pluginDirs } from "../../../../scripts/plugins.ts";
 
 const repoDir = join(import.meta.dirname, "..", "..", "..", "..");
@@ -30,7 +31,7 @@ console.log(
   `revision: ${firstLine(run("git", ["rev-parse", "--short", "HEAD"]).stdout)}`,
 );
 
-for (const tool of ["claude", "codex", "pi"]) {
+for (const tool of ["claude", "codex", "pi", "cursor-agent"]) {
   console.log(`${tool}: ${firstLine(run(tool, ["--version"]).stdout ?? "")}`);
 }
 
@@ -75,12 +76,32 @@ const codexAuth = join(
   "auth.json",
 );
 
+const cursorStatusSchema = z.object({ isAuthenticated: z.boolean() });
+
 const harnessChecks = [
   { tool: "codex", label: "codex login", ok: () => existsSync(codexAuth) },
   {
     tool: "pi",
     label: "pi login",
     ok: () => run("pi", ["auth", "check", "--provider", "openai"]).status === 0,
+  },
+  {
+    tool: "cursor-agent",
+    label: "cursor login",
+    ok: () => {
+      const status = run("cursor-agent", ["status", "--format", "json"]);
+
+      if (status.status !== 0) return false;
+
+      try {
+        return (
+          cursorStatusSchema.safeParse(JSON.parse(status.stdout)).data
+            ?.isAuthenticated === true
+        );
+      } catch {
+        return false;
+      }
+    },
   },
   {
     tool: "gh",

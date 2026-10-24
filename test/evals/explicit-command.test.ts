@@ -71,11 +71,12 @@ test("explicit triggers use semantic acceptance grading on every runner", (t) =>
       "claude-code": "/show-me-your-work",
       codex: "$show-me-your-work",
       pi: "/skill:show-me-your-work",
-    }[runner.harness];
+      cursor: "/show-me-your-work",
+    } satisfies Record<(typeof runners)[number]["harness"], string>;
 
     assert.equal(
       trigger.vars.request,
-      `${command} record decisions as we work`,
+      `${command[runner.harness]} record decisions as we work`,
     );
   }
 });

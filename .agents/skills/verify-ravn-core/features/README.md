@@ -20,7 +20,7 @@ This map is the maintained source for verifying what each plugin does for a user
 - `collect.ts` keeps `run.json`, `stdout.txt`, `stderr.txt`, and `results/` when evals ran.
 - Evidence paths in feature files are relative to `.verify/$RUN_ID/<feature-id>/`; `<evidence>` means that directory.
 - Quote the exact lines from an output file or `stdout.txt` that prove each sub-feature.
-- A feature that needs a tool doctor skipped (codex, pi, gh, tmux) is reported as unverified, with the missing tool named. Do not count another harness instead.
+- A feature that needs a tool doctor skipped (codex, pi, cursor-agent, gh, tmux) is reported as unverified, with the missing tool named. Do not count another harness instead.
 - A run that exits non-zero or hits the budget is a failed attempt. Report it; do not retry silently.
 
 ## Feature entry contract
@@ -35,7 +35,7 @@ Claude Code mods:
 
 `ravn-core` and the repo:
 
-- [Harness skill loading](./harness-skill-loading.md) covers Claude Code, Codex, and Pi loading a skill.
+- [Harness skill loading](./harness-skill-loading.md) covers Claude Code, Codex, Cursor, and Pi loading a skill.
 - [Plugin skill evals](./skill-evals.md) covers one `ravn-core` skill's promptfoo cases.
 - [why anchor script](./why-anchor-script.md) covers the `why` skill's anchor script.
 - [Repo check](./repo-check.md) covers `pnpm check`.
@@ -43,7 +43,7 @@ Claude Code mods:
 - [ship idea-to-PR workflow](./ship.md) covers `ship` and the skills it chains: `grilling`, `create-verification-skill`, and `pr`. `research` and `maintain-verification-skill` run only when the change needs outside docs or the repo already has a verification skill.
 - [babysit merge-readiness workflow](./babysit.md) covers gate discovery, thread triage, merge-ready reporting, proof before merging, merging on request, merge-queue drops, and background watching, against a simulated GitHub.
 - [bug-fix workflow](./bug-fix.md) covers the repro, the root cause, red-then-green history on a new branch, and isolating a dirty tree in a worktree.
-- [Learn from sessions](./learn-from-sessions.md) covers evidence-backed prevention proposals, structure-first destination choices, approval boundaries, approved application, and routing across all three harnesses.
+- [Learn from sessions](./learn-from-sessions.md) covers evidence-backed prevention proposals, structure-first destination choices, approval boundaries, approved application, and routing across all four harnesses.
 - [TypeScript best practices](./typescript-best-practices.md) covers loading the skill unprompted for a TypeScript change, applying its rules, and staying out of other languages.
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
 

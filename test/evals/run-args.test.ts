@@ -24,3 +24,18 @@ test("--smoke rejects --skills instead of ignoring it", () => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /--skills does not apply to --smoke/);
 });
+
+test("a cursor runner requires CURSOR_API_KEY", () => {
+  const env = { ...process.env };
+
+  delete env.CURSOR_API_KEY;
+
+  const result = spawnSync(
+    process.execPath,
+    [runScript, "--smoke", "--runners", "cursor/composer-2.5"],
+    { encoding: "utf8", timeout: 30_000, env },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /CURSOR_API_KEY is unset/);
+});
