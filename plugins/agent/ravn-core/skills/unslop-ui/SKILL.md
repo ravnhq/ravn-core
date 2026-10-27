@@ -25,6 +25,7 @@ Record only what is on that region:
 - an active item drawn as a different shape from the idle item
 - emoji or extra punctuation on a metric
 - a separate hue on a category, an icon, or a bar
+- a border around every row in a list
 - icons from more than one family
 
 Done when each line names an element you saw.
@@ -37,15 +38,15 @@ Done when each gap has a role and you can name the gaps that break it, plus the 
 
 ## 4. Edit the region
 
-Keep the data, the actions, and which information sits where. Use the project's spacing and color tokens. With no spacing tokens, use a 4-based scale and the three roles only.
+Keep the data, the actions, and which information sits where. Use the project's spacing and color tokens. A light region stays light, and a dark region stays dark. With no spacing tokens, use a 4-based scale and the three roles only.
 
 1. Snap every gap to its role. Sibling gaps repeat. A group gap is the next step up. Set the panel inset once, and the icon-to-label gap once.
 2. Align the shared edges from the measure.
-3. Set hierarchy with size and weight. One accent, taken from the product, sits on the value that changed or the status that needs a decision. With nothing to mark, use no accent.
-4. Make surfaces flat steps of one hue. The active item keeps the idle item's shape and changes surface.
-5. Use one icon family. A chart uses one neutral; its extreme may take the accent. A category keeps a hue only when that hue is how the user tells the items apart.
+3. Set hierarchy with size and weight.
+4. Make repeated surfaces flat steps of the theme's hue. Sibling rows share a surface. A border wraps a group, not each row. A glow or a gradient is allowed on the active item and on the one primary action. A glow on the page, a card, or type goes. The active item keeps the idle item's shape.
+5. Use one icon family. The primary action and the active item share one accent from the product. A status that needs a decision gets one other hue. A chart uses one neutral, and its extreme may take the accent. A category keeps a hue only when that hue is how the user tells the items apart. With nothing to mark, add no hue.
 
-Done when the diff is spacing, alignment, type, color, and chrome, and you can point at the accent or at its absence.
+Done when the diff is spacing, alignment, type, color, and chrome, and you can point at the accent and any status hue, or at their absence.
 
 ## 5. Check the paint
 
