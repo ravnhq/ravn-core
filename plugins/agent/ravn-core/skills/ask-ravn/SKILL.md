@@ -58,6 +58,7 @@ Reach for these without committing to the whole `ship` flow:
 | Check a PR or stack's gates and merge readiness | [babysit](../babysit/SKILL.md) in `check` mode |
 | Write a PR body | [pr](../pr/SKILL.md) |
 | Write a skill or agent-facing document | [writing-for-agents](../writing-for-agents/SKILL.md) |
+| Unslop a page or component | [unslop-ui](../unslop-ui/SKILL.md) |
 
 ## Vocabulary and principles underneath
 
