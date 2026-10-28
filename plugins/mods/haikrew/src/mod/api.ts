@@ -1,0 +1,41 @@
+/**
+ * The slice of the mods API (`$`) the mod modules use, typed structurally so these files stay plain
+ * TypeScript with no Node.js imports. Also the shapes of hook events and of the `next` callback.
+ */
+export type Input = Record<string, unknown>;
+
+/** Passes an event on to the next mod or to Claude Code, returning that reply. */
+export type Next = (e: Input) => unknown;
+
+/** The mods API methods the hooks module uses: reading a transcript file, the store and the plugin root. */
+export type Api = {
+  fs: { read(path: string): Promise<string> };
+  store: {
+    get(key: string): Promise<unknown>;
+    set(key: string, value: unknown): Promise<void>;
+  };
+  plugin: { root: string };
+  http: {
+    fetch(
+      url: string,
+      init?: {
+        method?: string;
+        headers?: Record<string, string>;
+        body?: string;
+      },
+    ): Promise<{ status: number; ok: boolean; text: string }>;
+  };
+  process: {
+    run(
+      argv: readonly string[],
+      init?: { cwd?: string; timeoutMs?: number },
+    ): Promise<{ exitCode: number; stdout: string }>;
+  };
+  ui: { toast(text: string): void; invalidate(id: string): void };
+  clock: { after(ms: number, fn: () => void): unknown };
+};
+
+/** True for a plain JSON object (not null, not an array). */
+export function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}

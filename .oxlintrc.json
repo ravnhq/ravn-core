@@ -19,6 +19,8 @@
     "plugins/*/*",
     "!plugins/agent/ravn-core",
     "!plugins/mods/*",
+    "plugins/mods/cc-stretch/**",
+    "plugins/mods/haikrew/**",
     "plugins/*/*/.claude-plugin/types/**"
   ],
   "jsPlugins": [
