@@ -4,8 +4,8 @@
 
 ## Sub-features
 
-- `review.tier`: a branch that touches `src/session.ts` runs the `full` tier, all eight specialists.
-- `review.specialists`: Claude Code spawns `review-specialist` agents with `model: "sonnet"` for the step-down specialists when the session runs Opus or Fable; Codex spawns `spawn_agent` subagents; Pi runs each specialist in turn.
+- `review.tier`: a branch that touches `src/session.ts` runs the `full` tier: eight specialists listed, seven run, because the fixture changes no build, dependency, CI, or config file and the skill drops `release`.
+- `review.specialists`: Claude Code spawns `review-specialist` agents with `model: "sonnet"` for the step-down specialists when the session runs Opus or Fable; Codex spawns `spawn_agent` subagents and re-spawns, or runs itself, any its thread limit refuses; Pi runs each specialist in turn. The report names a specialist as run only when it holds that specialist's reply.
 - `review.findings`: the final reply reports the seeded off-by-one in `src/page.ts` (`PAGE_SIZE + 1`), the logged session token in `src/session.ts`, and the README that still says 20, with a `request_changes` or `comment` verdict.
 - `review.check`: the transcript shows `review.ts check` exiting 0, after correcting any rejected finding.
 - `review.simplify`: `src/page.ts` drops `boundPage` for `clamp` from `src/util.ts`, the edit is uncommitted, and `npm test` still passes.
@@ -23,13 +23,15 @@ Preconditions: doctor exits 0 with `ok codex login` and `ok pi login`.
 - Send one turn: `<invocation> Review this branch (feature/page-slices) against main and apply the simplifications that are safe. Do not post anything to GitHub and do not ask me questions; use the defaults.`
 - Keep the transcript, the final message, `git status --short`, `git diff`, `git log --oneline`, and `npm test` output under `.verify/$RUN_ID/review-and-simplify-<harness>/`.
 - Check:
-  - `review.tier`: the `tier` call's output in the transcript has `"tier": "full"` and eight specialists.
-  - `review.specialists`: Claude Code's transcript has eight `Agent` calls with `subagent_type` `review-specialist`, five with `model` `sonnet`; Codex's session logs under the isolated `$HOME/.codex/sessions/` (the exec JSON omits them) have eight `spawn_agent` calls with `fork_turns` `none`; Pi's shows the specialist passes in sequence.
+  - `review.tier`: the `tier` call's output in the transcript has `"tier": "full"` and eight specialists, and the reply says `release` was skipped.
+  - `review.specialists`: Claude Code's transcript has seven `Agent` calls with `subagent_type` `review-specialist`, four with `model` `sonnet`; Codex's session logs under the isolated `$HOME/.codex/sessions/` (the exec JSON omits them) show each of the seven specialists either spawned successfully with `fork_turns` `none` or, after a `agent thread limit reached` refusal, spawned again or run by the coordinator; Pi's shows seven specialist passes in sequence. In every harness, each specialist the reply lists as run has a reply in the transcript.
   - `review.findings` and `review.check`: quote the lines from the final message and the `check` output.
   - `review.simplify`: `git status --short` shows ` M src/page.ts` only, `git log --oneline` still has two commits, and `npm test` exits 0.
 
 ## Gotchas
 
+- Run Claude Code on an Opus session (`--model opus`) so the step-down spawns use `sonnet`, and put the prompt before `--allowedTools`, whose variadic value otherwise swallows it.
+- Codex caps concurrent subagents (`agents.max_concurrent_threads_per_session`); with eight specialists some spawns are refused, which is the case `review.specialists` checks.
 - The fixture's commit is on the branch, so the tree starts clean and simplify may edit `src/page.ts`. Uncommitted edits there would make simplify report instead.
 - A user's `diff.mnemonicPrefix` makes plain `git diff` write `c/` and `w/` prefixes; `review.ts` rejects that diff with `diff_prefix`, and the skill's commands pass `--src-prefix=a/ --dst-prefix=b/`.
 - Unit tests live in `test/ravn-core/review-and-simplify/`; they cover the script, not the review.

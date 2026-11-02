@@ -75,7 +75,9 @@ On the other tiers, spawn each specialist as a fresh read-only subagent, not a f
 - **Codex:** `spawn_agent` with the brief as its message.
 - **A harness without subagents:** read the three files once, then run each specialist's pass yourself in turn, changing only the specialty, and write its reply down before you start the next.
 
-Spawn the first specialist of each model class, then the rest together in your next message without waiting for the first ones to finish, so the later requests can reuse the prefix the first ones cache. Wait for every reply. A reply that is not the findings JSON gets one follow-up asking for only the JSON. Without a valid reply, record the specialist as failed in the report.
+Spawn the first specialist of each model class, then the rest together in your next message without waiting for the first ones to finish, so the later requests can reuse the prefix the first ones cache. Wait for every reply. Harnesses cap how many subagents run at once (Codex's `agents.max_concurrent_threads_per_session`, for one): when a spawn is refused, spawn that specialist again as soon as a running one replies, and when none will start, run its pass yourself as a harness without subagents does. A reply that is not the findings JSON gets one follow-up asking for only the JSON.
+
+Done when you hold a valid findings reply, from a subagent or your own pass, for every specialist you did not drop in Step 2. Report a specialist as run only when you hold its reply; one without a reply is failed.
 
 ## Step 4. Judge
 
