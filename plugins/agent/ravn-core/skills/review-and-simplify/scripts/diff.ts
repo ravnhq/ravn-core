@@ -36,7 +36,13 @@ export type Assignment = {
 
 const tierSpecialists: Record<Tier, readonly Specialist[]> = {
   trivial: ["code_quality"],
-  lite: ["code_quality", "documentation", "agents_md", "simplify"],
+  lite: [
+    "code_quality",
+    "documentation",
+    "engineering_standards",
+    "agents_md",
+    "simplify",
+  ],
   full: specialists,
 };
 

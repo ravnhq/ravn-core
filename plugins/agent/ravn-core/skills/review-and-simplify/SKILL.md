@@ -48,7 +48,7 @@ Done when `<run>/diff.patch` holds the whole change and `<run>/guidance.md` exis
 node <skill>/scripts/review.ts tier <run>/increment.patch   # re-review; otherwise <run>/diff.patch
 ```
 
-Add `--tier` when the user forced one. Save the JSON as `<run>/tier.json`. It lists `specialists`, each with a `model` class, and the `files` they review. A sensitive path or more than 50 files gives `full` (all eight). At most 10 changed lines in at most 20 files gives `trivial` (`code_quality`). At most 100 lines in at most 20 files gives `lite` (`code_quality`, `documentation`, `agents_md`, `simplify`). Anything else is `full`.
+Add `--tier` when the user forced one. Save the JSON as `<run>/tier.json`. It lists `specialists`, each with a `model` class, and the `files` they review. A sensitive path or more than 50 files gives `full` (all eight). At most 10 changed lines in at most 20 files gives `trivial` (`code_quality`). At most 100 lines in at most 20 files gives `lite` (`code_quality`, `documentation`, `engineering_standards`, `agents_md`, `simplify`). Anything else is `full`.
 
 Drop a listed specialist that has nothing to review: `release` when no changed file is a build, dependency, CI, container, migration, or runtime-configuration file, and `engineering_standards` when `guidance.md` is empty. On a re-review, also drop one when the increment gives its specialty nothing to check and no previous finding of its specialty is still open. `security` always runs when listed.
 
