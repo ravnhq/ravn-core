@@ -166,7 +166,7 @@ test("a small change is trivial and runs code_quality only", () => {
   ]);
 });
 
-test("a medium change is lite and adds documentation, agents_md, and simplify", () => {
+test("a medium change is lite and adds documentation, engineering_standards, agents_md, and simplify", () => {
   reset();
 
   write("src/math.ts", lines(40, "line").concat(lines(30, "added")));
@@ -178,6 +178,7 @@ test("a medium change is lite and adds documentation, agents_md, and simplify", 
   assert.deepEqual(result.json.specialists, [
     { name: "code_quality", model: "session" },
     { name: "documentation", model: "step-down" },
+    { name: "engineering_standards", model: "step-down" },
     { name: "agents_md", model: "step-down" },
     { name: "simplify", model: "session" },
   ]);

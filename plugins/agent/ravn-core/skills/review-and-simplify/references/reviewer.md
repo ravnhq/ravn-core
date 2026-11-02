@@ -74,7 +74,7 @@ Enforce the rules in `guidance.md`. Check the change against each rule that appl
 
 ### agents_md
 
-Judge whether the change keeps the repository's agent instructions true: `AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, and `.claude/rules`, at the root and in nested directories. First, report a demonstrated violation of those instructions, citing the file and the rule. Then decide whether the change needs an instruction update:
+Judge whether the repository's agent instructions are still true after the change: `AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, and `.claude/rules`, at the root and in nested directories. Leave code that breaks those instructions to `engineering_standards`. Decide whether the change needs an instruction update:
 
 - High materiality: a package manager, test framework, or build tool change; a major directory restructure; a new required environment variable; a CI or deploy workflow change.
 - Medium materiality: a major dependency bump, new lint rules, an API client change, or a state management change.
