@@ -170,203 +170,213 @@ function freePort(): Promise<number> {
   });
 }
 
-const runDir = realpathSync(mkdtempSync(join(tmpdir(), "ravn-skills-evals-")));
-
-const isolatedHomeDir = join(runDir, "home");
-
 const codexAuthFile = join(
   process.env.CODEX_HOME ?? join(homedir(), ".codex"),
   "auth.json",
 );
 
-const isolatedCodexAuthFile = join(isolatedHomeDir, ".codex", "auth.json");
-
-// Codex runners pointed at OpenRouter use their own CODEX_HOME with the
-// OpenRouter provider block; see https://openrouter.ai/docs/cookbook/coding-agents/codex-cli
-const openRouterCodexDir = join(isolatedHomeDir, ".codex-openrouter");
-
-mkdirSync(openRouterCodexDir, { recursive: true });
-
-writeFileSync(
-  join(openRouterCodexDir, "config.toml"),
-  [
-    'model_provider = "openrouter"',
-    "",
-    "[model_providers.openrouter]",
-    'name = "openrouter"',
-    'base_url = "https://openrouter.ai/api/v1"',
-    "",
-    "[model_providers.openrouter.auth]",
-    'command = "sh"',
-    'args = ["-c", "echo $OPENROUTER_API_KEY"]',
-    "",
-  ].join("\n"),
-);
-
-const baselinePlugins = exportPluginsAt(
-  repoDir,
-  baselineRef,
-  join(runDir, "baseline"),
-);
-
-const armSkills = new Map([
-  ["current", [...pluginSkillDirs(pluginsDir), join(smokeDir, "skills")]],
-  ["baseline", pluginSkillDirs(baselinePlugins)],
-  ["without-skill", []],
-]);
-
-// Each job clones its own workspaces. Its hook resets them before every
-// test, so jobs never share or race on a copy.
-function createWorkspaces(dir: string) {
-  if (missingFixtures) {
-    throw new Error(missingFixtures);
-  }
-
-  for (const fixture of fixtureNames) {
-    for (const [arm, skillDirs] of armSkills) {
-      const workspaceDir = join(dir, fixture, arm);
-
-      createWorkspaceRepo(workspaceDir, fixture);
-
-      installSkills(workspaceDir, skillDirs);
-    }
-  }
-}
-
-mkdirSync(join(isolatedHomeDir, ".codex"), { recursive: true });
-
+// Read before the temp dir exists, so a missing login fails with nothing to
+// clean up.
 const codexAuthAtStart = readFileSync(codexAuthFile);
 
-cpSync(codexAuthFile, isolatedCodexAuthFile);
+const runDir = realpathSync(mkdtempSync(join(tmpdir(), "ravn-skills-evals-")));
 
-rmSync(resultsDir, { recursive: true, force: true });
+const isolatedHomeDir = join(runDir, "home");
 
-mkdirSync(resultsDir, { recursive: true });
+const isolatedCodexAuthFile = join(isolatedHomeDir, ".codex", "auth.json");
 
-const configs = smoke
-  ? [{ name: "smoke", config: join(smokeDir, "promptfooconfig.ts") }]
-  : skillConfigs.filter(({ skill }) => selectedSkills.includes(skill));
+// runDir holds a copy of the Codex login, and the work below can throw (a
+// missing fixture, a failed git clone, a failed job). Everything from here to
+// the finally block runs inside try, so runDir is removed on every exit path,
+// including each parallel job's dir under it.
+try {
+  // Codex runners pointed at OpenRouter use their own CODEX_HOME with the
+  // OpenRouter provider block; see https://openrouter.ai/docs/cookbook/coding-agents/codex-cli
+  const openRouterCodexDir = join(isolatedHomeDir, ".codex-openrouter");
 
-const jobs = configs.flatMap(({ name, config }) =>
-  selectedRunners.flatMap((runner) =>
-    Array.from({ length: repeat }, (_, attempt) => ({
-      config,
-      runner,
-      label:
-        repeat > 1
-          ? `${name}-${runner.replace("/", "-")}-${attempt + 1}`
-          : `${name}-${runner.replace("/", "-")}`,
-    })),
-  ),
-);
+  mkdirSync(openRouterCodexDir, { recursive: true });
 
-const parallel = jobLimit > 1;
-
-async function runJob(
-  { config, runner, label }: (typeof jobs)[number],
-  index: number,
-): Promise<number> {
-  const jobDir = join(runDir, "jobs", String(index));
-
-  const jobWorkspacesDir = join(jobDir, "workspaces");
-
-  createWorkspaces(jobWorkspacesDir);
-
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
-    RAVN_EVALS_WORKSPACES: jobWorkspacesDir,
-    RAVN_EVALS_HOME: isolatedHomeDir,
-    RAVN_EVALS_RUNNER: runner,
-    RAVN_EVALS_OTLP_PORT: String(await freePort()),
-  };
-
-  // Parallel jobs keep separate promptfoo databases so their trace stores
-  // never contend; results still land in evals/results.
-  if (parallel) {
-    env.PROMPTFOO_CONFIG_DIR = join(jobDir, "promptfoo");
-  }
-
-  const child = spawn(
-    "promptfoo",
+  writeFileSync(
+    join(openRouterCodexDir, "config.toml"),
     [
-      "eval",
-      "-c",
-      config,
-      ...(arms.length > 1 ? ["-c", join(evalsDir, "compare.ts")] : []),
-      "--no-cache",
-      "--filter-providers",
-      `^[^/]+/(${arms.join("|")})/${runner}$`,
-      "-o",
-      join(resultsDir, `${label}.json`),
-      ...promptfooArgs,
-    ],
-    {
-      stdio: parallel ? ["ignore", "pipe", "pipe"] : "inherit",
-      shell: process.platform === "win32",
-      env,
-    },
+      'model_provider = "openrouter"',
+      "",
+      "[model_providers.openrouter]",
+      'name = "openrouter"',
+      'base_url = "https://openrouter.ai/api/v1"',
+      "",
+      "[model_providers.openrouter.auth]",
+      'command = "sh"',
+      'args = ["-c", "echo $OPENROUTER_API_KEY"]',
+      "",
+    ].join("\n"),
   );
 
-  if (parallel) {
-    const log = createWriteStream(join(resultsDir, `${label}.log`));
+  const baselinePlugins = exportPluginsAt(
+    repoDir,
+    baselineRef,
+    join(runDir, "baseline"),
+  );
 
-    child.stdout?.pipe(log);
+  const armSkills = new Map([
+    ["current", [...pluginSkillDirs(pluginsDir), join(smokeDir, "skills")]],
+    ["baseline", pluginSkillDirs(baselinePlugins)],
+    ["without-skill", []],
+  ]);
 
-    child.stderr?.pipe(log);
+  // Each job clones its own workspaces. Its hook resets them before every
+  // test, so jobs never share or race on a copy.
+  function createWorkspaces(dir: string) {
+    if (missingFixtures) {
+      throw new Error(missingFixtures);
+    }
 
-    console.log(`started ${label}`);
-  }
+    for (const fixture of fixtureNames) {
+      for (const [arm, skillDirs] of armSkills) {
+        const workspaceDir = join(dir, fixture, arm);
 
-  return new Promise((resolve) => {
-    child.on("close", (status) => {
-      if (parallel) {
-        console.log(`finished ${label}: exit ${status}`);
+        createWorkspaceRepo(workspaceDir, fixture);
+
+        installSkills(workspaceDir, skillDirs);
       }
-
-      resolve(status ?? promptfooErrorStatus);
-    });
-  });
-}
-
-const statuses: number[] = [];
-
-let nextJob = 0;
-
-async function worker() {
-  while (nextJob < jobs.length) {
-    const index = nextJob;
-
-    nextJob += 1;
-
-    const job = jobs[index];
-
-    if (job !== undefined) {
-      statuses[index] = await runJob(job, index);
     }
   }
-}
 
-await Promise.all(
-  Array.from({ length: Math.max(1, jobLimit) }, () => worker()),
-);
+  mkdirSync(join(isolatedHomeDir, ".codex"), { recursive: true });
 
-const refreshedCodexAuth = existsSync(isolatedCodexAuthFile)
-  ? readFileSync(isolatedCodexAuthFile)
-  : codexAuthAtStart;
+  cpSync(codexAuthFile, isolatedCodexAuthFile);
 
-if (!refreshedCodexAuth.equals(codexAuthAtStart)) {
-  if (readFileSync(codexAuthFile).equals(codexAuthAtStart)) {
-    writeFileSync(codexAuthFile, refreshedCodexAuth, { mode: 0o600 });
-    console.warn(
-      "Codex refreshed its login during the eval run; copied it back.",
+  rmSync(resultsDir, { recursive: true, force: true });
+
+  mkdirSync(resultsDir, { recursive: true });
+
+  const configs = smoke
+    ? [{ name: "smoke", config: join(smokeDir, "promptfooconfig.ts") }]
+    : skillConfigs.filter(({ skill }) => selectedSkills.includes(skill));
+
+  const jobs = configs.flatMap(({ name, config }) =>
+    selectedRunners.flatMap((runner) =>
+      Array.from({ length: repeat }, (_, attempt) => ({
+        config,
+        runner,
+        label:
+          repeat > 1
+            ? `${name}-${runner.replace("/", "-")}-${attempt + 1}`
+            : `${name}-${runner.replace("/", "-")}`,
+      })),
+    ),
+  );
+
+  const parallel = jobLimit > 1;
+
+  async function runJob(
+    { config, runner, label }: (typeof jobs)[number],
+    index: number,
+  ): Promise<number> {
+    const jobDir = join(runDir, "jobs", String(index));
+
+    const jobWorkspacesDir = join(jobDir, "workspaces");
+
+    createWorkspaces(jobWorkspacesDir);
+
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      RAVN_EVALS_WORKSPACES: jobWorkspacesDir,
+      RAVN_EVALS_HOME: isolatedHomeDir,
+      RAVN_EVALS_RUNNER: runner,
+      RAVN_EVALS_OTLP_PORT: String(await freePort()),
+    };
+
+    // Parallel jobs keep separate promptfoo databases so their trace stores
+    // never contend; results still land in evals/results.
+    if (parallel) {
+      env.PROMPTFOO_CONFIG_DIR = join(jobDir, "promptfoo");
+    }
+
+    const child = spawn(
+      "promptfoo",
+      [
+        "eval",
+        "-c",
+        config,
+        ...(arms.length > 1 ? ["-c", join(evalsDir, "compare.ts")] : []),
+        "--no-cache",
+        "--filter-providers",
+        `^[^/]+/(${arms.join("|")})/${runner}$`,
+        "-o",
+        join(resultsDir, `${label}.json`),
+        ...promptfooArgs,
+      ],
+      {
+        stdio: parallel ? ["ignore", "pipe", "pipe"] : "inherit",
+        shell: process.platform === "win32",
+        env,
+      },
     );
-  } else {
-    console.warn(
-      "Codex refreshed its login during the eval run, but your own login changed meanwhile, so it was kept. If Codex asks you to sign in, run `codex login` (or `codex login --device-auth`).",
-    );
+
+    if (parallel) {
+      const log = createWriteStream(join(resultsDir, `${label}.log`));
+
+      child.stdout?.pipe(log);
+
+      child.stderr?.pipe(log);
+
+      console.log(`started ${label}`);
+    }
+
+    return new Promise((resolve) => {
+      child.on("close", (status) => {
+        if (parallel) {
+          console.log(`finished ${label}: exit ${status}`);
+        }
+
+        resolve(status ?? promptfooErrorStatus);
+      });
+    });
   }
+
+  const statuses: number[] = [];
+
+  let nextJob = 0;
+
+  async function worker() {
+    while (nextJob < jobs.length) {
+      const index = nextJob;
+
+      nextJob += 1;
+
+      const job = jobs[index];
+
+      if (job !== undefined) {
+        statuses[index] = await runJob(job, index);
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.max(1, jobLimit) }, () => worker()),
+  );
+
+  process.exitCode = statuses.find((status) => status !== 0) ?? 0;
+} finally {
+  // Codex may rotate its login inside the copy even when the run throws, so the
+  // copy goes back on every exit path before runDir is removed.
+  const refreshedCodexAuth = existsSync(isolatedCodexAuthFile)
+    ? readFileSync(isolatedCodexAuthFile)
+    : codexAuthAtStart;
+
+  if (!refreshedCodexAuth.equals(codexAuthAtStart)) {
+    if (readFileSync(codexAuthFile).equals(codexAuthAtStart)) {
+      writeFileSync(codexAuthFile, refreshedCodexAuth, { mode: 0o600 });
+      console.warn(
+        "Codex refreshed its login during the eval run; copied it back.",
+      );
+    } else {
+      console.warn(
+        "Codex refreshed its login during the eval run, but your own login changed meanwhile, so it was kept. If Codex asks you to sign in, run `codex login` (or `codex login --device-auth`).",
+      );
+    }
+  }
+
+  rmSync(runDir, { recursive: true, force: true });
 }
-
-rmSync(runDir, { recursive: true, force: true });
-
-process.exitCode = statuses.find((status) => status !== 0) ?? 0;
