@@ -38,6 +38,7 @@ Claude Code mods:
 
 - [Harness skill loading](./harness-skill-loading.md) covers Claude Code, Codex, and Pi loading a skill.
 - [Plugin skill evals](./skill-evals.md) covers one `ravn-core` skill's promptfoo cases.
+- [review-and-simplify](./review-and-simplify.md) covers the tier, the specialist fan-out in each harness, the seeded findings, and the applied simplification.
 - [why anchor script](./why-anchor-script.md) covers the `why` skill's anchor script.
 - [Repo check](./repo-check.md) covers `pnpm check`.
 - [Repo gates without private evals](./repo-gates.md) covers the eval-config skip reason, `evals/run.ts` stopping before it spends tokens, and the `validate` skill's eval fetch step.
