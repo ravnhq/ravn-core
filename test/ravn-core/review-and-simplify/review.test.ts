@@ -86,7 +86,6 @@ type Output = {
   excluded?: { path: string; reason: string }[];
   rejected?: { index: number; code: string }[];
   verdict?: string;
-  counts?: Record<string, number>;
   reviewFile?: string;
   reportFile?: string;
   report?: string;
@@ -104,6 +103,16 @@ function run(args: string[]): Run {
     status: result.status,
     json: result.stdout.trim() === "" ? {} : JSON.parse(result.stdout),
   };
+}
+
+type Review = {
+  event: string;
+  commit_id?: string;
+  comments: { path: string; line: number; start_line?: number; body: string }[];
+};
+
+function readReview(result: Run): Review {
+  return JSON.parse(readFileSync(String(result.json.reviewFile), "utf8"));
 }
 
 function findingsFile(name: string, findings: object[]): string {
@@ -302,9 +311,7 @@ test("check validates anchors, renders the report, and builds a COMMENT review",
 
   assert.equal(result.json.verdict, "request_changes");
 
-  const review = JSON.parse(
-    readFileSync(String(result.json.reviewFile), "utf8"),
-  );
+  const review = readReview(result);
 
   assert.equal(review.event, "COMMENT");
 
@@ -442,17 +449,13 @@ test("check drops exact duplicates and keeps the higher severity", () => {
 
   assert.equal(result.status, 0);
 
-  assert.deepEqual(result.json.counts, {
-    critical: 0,
-    warning: 1,
-    suggestion: 0,
-    applied: 0,
-    duplicatesDropped: 1,
-  });
+  assert.equal(result.json.verdict, "comment");
 
-  const review = JSON.parse(
-    readFileSync(String(result.json.reviewFile), "utf8"),
-  );
+  const review = readReview(result);
+
+  assert.equal(review.comments.length, 1);
+
+  assert.match(review.comments[0].body, /^\*\*Warning:/);
 
   assert.match(review.comments[0].body, /code_quality, performance/);
 });
@@ -480,9 +483,7 @@ test("applied simplifications neither block the verdict nor post as comments", (
 
   assert.equal(result.json.verdict, "approve");
 
-  const review = JSON.parse(
-    readFileSync(String(result.json.reviewFile), "utf8"),
-  );
+  const review = readReview(result);
 
   assert.equal(review.comments.length, 0);
 

@@ -22,21 +22,21 @@ Resolve `<skill>` to this installed skill's directory. Run every command from th
 
 Make a temporary directory for this run, `<run>`. Every diff below uses `<diff-flags>`: `--no-color --no-ext-diff -M --src-prefix=a/ --dst-prefix=b/`, which hold the output steady whatever the user's git config says.
 
-**Branch.** Take the base from the user, or else the default branch from `git symbolic-ref --short refs/remotes/origin/HEAD`. Fetch it, then:
+**Branch.** Take the base from the user, or else the default branch from `git symbolic-ref --short refs/remotes/origin/HEAD`. Fetch it, then run this as one shell call:
 
 ```bash
-git merge-base <base> HEAD                                  # <merge-base>
-git diff <diff-flags> <merge-base> > <run>/diff.patch
-git ls-files --others --exclude-standard                    # untracked files
-git diff <diff-flags> --no-index -- /dev/null <file> >> <run>/diff.patch   # per untracked file; exit 1 is normal
-git status --porcelain                                      # the user's uncommitted files
+mb=$(git merge-base <base> HEAD)
+git diff <diff-flags> "$mb" > <run>/diff.patch
+git ls-files -z --others --exclude-standard |
+  xargs -0 -I{} git diff <diff-flags> --no-index -- /dev/null {} >> <run>/diff.patch   # exit 1 per file is normal
+git status --porcelain                                      # the user's uncommitted files; keep it for Step 5
 ```
 
 The head checkout is the repo root, and `<head>` is `git rev-parse HEAD`.
 
 **Pull request.** Read `gh pr view <pr> --json number,url,headRefOid,baseRefName,author`. Fetch with `git fetch origin <baseRefName> pull/<pr>/head`. Then `<merge-base>` is `git merge-base origin/<baseRefName> <headRefOid>` and `<head>` is `headRefOid`. Write `git diff <diff-flags> <merge-base> <head> > <run>/diff.patch`. When `HEAD` is `<head>` and `git status --porcelain` is empty, the head checkout is the repo root. Otherwise create one with `git -c core.symlinks=false worktree add --detach <run>/head <head>`, so a symlink in the change cannot point a reader outside it.
 
-**Guidance.** Write `<run>/guidance.md` from the merge base, so the guidance the change is judged by comes from before it: every `AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, and `.claude/rules/*` at the root or in a directory that holds a changed file. Read each with `git show <merge-base>:<path>` and write it under a `## <path>` heading. Use an empty file when none exist.
+**Guidance.** Write `<run>/guidance.md` from the merge base, so the guidance the change is judged by comes from before it: every `AGENTS.md`, `CLAUDE.md`, `REVIEW.md`, and `.claude/rules/*` at the root or in a directory that holds a changed file. List them with `git ls-tree -r --name-only <merge-base>`, then write each, in one shell loop, as a `## <path>` heading followed by `git show <merge-base>:<path>`. Use an empty file when none exist.
 
 **Re-review.** The state file is `$(git rev-parse --git-common-dir)/review-and-simplify/<key>.json`, with `<key>` as the branch name or `pr-<number>`, `/` replaced by `-`. When it exists, the user did not pass `--full`, its `merge_base` equals `<merge-base>`, and `git merge-base --is-ancestor <saved head> <head>` succeeds, this run is a re-review. Write the changes since then to `<run>/increment.patch`: `git diff <diff-flags> <saved head>` with untracked files appended for a branch, or `git diff <diff-flags> <saved head> <head>` for a pull request. Specialists review the increment, and the state's `findings` are the previous findings. An empty increment means nothing changed since the last review: say so, and stop unless the user asks for `--full`.
 
@@ -50,7 +50,7 @@ node <skill>/scripts/review.ts tier <run>/increment.patch   # re-review; otherwi
 
 Add `--tier` when the user forced one. Save the JSON as `<run>/tier.json`. It lists `specialists`, each with a `model` class, and the `files` they review. A sensitive path or more than 50 files gives `full` (all eight). At most 10 changed lines in at most 20 files gives `trivial` (`code_quality`). At most 100 lines in at most 20 files gives `lite` (`code_quality`, `documentation`, `agents_md`, `simplify`). Anything else is `full`.
 
-On a re-review, you may drop a specialist when the increment gives its specialty nothing to check and no previous finding of its specialty is still open. `security` always runs when listed.
+Drop a listed specialist that has nothing to review: `release` when no changed file is a build, dependency, CI, container, migration, or runtime-configuration file, and `engineering_standards` when `guidance.md` is empty. On a re-review, also drop one when the increment gives its specialty nothing to check and no previous finding of its specialty is still open. `security` always runs when listed.
 
 ## Step 3. Run the specialists
 
@@ -71,9 +71,9 @@ Spawn each specialist as a fresh read-only subagent, not a fork of your conversa
 
 - **Claude Code:** the Agent tool with ravn-core's read-only `review-specialist` agent: `ravn-core:review-specialist` from the plugin, or `review-specialist` where it is installed as a project agent.
 - **Codex:** `spawn_agent` with the brief as its message.
-- **A harness without subagents:** run each specialist's pass yourself in turn, from the same brief, and write its reply down before you start the next.
+- **A harness without subagents:** read the three files once, then run each specialist's pass yourself in turn, changing only the specialty, and write its reply down before you start the next.
 
-Start the first specialist of each model class first, then spawn the rest together in your next message, so they can reuse the prefix the first ones cache. Wait for every reply. A reply that is not the findings JSON gets one follow-up asking for only the JSON. Without a valid reply, record the specialist as failed in the report.
+Spawn the first specialist of each model class, then the rest together in your next message without waiting for the first ones to finish, so the later requests can reuse the prefix the first ones cache. Wait for every reply. A reply that is not the findings JSON gets one follow-up asking for only the JSON. Without a valid reply, record the specialist as failed in the report.
 
 ## Step 4. Judge
 

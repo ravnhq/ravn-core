@@ -1,22 +1,20 @@
 // Parses `git diff` output into per-file changes and classifies a change into
 // a review tier. The tier rules follow Symphony's engine.Classify.
 
-export type Hunk = { start: number; count: number };
-
-export type FileStatus = "added" | "modified" | "deleted" | "renamed";
+type Hunk = { start: number; count: number };
 
 export type FileChange = {
   path: string;
-  oldPath: string | null;
-  status: FileStatus;
+  status: "added" | "modified" | "deleted" | "renamed";
   binary: boolean;
   added: number;
   removed: number;
   hunks: Hunk[];
-  patch: string;
 };
 
-export type Tier = "trivial" | "lite" | "full";
+export const tiers = ["trivial", "lite", "full"] as const;
+
+export type Tier = (typeof tiers)[number];
 
 export const specialists = [
   "security",
@@ -31,7 +29,10 @@ export const specialists = [
 
 export type Specialist = (typeof specialists)[number];
 
-export const tiers: readonly Tier[] = ["trivial", "lite", "full"];
+export type Assignment = {
+  name: Specialist;
+  model: "session" | "step-down";
+};
 
 const tierSpecialists: Record<Tier, readonly Specialist[]> = {
   trivial: ["code_quality"],
@@ -75,65 +76,31 @@ const sensitiveWords = new Set([
   "iam",
 ]);
 
-const limits = {
-  trivialLines: 10,
-  trivialFiles: 20,
-  liteLines: 100,
-  liteFiles: 20,
-  fullFiles: 50,
-} as const;
-
-export function specialistsFor(tier: Tier): readonly Specialist[] {
-  return tierSpecialists[tier];
+export function member<T extends string>(
+  values: readonly T[],
+  value: string | undefined,
+): T | null {
+  return values.find((candidate) => candidate === value) ?? null;
 }
 
-export function modelFor(specialist: Specialist): "session" | "step-down" {
-  return sessionModelSpecialists.includes(specialist) ? "session" : "step-down";
+export function specialistsFor(tier: Tier): Assignment[] {
+  return tierSpecialists[tier].map((name) => ({
+    name,
+    model: sessionModelSpecialists.includes(name) ? "session" : "step-down",
+  }));
 }
 
-function isUpper(char: string): boolean {
-  return char !== char.toLowerCase() && char === char.toUpperCase();
-}
+// A path segment's words, split at non-letters and camel-case boundaries, so
+// `OAuthToken.ts` yields `O`, `Auth`, `Token`, `ts`.
+const wordBoundary = /[^A-Za-z]+|(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/;
 
-function isLower(char: string): boolean {
-  return char !== char.toUpperCase() && char === char.toLowerCase();
-}
-
-// Splits one path segment into lowercase words at `_`, `-`, `.`, and camel
-// case boundaries, so `OAuthToken.ts` yields `o`, `auth`, `token`, `ts`.
-export function pathWords(segment: string): string[] {
-  const chars = [...segment];
-  const words: string[] = [];
-  let start = 0;
-
-  for (let index = 0; index < chars.length; index += 1) {
-    const char = chars[index] ?? "";
-    const separator = char === "_" || char === "-" || char === ".";
-    const previous = chars[index - 1] ?? "";
-    const next = chars[index + 1] ?? "";
-    const acronymEnds = isUpper(previous) && isLower(next);
-
-    const boundary =
-      index > 0 && isUpper(char) && (isLower(previous) || acronymEnds);
-
-    if (separator || boundary) {
-      words.push(chars.slice(start, index).join("").toLowerCase());
-      start = separator ? index + 1 : index;
-    }
-  }
-
-  words.push(chars.slice(start).join("").toLowerCase());
-
-  return words.filter((word) => word !== "");
-}
-
-export function isSensitive(path: string): boolean {
+function isSensitive(path: string): boolean {
   return path
     .split("/")
-    .some(
-      (segment) =>
-        sensitiveWords.has(segment.toLowerCase()) ||
-        pathWords(segment).some((word) => sensitiveWords.has(word)),
+    .some((segment) =>
+      segment
+        .split(wordBoundary)
+        .some((word) => sensitiveWords.has(word.toLowerCase())),
     );
 }
 
@@ -151,45 +118,18 @@ export function classify(changes: readonly FileChange[]): Classification {
     0,
   );
 
-  const counts =
+  const reason =
     String(lines) + " changed lines in " + String(changes.length) + " files";
 
-  if (changes.length > limits.fullFiles) {
-    return { tier: "full", reason: counts };
+  if (lines <= 10 && changes.length <= 20) {
+    return { tier: "trivial", reason };
   }
 
-  if (lines <= limits.trivialLines && changes.length <= limits.trivialFiles) {
-    return { tier: "trivial", reason: counts };
+  if (lines <= 100 && changes.length <= 20) {
+    return { tier: "lite", reason };
   }
 
-  if (lines <= limits.liteLines && changes.length <= limits.liteFiles) {
-    return { tier: "lite", reason: counts };
-  }
-
-  return { tier: "full", reason: counts };
-}
-
-function stripPrefix(path: string, prefix: string): string {
-  const unquoted =
-    path.startsWith('"') && path.endsWith('"') ? path.slice(1, -1) : path;
-
-  return unquoted.startsWith(prefix) ? unquoted.slice(prefix.length) : unquoted;
-}
-
-type HeaderPaths = { oldPath: string; newPath: string };
-
-function headerPaths(line: string): HeaderPaths {
-  const body = line.slice("diff --git ".length);
-  const split = body.lastIndexOf(" b/");
-
-  if (split === -1) {
-    return { oldPath: body, newPath: body };
-  }
-
-  return {
-    oldPath: stripPrefix(body.slice(0, split), "a/"),
-    newPath: body.slice(split + " b/".length),
-  };
+  return { tier: "full", reason };
 }
 
 // True when every file header uses git's default a/ and b/ prefixes. A user's
@@ -209,112 +149,78 @@ export function hasDefaultPrefixes(text: string): boolean {
     });
 }
 
-const hunkHeader = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/;
+// `b/src/x.ts` or `"b/src/x y.ts"` without its quotes and b/ prefix.
+function unprefixed(path: string): string {
+  const unquoted =
+    path.startsWith('"') && path.endsWith('"') ? path.slice(1, -1) : path;
 
-type Draft = FileChange & { inHunk: boolean; lines: string[] };
-
-function startFile(line: string): Draft {
-  const { oldPath, newPath } = headerPaths(line);
-
-  return {
-    path: newPath,
-    oldPath: oldPath === newPath ? null : oldPath,
-    status: "modified",
-    binary: false,
-    added: 0,
-    removed: 0,
-    hunks: [],
-    patch: "",
-    inHunk: false,
-    lines: [line],
-  };
+  return unquoted.slice(2);
 }
 
-function finish(draft: Draft): FileChange {
-  const { inHunk: _inHunk, lines, ...change } = draft;
+function headerPath(line: string): string {
+  const at = Math.max(line.lastIndexOf(" b/"), line.lastIndexOf(' "b/'));
 
-  return {
-    ...change,
-    oldPath: change.status === "renamed" ? change.oldPath : null,
-    patch: lines.join("\n") + "\n",
-  };
+  return unprefixed(line.slice(at + 1));
 }
 
-function readHeader(draft: Draft, line: string): void {
+function readHeader(change: FileChange, line: string): void {
   if (line.startsWith("new file mode")) {
-    draft.status = "added";
+    change.status = "added";
   } else if (line.startsWith("deleted file mode")) {
-    draft.status = "deleted";
-  } else if (line.startsWith("rename from ")) {
-    draft.status = "renamed";
-    draft.oldPath = line.slice("rename from ".length);
+    change.status = "deleted";
   } else if (line.startsWith("rename to ")) {
-    draft.path = line.slice("rename to ".length);
+    change.status = "renamed";
+    change.path = line.slice("rename to ".length);
   } else if (line.startsWith("Binary files ") || line === "GIT binary patch") {
-    draft.binary = true;
-  } else if (line.startsWith("--- ")) {
-    const path = line.slice(4);
-
-    if (path === "/dev/null") {
-      draft.status = "added";
-    }
-  } else if (line.startsWith("+++ ")) {
-    const path = line.slice(4);
-
-    if (path === "/dev/null") {
-      draft.status = "deleted";
-      draft.path = draft.oldPath ?? draft.path;
-    } else {
-      draft.path = stripPrefix(path, "b/");
-    }
+    change.binary = true;
+  } else if (line.startsWith("+++ ") && line !== "+++ /dev/null") {
+    change.path = unprefixed(line.slice(4));
   }
 }
+
+const hunkHeader = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/;
 
 export function parseDiff(text: string): FileChange[] {
   const changes: FileChange[] = [];
-  let draft: Draft | null = null;
+  let change: FileChange | null = null;
+  let inBody = false;
 
   for (const line of text.split("\n")) {
     if (line.startsWith("diff --git ")) {
-      if (draft !== null) {
-        changes.push(finish(draft));
-      }
+      change = {
+        path: headerPath(line),
+        status: "modified",
+        binary: false,
+        added: 0,
+        removed: 0,
+        hunks: [],
+      };
 
-      draft = startFile(line);
+      changes.push(change);
+
+      inBody = false;
 
       continue;
     }
 
-    if (draft === null) {
+    if (change === null) {
       continue;
     }
 
-    draft.lines.push(line);
-
-    const hunk = hunkHeader.exec(line);
+    const hunk = line.match(hunkHeader);
 
     if (hunk !== null) {
-      draft.inHunk = true;
-      draft.hunks.push({
+      inBody = true;
+      change.hunks.push({
         start: Number(hunk[1]),
         count: hunk[2] === undefined ? 1 : Number(hunk[2]),
       });
-    } else if (!draft.inHunk) {
-      readHeader(draft, line);
+    } else if (!inBody) {
+      readHeader(change, line);
     } else if (line.startsWith("+")) {
-      draft.added += 1;
+      change.added += 1;
     } else if (line.startsWith("-")) {
-      draft.removed += 1;
-    }
-  }
-
-  if (draft !== null) {
-    changes.push(finish(draft));
-  }
-
-  for (const change of changes) {
-    if (change.patch.endsWith("\n\n")) {
-      change.patch = change.patch.slice(0, -1);
+      change.removed += 1;
     }
   }
 

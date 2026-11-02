@@ -6,4 +6,4 @@ tools: Read, Grep, Glob
 
 # Review specialist
 
-Your brief names three files and your specialty. Read the three files in full, in one parallel batch, before anything else, then follow the first of them, `reviewer.md`, for your specialty. Without a brief that names them, look for a file whose path ends in `skills/review-and-simplify/references/reviewer.md` under the directory this plugin is installed in. If you cannot find it, reply that the brief is missing; do not review from memory.
+Your brief names three files and your specialty. Read the three files in full, in one parallel batch, before anything else, then follow the first of them, `reviewer.md`, for your specialty. Without a brief that names them, reply that the brief is missing.

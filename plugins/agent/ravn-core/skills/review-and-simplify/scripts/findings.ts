@@ -1,22 +1,21 @@
-// Decodes specialist and coordinator findings, checks each anchor against the
+// Decodes the coordinator's judged findings, checks each anchor against the
 // reviewed diff, drops exact duplicates, and renders the report.
 
 import {
   type FileChange,
   inHunk,
+  member,
   type Specialist,
   specialists,
 } from "./diff.ts";
 
-export const severities = ["critical", "warning", "suggestion"] as const;
+const severities = ["critical", "warning", "suggestion"] as const;
 
-export type Severity = (typeof severities)[number];
+type Severity = (typeof severities)[number];
 
-export const statuses = ["open", "applied", "reverted"] as const;
+const statuses = ["open", "applied", "reverted"] as const;
 
-export type Status = (typeof statuses)[number];
-
-export type Finding = {
+type Finding = {
   specialist: Specialist;
   path: string;
   start_line: number;
@@ -25,13 +24,13 @@ export type Finding = {
   title: string;
   body: string;
   replacement: string | null;
-  status: Status;
+  status: (typeof statuses)[number];
   also_raised_by: Specialist[];
 };
 
 // The contract a reply claims to follow. Every field is checked at runtime by
 // `decodeFinding`, because a model wrote it.
-export type RawFinding = {
+type RawFinding = {
   specialist?: string;
   path?: string;
   start_line?: number;
@@ -46,16 +45,9 @@ export type RawFinding = {
 
 type RawReply = RawFinding[] | { findings?: RawFinding[] };
 
-export type Rejection = {
-  source: string;
-  index: number;
-  code: string;
-  detail: string;
-};
+export type Rejection = { index: number; code: string; detail: string };
 
-export type Decoded = { findings: Finding[]; rejected: Rejection[] };
-
-export type Verdict = "approve" | "comment" | "request_changes";
+type Verdict = "approve" | "comment" | "request_changes";
 
 function text(value: string | undefined): string | null {
   return value !== undefined && String(value) === value && value.trim() !== ""
@@ -64,17 +56,13 @@ function text(value: string | undefined): string | null {
 }
 
 function line(value: number | undefined): number | null {
-  return Number.isInteger(value) && Number(value) >= 1 ? Number(value) : null;
+  return value !== undefined && Number.isInteger(value) && value >= 1
+    ? value
+    : null;
 }
 
-function member<T extends string>(
-  values: readonly T[],
-  value: string | undefined,
-): T | null {
-  return values.find((candidate) => candidate === value) ?? null;
-}
-
-// Written as \u0060 so no literal backtick sits in a string.
+// Backticks are written as \u0060: the CI SkillSpector scan pairs every
+// backtick in a file as shell command substitution and stops at its span limit.
 const tick = "\u0060";
 
 const fence = tick.repeat(3);
@@ -85,30 +73,23 @@ const fencePattern = new RegExp(
 
 // A reply may wrap its JSON in a Markdown fence or add prose around it; keep
 // the outermost JSON value.
-export function extractJson(reply: string): string {
-  const fenced = reply.match(fencePattern);
-  const body = (fenced?.[1] ?? reply).trim();
-  const starts = [body.indexOf("{"), body.indexOf("[")].filter((at) => at >= 0);
-
-  if (starts.length === 0) {
-    return body;
-  }
-
-  const start = Math.min(...starts);
+function extractJson(reply: string): string {
+  const body = (reply.match(fencePattern)?.[1] ?? reply).trim();
+  const start = body.search(/[{[]/);
   const end = Math.max(body.lastIndexOf("}"), body.lastIndexOf("]"));
 
-  return end > start ? body.slice(start, end + 1) : body;
+  return start === -1 || end < start ? body : body.slice(start, end + 1);
 }
 
 export class ReplyError extends Error {}
 
-export function parseReply(source: string, reply: string): RawFinding[] {
+export function parseReply(reply: string): RawFinding[] {
   let parsed: RawReply;
 
   try {
     parsed = JSON.parse(extractJson(reply));
   } catch (cause) {
-    throw new ReplyError(source + ": not JSON (" + String(cause) + ")");
+    throw new ReplyError("not JSON (" + String(cause) + ")");
   }
 
   if (Array.isArray(parsed)) {
@@ -119,18 +100,18 @@ export function parseReply(source: string, reply: string): RawFinding[] {
     return parsed.findings;
   }
 
-  throw new ReplyError(
-    source + ': expected {"findings": [...]} or a JSON array of findings',
-  );
+  throw new ReplyError("expected a findings object or array");
 }
 
-export function decodeFinding(
+type Problem = { code: string; detail: string };
+
+function decodeFinding(
   raw: RawFinding,
-  fallback: Specialist | null,
   files: ReadonlyMap<string, FileChange>,
-): Finding | { code: string; detail: string } {
-  const specialist = member(specialists, raw.specialist) ?? fallback;
+): Finding | Problem {
+  const specialist = member(specialists, raw.specialist);
   const path = text(raw.path);
+  const change = path === null ? undefined : files.get(path);
   const start = line(raw.start_line);
   const end = line(raw.end_line ?? raw.start_line);
   const severity = member(severities, raw.severity);
@@ -149,7 +130,7 @@ export function decodeFinding(
     };
   }
 
-  if (path === null || !files.has(path)) {
+  if (path === null || change === undefined) {
     return { code: "path_not_reviewed", detail: "path " + String(raw.path) };
   }
 
@@ -164,9 +145,7 @@ export function decodeFinding(
     };
   }
 
-  const change = files.get(path);
-
-  if (change === undefined || !inHunk(change, start, end)) {
+  if (!inHunk(change, start, end)) {
     return {
       code: "line_not_in_hunk",
       detail:
@@ -215,20 +194,20 @@ export function decodeFinding(
   };
 }
 
+export type Decoded = { findings: Finding[]; rejected: Rejection[] };
+
 export function decodeAll(
-  source: string,
   raws: readonly RawFinding[],
-  fallback: Specialist | null,
   files: ReadonlyMap<string, FileChange>,
 ): Decoded {
   const findings: Finding[] = [];
   const rejected: Rejection[] = [];
 
   raws.forEach((raw, index) => {
-    const decoded = decodeFinding(raw, fallback, files);
+    const decoded = decodeFinding(raw, files);
 
     if ("code" in decoded) {
-      rejected.push({ source, index, ...decoded });
+      rejected.push({ index, ...decoded });
     } else {
       findings.push(decoded);
     }
@@ -244,28 +223,31 @@ function normalize(title: string): string {
     .trim();
 }
 
-const severityRank: Record<Severity, number> = {
-  critical: 0,
-  warning: 1,
-  suggestion: 2,
-};
+function rank(severity: Severity): number {
+  return severities.indexOf(severity);
+}
 
-// Keeps one finding per path, overlapping range, and title. The coordinator's
-// judge pass handles duplicates that differ in wording.
-export function dedupe(findings: readonly Finding[]): Finding[] {
+// Keeps one finding per path, overlapping range, and title, at the highest
+// severity raised. The coordinator's judge pass handles duplicates that differ
+// in wording.
+export function dedupe(findings: Finding[]): Finding[] {
   const kept: Finding[] = [];
+  const titles: string[] = [];
 
   for (const finding of findings) {
+    const title = normalize(finding.title);
+
     const twin = kept.find(
-      (other) =>
+      (other, at) =>
+        titles[at] === title &&
         other.path === finding.path &&
         other.start_line <= finding.end_line &&
-        finding.start_line <= other.end_line &&
-        normalize(other.title) === normalize(finding.title),
+        finding.start_line <= other.end_line,
     );
 
     if (twin === undefined) {
-      kept.push({ ...finding, also_raised_by: [...finding.also_raised_by] });
+      kept.push(finding);
+      titles.push(title);
 
       continue;
     }
@@ -277,18 +259,14 @@ export function dedupe(findings: readonly Finding[]): Finding[] {
       twin.also_raised_by.push(finding.specialist);
     }
 
-    if (severityRank[finding.severity] < severityRank[twin.severity]) {
+    if (rank(finding.severity) < rank(twin.severity)) {
       twin.severity = finding.severity;
     }
   }
 
-  return kept;
-}
-
-export function sortFindings(findings: readonly Finding[]): Finding[] {
-  return [...findings].sort(
+  return kept.sort(
     (left, right) =>
-      severityRank[left.severity] - severityRank[right.severity] ||
+      rank(left.severity) - rank(right.severity) ||
       left.path.localeCompare(right.path) ||
       left.start_line - right.start_line,
   );
@@ -312,27 +290,26 @@ export function verdictFor(findings: readonly Finding[]): Verdict {
   return "approve";
 }
 
-const verdictLine: Record<Verdict, string> = {
+const verdictText: Record<Verdict, string> = {
   approve: "Approve: nothing above a suggestion remains.",
   comment: "Comment: warnings remain; fix or answer them before merging.",
   request_changes: "Request changes: a critical finding remains.",
 };
 
-export function verdictText(verdict: Verdict): string {
-  return verdictLine[verdict];
-}
-
 function capitalize(word: string): string {
   return word.slice(0, 1).toUpperCase() + word.slice(1);
 }
 
-function range(finding: Finding): string {
-  return finding.start_line === finding.end_line
-    ? String(finding.start_line)
-    : String(finding.start_line) + "-" + String(finding.end_line);
+function location(finding: Finding): string {
+  const range =
+    finding.start_line === finding.end_line
+      ? String(finding.start_line)
+      : String(finding.start_line) + "-" + String(finding.end_line);
+
+  return tick + finding.path + ":" + range + tick;
 }
 
-export function findingBody(finding: Finding): string {
+function findingBody(finding: Finding): string {
   const label = capitalize(finding.severity);
   const raisedBy = [finding.specialist, ...finding.also_raised_by].join(", ");
 
@@ -349,11 +326,11 @@ export function findingBody(finding: Finding): string {
   return parts.join("\n");
 }
 
-export function renderReport(input: readonly Finding[]): string {
-  const findings = sortFindings(input);
+// Expects the sorted output of `dedupe`.
+export function renderReport(findings: readonly Finding[]): string {
   const applied = findings.filter((finding) => finding.status === "applied");
   const open = blocking(findings);
-  const lines = ["**Verdict:** " + verdictText(verdictFor(findings))];
+  const lines = ["**Verdict:** " + verdictText[verdictFor(findings)]];
 
   for (const severity of severities) {
     const group = open.filter((finding) => finding.severity === severity);
@@ -362,7 +339,10 @@ export function renderReport(input: readonly Finding[]): string {
       continue;
     }
 
-    lines.push("", "## " + capitalize(severity) + " (" + group.length + ")");
+    lines.push(
+      "",
+      "## " + capitalize(severity) + " (" + String(group.length) + ")",
+    );
 
     for (const finding of group) {
       const reverted =
@@ -370,7 +350,7 @@ export function renderReport(input: readonly Finding[]): string {
 
       lines.push(
         "",
-        "### " + tick + finding.path + ":" + range(finding) + tick + reverted,
+        "### " + location(finding) + reverted,
         "",
         findingBody(finding),
       );
@@ -385,16 +365,7 @@ export function renderReport(input: readonly Finding[]): string {
     );
 
     for (const finding of applied) {
-      lines.push(
-        "- " +
-          tick +
-          finding.path +
-          ":" +
-          range(finding) +
-          tick +
-          " " +
-          finding.title,
-      );
+      lines.push("- " + location(finding) + " " + finding.title);
     }
   }
 
@@ -405,7 +376,7 @@ export function renderReport(input: readonly Finding[]): string {
   return lines.join("\n") + "\n";
 }
 
-export type ReviewComment = {
+type ReviewComment = {
   path: string;
   line: number;
   side: "RIGHT";
@@ -414,7 +385,7 @@ export type ReviewComment = {
   body: string;
 };
 
-export type GithubReview = {
+type GithubReview = {
   commit_id?: string;
   event: "COMMENT";
   body: string;
@@ -423,15 +394,12 @@ export type GithubReview = {
 
 // The body of `POST /repos/{owner}/{repo}/pulls/{number}/reviews`. The event
 // is always COMMENT: the verdict is text, so the agent never approves or
-// blocks a pull request.
+// blocks a pull request. Expects the sorted output of `dedupe`.
 export function githubReview(
-  input: readonly Finding[],
-  commit: string | null,
+  findings: readonly Finding[],
+  commit: string | undefined,
 ): GithubReview {
-  const findings = sortFindings(blocking(input));
-  const verdict = verdictText(verdictFor(input));
-
-  const comments = findings.map((finding): ReviewComment => {
+  const comments = blocking(findings).map((finding): ReviewComment => {
     const comment: ReviewComment = {
       path: finding.path,
       line: finding.end_line,
@@ -447,6 +415,8 @@ export function githubReview(
     return comment;
   });
 
+  const verdict = verdictText[verdictFor(findings)];
+
   const review: GithubReview = {
     event: "COMMENT",
     body:
@@ -458,7 +428,7 @@ export function githubReview(
     comments,
   };
 
-  if (commit !== null) {
+  if (commit !== undefined) {
     review.commit_id = commit;
   }
 
