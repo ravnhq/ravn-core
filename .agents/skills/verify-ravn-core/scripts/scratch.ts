@@ -178,15 +178,94 @@ test("an entry fetched just now is fresh", () => {
   git(cwd, ["commit", "-qam", "refactor: inline staleness age math"]);
 }
 
+// A feature branch with four seeded findings for review-and-simplify, one per
+// specialty the live check scores: an off-by-one slice (code_quality), a
+// logged session token (security), a README that still says 20 (docs), and a
+// hand-rolled clamp beside src/util.ts's clamp (simplify). src/session.ts is a
+// sensitive path, so the change is full tier. Its tests pass on the bugs.
+export function reviewScratch(cwd: string) {
+  initRepo(cwd);
+  mkdirSync(join(cwd, "src"), { recursive: true });
+  mkdirSync(join(cwd, "test"), { recursive: true });
+  writeFileSync(
+    join(cwd, "AGENTS.md"),
+    "# scratch\n\n- Never write tokens or secrets to logs.\n- Run `npm test` before you finish.\n",
+  );
+  writeFileSync(
+    join(cwd, "README.md"),
+    "# scratch\n\nPages hold 20 items each.\n",
+  );
+  writeFileSync(
+    join(cwd, "src", "util.ts"),
+    "export function clamp(value: number, min: number, max: number): number {\n  return Math.min(max, Math.max(min, value));\n}\n",
+  );
+  writeFileSync(
+    join(cwd, "src", "page.ts"),
+    "export const PAGE_SIZE = 20;\n\nexport function pageCount(total: number): number {\n  return Math.ceil(total / PAGE_SIZE);\n}\n",
+  );
+  writeFileSync(
+    join(cwd, "test", "page.test.ts"),
+    `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { pageCount } from "../src/page.ts";
+
+test("no items means no pages", () => {
+  assert.equal(pageCount(0), 0);
+});
+`,
+  );
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: paging"]);
+  git(cwd, ["switch", "-qc", "feature/page-slices"]);
+  writeFileSync(
+    join(cwd, "src", "page.ts"),
+    `export const PAGE_SIZE = 50;
+
+export function pageCount(total: number): number {
+  return Math.ceil(total / PAGE_SIZE);
+}
+
+function boundPage(page: number, lowest: number, highest: number): number {
+  if (page < lowest) return lowest;
+  if (page > highest) return highest;
+  return page;
+}
+
+// The items on one zero-based page.
+export function pageSlice<T>(items: T[], page: number): T[] {
+  const last = Math.max(0, pageCount(items.length) - 1);
+  const start = boundPage(page, 0, last) * PAGE_SIZE;
+
+  return items.slice(start, start + PAGE_SIZE + 1);
+}
+`,
+  );
+  writeFileSync(
+    join(cwd, "src", "session.ts"),
+    `export type Session = { user: string; token: string };
+
+export function openSession(user: string, token: string): Session {
+  console.log("opened session", user, token);
+
+  return { user, token };
+}
+`,
+  );
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: page slices and sessions"]);
+}
+
 const [kind, dir, scenario = "thread"] = process.argv.slice(2);
 
 if (import.meta.main) {
   if (kind === "babysit" && dir !== undefined)
     babysitScratch(resolve(dir), scenario);
   else if (kind === "bug-fix" && dir !== undefined) bugFixScratch(resolve(dir));
+  else if (kind === "review-and-simplify" && dir !== undefined)
+    reviewScratch(resolve(dir));
   else {
     console.error(
-      "usage: scratch.ts babysit <dir> [thread|approved|late] | bug-fix <dir>",
+      "usage: scratch.ts babysit <dir> [thread|approved|late] | bug-fix <dir> | review-and-simplify <dir>",
     );
     process.exit(64);
   }

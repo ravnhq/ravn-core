@@ -198,10 +198,7 @@ function isString(value: Json | undefined): value is string {
 
 // Control characters other than tab and newline, which a terminal would read
 // as escape sequences and the pane's elements refuse.
-const CONTROL = new RegExp(
-  "[\\u0000-\\u0008\\u000b-\\u001f\\u007f-\\u009f]",
-  "g",
-);
+const CONTROL = /(?![\t\n])\p{Cc}/gu;
 
 // The value, stripped of control characters, when it is a string with
 // something besides whitespace.
