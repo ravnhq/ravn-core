@@ -32,6 +32,7 @@ Each feature file has an H1 title and one paragraph of user-visible behavior, th
 Claude Code mods:
 
 - [Skill Nudge tip band](./skill-nudge.md) covers the tip's layout and styling, answering it with `1` or `2`, and the `/skill-nudge` toggle, driven in a live terminal through tmux.
+- [explain-change mod](./explain-change.md) covers the control-character stripping in its lesson parser, driven through `claude plugin test`.
 
 `ravn-core` and the repo:
 
@@ -39,6 +40,8 @@ Claude Code mods:
 - [Plugin skill evals](./skill-evals.md) covers one `ravn-core` skill's promptfoo cases.
 - [why anchor script](./why-anchor-script.md) covers the `why` skill's anchor script.
 - [Repo check](./repo-check.md) covers `pnpm check`.
+- [Repo gates without private evals](./repo-gates.md) covers the eval-config skip reason, `evals/run.ts` stopping before it spends tokens, and the `validate` skill's eval fetch step.
+- [Dependency overrides](./dependency-overrides.md) covers the frozen install, the resolved versions of the overridden packages, and each open Dependabot alert's first patched version.
 - [Marketplace install](./marketplace-install.md) covers installing `ravn-core` from the marketplace.
 - [ship idea-to-PR workflow](./ship.md) covers `ship` and the skills it chains: `grilling`, `create-verification-skill`, and `pr`. `research` and `maintain-verification-skill` run only when the change needs outside docs or the repo already has a verification skill.
 - [babysit merge-readiness workflow](./babysit.md) covers gate discovery, thread triage, merge-ready reporting, proof before merging, merging on request, merge-queue drops, and background watching, against a simulated GitHub.
