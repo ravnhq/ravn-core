@@ -26,7 +26,7 @@ export const fixtureNames = existsSync(fixturesDir)
 
 export const missingFixtures =
   fixtureNames.length === 0 &&
-  "private evals are not fetched; run pnpm eval:fetch";
+  "eval configs NOT checked: private evals are not fetched; run pnpm eval:fetch, then pnpm check";
 
 function git(args: string[], cwd: string) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });

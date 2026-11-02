@@ -6,7 +6,7 @@ Adapted from the [pstack](https://github.com/cursor/plugins/tree/88d47514b82e7c4
 
 1. Use the **writing-for-agents** skill.
 2. Validate the skill: frontmatter has `name` and `description`, referenced files exist, cross-skill links resolve.
-3. Test cases if structural. Skip if subjective.
+3. Add the skill's eval config (`evals/AGENTS.md`). A structural skill's evals gate the merge; a subjective skill's live check does.
 4. Open a PR with `.github/pull_request_template.md`.
 
 When in doubt, delete. Keep only prose that changes a decision. Tell it to do the thing and skip the reason. Explain only when the rule is confusing without one. Match tone to scope. Point at structural sources (types, READMEs, config) per `docs/authoring/encode-lessons-in-structure.md`. Delegate to other skills by path. Don't restate. A workflow you keep hitting but isn't captured → propose a new skill.

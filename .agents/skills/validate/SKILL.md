@@ -10,8 +10,10 @@ Mirror the `check` job in `.github/workflows/ci.yml` locally so failures surface
 1. **Repo checks** (format, lint, typecheck, and tests, including skill contracts, plugin version consistency, and every script a plugin bundles):
    ```bash
    pnpm install --frozen-lockfile
+   GIT_TERMINAL_PROMPT=0 pnpm eval:fetch
    pnpm check
    ```
+   `eval:fetch` clones the private eval configs that `test/evals/configs.test.ts` checks. Without access it fails; report that the eval-config tests were skipped (the `skipped` count in `pnpm check` shows it) and continue, since CI and forks run without them.
 
 2. **Plugin checks** (`claude plugin validate` on the marketplace and every plugin, and `claude plugin test` on every mod, which is any plugin with `hooks/hooks.json`). This step needs the Claude Code CLI on `PATH`:
    ```bash

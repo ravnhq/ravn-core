@@ -14,3 +14,9 @@ overrides:
   "@openai/codex": 0.159.0
   "@modelcontextprotocol/sdk": ^1.32.1
   follow-redirects: ^1.16.1
+  fast-uri: ^3.1.9
+  "@ai-sdk/provider-utils>undici": 6.29.1
+  "openai>undici": 7.30.1
+  "@apidevtools/json-schema-ref-parser>undici": 8.12.2
+  "@azure/identity": 4.14.1
+  "@azure/msal-node": ^7.1.0
