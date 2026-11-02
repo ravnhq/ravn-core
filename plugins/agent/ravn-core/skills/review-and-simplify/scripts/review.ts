@@ -1,7 +1,7 @@
 // review-and-simplify helper. Two commands, both reading a unified diff file:
 //
 //   tier  <diff-file> [--tier trivial|lite|full]
-//   check <diff-file> <findings-file> [--commit <sha>]
+//   check <diff-file> <findings-file> [--commit <sha>] [--max-findings <n>|all]
 //
 // Every result is one JSON object on stdout. A failure prints
 // {"ok": false, "code", "message", "hint"} and exits 1 so the coordinator can
@@ -20,6 +20,7 @@ import {
   tiers,
 } from "./diff.ts";
 import {
+  cap,
   decodeAll,
   dedupe,
   githubReview,
@@ -45,7 +46,7 @@ class Failure extends Error {
 
 const usage =
   "usage: review.ts tier <diff-file> [--tier trivial|lite|full]\n" +
-  "       review.ts check <diff-file> <findings-file> [--commit <sha>]";
+  "       review.ts check <diff-file> <findings-file> [--commit <sha>] [--max-findings <n>|all]";
 
 const lockfiles = new Set([
   "pnpm-lock.yaml",
@@ -164,10 +165,38 @@ function tierCommand(diffFile: string, forced: string | undefined) {
   };
 }
 
+const defaultMaxFindings = 20;
+
+// The --max-findings value: a positive integer, or `all` for no cap.
+function maxFindings(value: string | undefined): number | null {
+  if (value === undefined) {
+    return defaultMaxFindings;
+  }
+
+  if (value === "all") {
+    return null;
+  }
+
+  const max = Number(value);
+
+  if (!Number.isInteger(max) || max < 1) {
+    throw new Failure(
+      "bad_max_findings",
+      "--max-findings " + value + " is not a positive integer or all",
+      "Pass a positive integer, all, or omit --max-findings for the default of " +
+        String(defaultMaxFindings) +
+        ".",
+    );
+  }
+
+  return max;
+}
+
 function checkCommand(
   diffFile: string,
   findingsFile: string,
   commit: string | undefined,
+  max: number | null,
 ) {
   const files = new Map(
     readDiff(diffFile)
@@ -195,8 +224,9 @@ function checkCommand(
     throw failure;
   }
 
-  const findings = dedupe(decoded.findings);
-  const report = renderReport(findings);
+  const capped = cap(dedupe(decoded.findings), max);
+  const findings = capped.findings;
+  const report = renderReport(capped);
   const reportFile = join(dirname(findingsFile), "report.md");
   const reviewFile = join(dirname(findingsFile), "github-review.json");
 
@@ -210,6 +240,7 @@ function checkCommand(
   return {
     ok: true,
     verdict: verdictFor(findings),
+    omitted: capped.omitted,
     reportFile,
     reviewFile,
     report,
@@ -235,7 +266,11 @@ function main(argv: string[]): number {
     parsed = parseArgs({
       args: argv,
       allowPositionals: true,
-      options: { tier: { type: "string" }, commit: { type: "string" } },
+      options: {
+        tier: { type: "string" },
+        commit: { type: "string" },
+        "max-findings": { type: "string" },
+      },
     });
   } catch (cause) {
     process.stderr.write(String(cause) + "\n" + usage + "\n");
@@ -253,7 +288,14 @@ function main(argv: string[]): number {
       diffFile !== undefined &&
       findingsFile !== undefined
     ) {
-      print(checkCommand(diffFile, findingsFile, parsed.values.commit));
+      print(
+        checkCommand(
+          diffFile,
+          findingsFile,
+          parsed.values.commit,
+          maxFindings(parsed.values["max-findings"]),
+        ),
+      );
     } else {
       process.stderr.write(usage + "\n");
 

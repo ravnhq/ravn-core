@@ -326,8 +326,30 @@ function findingBody(finding: Finding): string {
   return parts.join("\n");
 }
 
-// Expects the sorted output of `dedupe`.
-export function renderReport(findings: readonly Finding[]): string {
+export type Capped = { findings: Finding[]; omitted: number };
+
+// Keeps the `max` most severe open findings of the sorted output of `dedupe`,
+// and every applied simplification; `max` null keeps all.
+export function cap(findings: Finding[], max: number | null): Capped {
+  const open = blocking(findings);
+
+  if (max === null || open.length <= max) {
+    return { findings, omitted: 0 };
+  }
+
+  const kept = new Set(open.slice(0, max));
+
+  return {
+    findings: findings.filter(
+      (finding) => finding.status === "applied" || kept.has(finding),
+    ),
+    omitted: open.length - max,
+  };
+}
+
+// Expects the output of `cap`.
+export function renderReport(capped: Capped): string {
+  const { findings, omitted } = capped;
   const applied = findings.filter((finding) => finding.status === "applied");
   const open = blocking(findings);
   const lines = ["**Verdict:** " + verdictText[verdictFor(findings)]];
@@ -367,6 +389,14 @@ export function renderReport(findings: readonly Finding[]): string {
     for (const finding of applied) {
       lines.push("- " + location(finding) + " " + finding.title);
     }
+  }
+
+  if (omitted > 0) {
+    lines.push(
+      "",
+      String(omitted) +
+        " less severe finding(s) left out by the cap; rerun check with a higher --max-findings or all to see them.",
+    );
   }
 
   if (findings.length === 0) {

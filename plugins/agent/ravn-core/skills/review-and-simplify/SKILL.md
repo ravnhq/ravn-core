@@ -14,7 +14,7 @@ You are the **coordinator**. A script picks the change's risk tier. Specialists 
 
 Resolve `<skill>` to this installed skill's directory. Run every command from the repo root.
 
-**Scope.** With no argument, review the current branch: everything from its merge base to the working tree, uncommitted and untracked files included. With a PR number or URL, review that PR on the engineer's existing `gh` login. "Report only" or `--no-fix` keeps every finding report-only. `--tier <trivial|lite|full>` forces a tier; `--full` forces a full first review instead of a re-review.
+**Scope.** With no argument, review the current branch: everything from its merge base to the working tree, uncommitted and untracked files included. With a PR number or URL, review that PR on the engineer's existing `gh` login. "Report only" or `--no-fix` keeps every finding report-only. `--tier <trivial|lite|full>` forces a tier; `--full` forces a full first review instead of a re-review; `--max-findings <n|all>` changes the report's cap of 20 open findings.
 
 **When a script command fails**, it prints `{"ok": false, "code", "message", "hint"}`. Read the code and the hint, correct the cause (a wrong path, an empty or partial diff, a malformed findings file, a misplaced anchor), and run the command again. After two failed corrections, do that step by hand under the same contract and name the step as done by hand in your report.
 
@@ -67,7 +67,9 @@ Specialty: <name>
 
 On a re-review, the third file is `<run>/increment.patch`.
 
-Spawn each specialist as a fresh read-only subagent, not a fork of your conversation, on the model its class names in [models.md](references/models.md):
+On the `trivial` tier, run the one `code_quality` pass yourself from the same brief instead of spawning it: a change that small does not repay a subagent's setup and reads.
+
+On the other tiers, spawn each specialist as a fresh read-only subagent, not a fork of your conversation, on the model its class names in [models.md](references/models.md):
 
 - **Claude Code:** the Agent tool with ravn-core's read-only `review-specialist` agent: `ravn-core:review-specialist` from the plugin, or `review-specialist` where it is installed as a project agent.
 - **Codex:** `spawn_agent` with the brief as its message.
@@ -98,7 +100,9 @@ When `simplify` ran and you kept any of its findings, follow [simplify.md](refer
 node <skill>/scripts/review.ts check <run>/diff.patch <run>/judged.json --commit <head>
 ```
 
-Always check against `<run>/diff.patch`, the diff from Step 1, which is the one GitHub shows. It rejects any finding whose anchor is outside that diff's hunks and names each rejection. It drops exact duplicates and computes the verdict: `request_changes` for any critical, `comment` for any warning, otherwise `approve`. Applied simplifications do not count. Its output carries the `report` Markdown, and it writes `report.md` and `github-review.json` beside `judged.json`.
+Add `--max-findings <n>` or `--max-findings all` when the user asked for a different cap.
+
+Always check against `<run>/diff.patch`, the diff from Step 1, which is the one GitHub shows. It rejects any finding whose anchor is outside that diff's hunks and names each rejection. It drops exact duplicates, keeps the 20 most severe open findings (applied simplifications always stay) and reports how many it left out, and computes the verdict: `request_changes` for any critical, `comment` for any warning, otherwise `approve`. Applied simplifications do not count. Its output carries the `report` Markdown, and it writes `report.md` and `github-review.json` beside `judged.json`.
 
 Done when it exits 0.
 

@@ -86,6 +86,7 @@ type Output = {
   excluded?: { path: string; reason: string }[];
   rejected?: { index: number; code: string }[];
   verdict?: string;
+  omitted?: number;
   reviewFile?: string;
   reportFile?: string;
   report?: string;
@@ -488,6 +489,52 @@ test("applied simplifications neither block the verdict nor post as comments", (
   assert.equal(review.comments.length, 0);
 
   assert.match(String(result.json.report), /Applied simplifications \(1\)/);
+});
+
+test("check caps open findings at 20 by default and keeps applied ones", () => {
+  reset();
+
+  write("src/math.ts", lines(40, "changed"));
+
+  const diff = diffFile("cap");
+
+  const suggestions = Array.from({ length: 25 }, (_, index) => ({
+    specialist: "simplify",
+    path: "src/math.ts",
+    start_line: index + 1,
+    severity: index === 24 ? "warning" : "suggestion",
+    title: `t${index}`,
+    body: "b",
+  }));
+
+  const findings = findingsFile("cap", [
+    ...suggestions,
+    { ...suggestions[0], title: "applied", status: "applied" },
+  ]);
+
+  const capped = run(["check", diff, findings]);
+
+  assert.equal(capped.status, 0);
+
+  assert.equal(capped.json.omitted, 5);
+
+  assert.equal(capped.json.verdict, "comment");
+
+  assert.equal(readReview(capped).comments.length, 20);
+
+  assert.match(String(capped.json.report), /Applied simplifications \(1\)/);
+
+  const all = run(["check", diff, findings, "--max-findings", "all"]);
+
+  assert.equal(all.json.omitted, 0);
+
+  assert.equal(readReview(all).comments.length, 25);
+
+  const bad = run(["check", diff, findings, "--max-findings", "0"]);
+
+  assert.equal(bad.status, 1);
+
+  assert.equal(bad.json.code, "bad_max_findings");
 });
 
 test("a renamed file is anchored at its new path", () => {
