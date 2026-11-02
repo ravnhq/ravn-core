@@ -67,7 +67,7 @@ Specialty: <name>
 
 On a re-review, the third file is `<run>/increment.patch`.
 
-On the `trivial` tier, run the one `code_quality` pass yourself from the same brief instead of spawning it: a change that small does not repay a subagent's setup and reads.
+On the `trivial` tier, run the one `code_quality` pass yourself from the same brief instead of spawning it, since a change that small does not repay a subagent's setup and reads. Write its findings JSON down as a specialist's reply; Steps 4 to 7 still apply.
 
 On the other tiers, spawn each specialist as a fresh read-only subagent, not a fork of your conversation, on the model its class names in [models.md](references/models.md):
 
@@ -110,7 +110,7 @@ Done when it exits 0.
 
 Save `{"head": "<head>", "merge_base": "<merge-base>", "findings": [...]}` to the state file, keeping only findings whose status is not `applied`.
 
-Reply with the tier and why, the specialists that ran, were skipped, or failed, the `report` from Step 6, and for applied simplifications their `git diff --stat` and the checks that passed.
+Reply with the `report` from Step 6 as it is, its verdict line first, then the tier and why, the specialists that ran, were skipped, or failed, and for applied simplifications their `git diff --stat` and the checks that passed.
 
 Post to the pull request only when the user asks:
 
