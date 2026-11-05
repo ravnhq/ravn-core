@@ -11,6 +11,7 @@ import {
   fillMarkers,
   markerNames,
   maskOf,
+  normalizeLineEnds,
   parseToolArgs,
   redactSerialized,
   typedValue,
@@ -418,7 +419,7 @@ function drawEntry(t: Elements, entry: Entry, $: EngineInterface) {
               return { ...now, decision: "write" };
             }
 
-            const value = typedValue(typed, now.field);
+            const value = normalizeLineEnds(typedValue(typed, now.field));
 
             if (value === "") {
               return {
@@ -453,7 +454,7 @@ function drawEntry(t: Elements, entry: Entry, $: EngineInterface) {
         ? now
         : {
             ...now,
-            field: text ?? now.field,
+            field: text === null ? now.field : normalizeLineEnds(text),
             note:
               text === null
                 ? "Couldn't read the clipboard. Paste into the field instead."

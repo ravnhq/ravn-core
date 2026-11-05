@@ -57,6 +57,15 @@ export function typedValue(shown: string, real: string): string {
   return `${Array.from(real).slice(0, k).join("")}${typed.slice(k).join("")}`;
 }
 
+/**
+ * A terminal delivers a pasted newline as a carriage return, so a multi-line
+ * value (a PEM key) comes in with CR line ends. Every line end becomes LF,
+ * and line ends after the value are dropped.
+ */
+export function normalizeLineEnds(value: string): string {
+  return value.replace(/\r\n?/g, "\n").replace(/\n+$/, "");
+}
+
 /** A dotenv value that needs no quotes. */
 const BARE_VALUE = /^[A-Za-z0-9_@%+=:,./-]+$/;
 
@@ -84,7 +93,11 @@ export function applyDotenv(
   let out = content;
 
   for (const entry of entries) {
-    const line = new RegExp(`^(export\\s+)?${escapeRe(entry.key)}=.*$`, "m");
+    const line = new RegExp(
+      // A double-quoted value may span lines, as a pasted PEM key does.
+      `^(export\\s+)?${escapeRe(entry.key)}=(?:"(?:[^"\\\\]|\\\\.)*"|.*)$`,
+      "m",
+    );
 
     if (line.test(out)) {
       out = out.replace(

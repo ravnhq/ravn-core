@@ -10,6 +10,7 @@ import {
   fillMarkers,
   markerNames,
   maskOf,
+  normalizeLineEnds,
   parseToolArgs,
   redactSerialized,
   redactText,
@@ -52,6 +53,14 @@ test("typedValue maps the masked field back to the real value", () => {
   expect(typedValue("•🎉", "a")).toBe("a🎉");
 });
 
+test("normalizeLineEnds turns a pasted CR into LF and trims the end", () => {
+  expect(normalizeLineEnds("-----BEGIN-----\rAAA\rBBB\r-----END-----\r")).toBe(
+    "-----BEGIN-----\nAAA\nBBB\n-----END-----",
+  );
+  expect(normalizeLineEnds("a\r\nb\n\n")).toBe("a\nb");
+  expect(normalizeLineEnds("sk-plain")).toBe("sk-plain");
+});
+
 test("dotenvLine quotes only values that need it", () => {
   expect(dotenvLine("K", "abc123")).toBe("K=abc123");
   expect(dotenvLine("K", "a b")).toBe('K="a b"');
@@ -77,6 +86,12 @@ test("applyDotenv replaces a key's line and appends a new key", () => {
       { key: "J", value: "2" },
     ]),
   ).toBe("export K=new\nJ=2\n");
+  // A quoted multi-line value is replaced whole, not just its first line.
+  expect(
+    applyDotenv('A=1\nPEM="-----BEGIN-----\nOLD\n-----END-----"\nB=2\n', [
+      { key: "PEM", value: "-----BEGIN-----\nNEW\n-----END-----" },
+    ]),
+  ).toBe('A=1\nPEM="-----BEGIN-----\nNEW\n-----END-----"\nB=2\n');
 });
 
 test("applyEdit applies the Edit tool's replacement rules", () => {

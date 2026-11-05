@@ -44,7 +44,7 @@ Three roads lead to the same masked prompt:
 - **Claude calls the write tool the mod registers.** Its description teaches Claude the marker, so Claude reaches for it on its own when a task needs credentials.
 - **You run `/secret-entry <file> [KEY...]` yourself.** With KEY names, each becomes a `KEY=value` line (dotenv style): `/secret-entry .env GITHUB_TOKEN`. With only a file, every marker in it is filled.
 
-Paste or type each value and press Enter to move to the next one. After the last one, the pane lists each name with its length; press Enter again to write the file. Esc closes the pane and refuses the write: Claude reads a denial that names the file and suggests `/secret-entry` instead. Pasting works over SSH and on machines with no clipboard tool, because the value arrives as terminal input. **From clipboard** fills the field from the system clipboard (pbpaste, wl-paste, xclip, or xsel) when one is available, and is the reliable way to enter a multi-line value such as a PEM key.
+Paste or type each value and press Enter to move to the next one. After the last one, the pane lists each name with its length; press Enter again to write the file. Esc closes the pane and refuses the write: Claude reads a denial that names the file and suggests `/secret-entry` instead. Pasting works over SSH and on machines with no clipboard tool, because the value arrives as terminal input. Multi-line values such as a PEM key paste whole: the terminal's carriage returns become ordinary line breaks, and a `.env` line holds the value in double quotes. **From clipboard** fills the field from the system clipboard (pbpaste, wl-paste, xclip, or xsel) when one is available.
 
 ## What Claude sees
 
