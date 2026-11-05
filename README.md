@@ -5,6 +5,7 @@ Ravn's agent plugins, open source under the MIT license.
 - **`ravn-core`** packages the engineering workflows Ravn uses with coding agents: an idea-to-PR flow (`ship`), code archaeology (`how`, `why`), verification, design vocabulary, and handoffs. It runs in Claude Code, Codex, Cursor, and Pi.
 - **[`explain-change`](plugins/mods/explain-change/README.md)** is a Claude Code mod that shows the `ravn-core` skill's change lessons in a pane, with diagrams and an interactive quiz.
 - **`skill-nudge`** is a Claude Code mod. A background Haiku watches the session and suggests one of your installed skills above the prompt when it fits.
+- **`secret-entry`** is a Claude Code mod. When Claude needs a secret in a file, the write holds and you paste the value into a masked prompt; it never enters the chat.
 
 ## Install `ravn-core`
 
@@ -67,6 +68,17 @@ Needs Claude Code v2.1.287 or later.
 ```
 
 See its [README](plugins/mods/skill-nudge/README.md) for behavior and what it sends to Haiku.
+
+## Install `secret-entry`
+
+Needs Claude Code v2.1.287 or later.
+
+```
+/plugin marketplace add ravnhq/ravn-core
+/plugin install secret-entry@ravn
+```
+
+See its [README](plugins/mods/secret-entry/README.md) for the marker, the masked prompt, and what Claude sees.
 
 ## Contribute
 

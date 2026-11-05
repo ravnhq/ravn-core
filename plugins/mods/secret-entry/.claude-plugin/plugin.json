@@ -1,0 +1,13 @@
+{
+  "name": "secret-entry",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Lets Claude write files that contain secrets: the write holds, you paste each value into a masked prompt, and the values never enter the chat.",
+  "author": {
+    "name": "Ravn AI Enablement Team"
+  },
+  "homepage": "https://github.com/ravnhq/ravn-core",
+  "repository": "https://github.com/ravnhq/ravn-core",
+  "keywords": ["secrets", "env", "credentials", "mod", "claude-code"],
+  "types": "./types/index.d.ts"
+}
