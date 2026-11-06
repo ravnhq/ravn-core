@@ -1,0 +1,4 @@
+{
+  "description": "Secure secret entry: Write and Edit calls with {{secret:NAME}} markers hold for a masked prompt, and the filled file is written without the values entering the transcript",
+  "modules": ["./register.tsx"]
+}
