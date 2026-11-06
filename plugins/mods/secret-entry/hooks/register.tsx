@@ -11,7 +11,6 @@ import {
   maskOf,
   normalizeLineEnds,
   parseToolArgs,
-  redactSerialized,
   typedValue,
 } from "../lib/entry.ts";
 import type { Entry } from "../types";
@@ -63,10 +62,6 @@ let uname = "";
 // The narrow terminal draws the pane's content in the band above the prompt.
 let inBand = false;
 
-// The values this session wrote, by file path, so Read results are redacted.
-// Kept in memory only, never in the plugin store: no copy on disk.
-const written = new Map<string, string[]>();
-
 async function readClipboard($: EngineInterface): Promise<string | null> {
   if (uname === "") {
     try {
@@ -96,7 +91,7 @@ async function applyEntry(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   // $.fs.write takes no mode, so a new file is created empty at 0600 and
   // checked with stat before any secret byte is written into it.
-  const applied = await writeEntry(
+  return writeEntry(
     {
       read: (path) => $.fs.read(path),
       write: (path, text) => $.fs.write(path, text),
@@ -105,20 +100,6 @@ async function applyEntry(
     },
     entry,
   );
-
-  if (!applied.ok) return applied;
-
-  const known = written.get(entry.file) ?? [];
-
-  for (const key of entry.keys) {
-    const value = entry.values[key] ?? "";
-
-    if (value !== "" && !known.includes(value)) known.push(value);
-  }
-
-  written.set(entry.file, known);
-
-  return { ok: true };
 }
 
 async function runEntry(
@@ -288,7 +269,7 @@ function messageResult(entry: Entry) {
   return {
     result:
       `${PLUGIN}: ${entry.file} is written — ${count} secret${count === 1 ? "" : "s"} the user pasted (${namesOf(entry)}). ` +
-      "The values are on disk only: they never entered this transcript, and Read results for this file are redacted for this session. Do not print the secret lines." +
+      "The values are on disk only: they never entered this transcript. Do not print the secret lines." +
       elided,
   };
 }
@@ -490,7 +471,6 @@ export const register: Register = (on) => {
   interactive = false;
   uname = "";
   inBand = false;
-  written.clear();
 
   on("session.start", async ($, e, next) => {
     interactive = e.isInteractive;
@@ -717,31 +697,9 @@ export const register: Register = (on) => {
       .join(", ");
 
     return {
-      text:
-        `Wrote ${file} — set ${set}. ` +
-        "The values never entered the chat; Read results for the file are redacted for this session.",
+      text: `Wrote ${file} — set ${set}. The values never entered the chat.`,
     };
   });
-
-  on("tool.call", { tool: "Read" }, async (_$, e, next) => {
-    const file = parseToolArgs(JSON.stringify(e)).filePath;
-    const values = file === undefined ? undefined : written.get(file);
-
-    if (values === undefined || values.length === 0) return next(e);
-
-    const result = await next(e);
-
-    if ("deny" in result) return result;
-
-    return JSON.parse(redactSerialized(JSON.stringify(result), values));
-  }).catch(async (_$, _e, next) =>
-    // A redaction that fails withholds the read rather than leak it.
-    next.called
-      ? {
-          deny: `${PLUGIN}: redaction failed (${next.error.kind}), so the read's result was withheld.`,
-        }
-      : next(_e),
-  );
 
   on("ui.close", async ($, e, next) => {
     if (e.id === PANE && e.origin.kind === "person") {

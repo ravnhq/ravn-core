@@ -1,7 +1,6 @@
 import { expect, test } from "claude-code/testing";
 
 import {
-  REDACTED,
   applyDotenv,
   applyEdit,
   clipboardReaders,
@@ -12,8 +11,6 @@ import {
   maskOf,
   normalizeLineEnds,
   parseToolArgs,
-  redactSerialized,
-  redactText,
   typedValue,
 } from "../lib/entry.ts";
 
@@ -119,18 +116,6 @@ test("elideMarkers replaces markers and truncates a long template", () => {
   );
   const long = `${"x".repeat(500)}{{secret:A}}`;
   expect(elideMarkers(long)).toBe(`${"x".repeat(400)}…`);
-});
-
-test("redaction replaces each value in text and in serialized JSON", () => {
-  expect(redactText("key=hunter2 end", ["hunter2"])).toBe(
-    `key=${REDACTED} end`,
-  );
-  const result = JSON.stringify({ file: { content: 'a hun"ter b' } });
-  expect(JSON.parse(redactSerialized(result, ['hun"ter']))).toEqual({
-    file: { content: `a ${REDACTED} b` },
-  });
-  // An empty value would redact everything, so it never does.
-  expect(redactText("abc", [""])).toBe("abc");
 });
 
 test("parseToolArgs keeps the string fields and the replace flag", () => {

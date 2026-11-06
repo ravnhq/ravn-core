@@ -40,7 +40,7 @@ Where a secret goes, the file's content carries `{{secret:NAME}}`, with a name t
 
 Three roads lead to the same masked prompt:
 
-- **Claude writes the file itself.** Every Write and Edit whose content carries a marker holds, and the mod takes the write over. A file Claude creates this way is `chmod 600`.
+- **Claude writes the file itself.** Every Write and Edit whose content carries a marker holds, and the mod takes the write over. A file the mod creates is mode `0600` from the moment it exists.
 - **Claude calls the write tool the mod registers.** Its description teaches Claude the marker, so Claude reaches for it on its own when a task needs credentials.
 - **You run `/secret-entry <file> [KEY...]` yourself.** With KEY names, each becomes a `KEY=value` line (dotenv style): `/secret-entry .env GITHUB_TOKEN`. With only a file, every marker in it is filled.
 
@@ -48,7 +48,7 @@ Paste or type each value and press Enter to move to the next one. After the last
 
 ## What Claude sees
 
-Claude reads the write's result in the Write or Edit tool's own shape, with every secret elided (`<secret:OPENAI_API_KEY>`). The result never contains the values, and neither does the session's transcript file. For the rest of the session, Read results for a filled file come back with the values redacted, so a later Read cannot leak what you pasted. Grep and Bash output are not redacted: anything that prints the file's secret lines reaches the transcript as it would without the mod.
+Claude reads the write's result in the Write or Edit tool's own shape, with every secret elided (`<secret:OPENAI_API_KEY>`). The result never contains the values, and neither does the session's transcript file.
 
 ## Behavior
 
@@ -60,11 +60,10 @@ Claude reads the write's result in the Write or Edit tool's own shape, with ever
 
 ## Cost and privacy
 
-The mod calls no model and sends nothing anywhere. Entered values live in the session's memory while the prompt is open and while Read redaction needs them, and nowhere else: not in the plugin store, not in telemetry, not on disk outside the target file. Files the mod creates are `chmod 600`; existing files keep their permissions.
+The mod calls no model and sends nothing anywhere. Entered values live in the session's memory while the prompt is open, and nowhere else: not in the plugin store, not in telemetry, not on disk outside the target file. A file the mod creates is mode `0600` from the moment it exists; an existing file keeps its permissions.
 
 ## Limits
 
 - Claude Code only: the CLI, the Desktop Code tab, and the VS Code extension. Other harnesses never see the mod, and the mobile surface, which has no text field, doesn't draw the pane.
 - The value is masked after each redraw, so a long paste can flash on screen for a frame before the bullets replace it.
-- A Bash command or Grep that prints a filled file bypasses the Read redaction. The file's permissions are the guard there, as they already are without the mod.
-- Redaction covers the session that filled the file; a later session Reads it plainly (as any process you run would).
+- A later Read, Grep, or Bash that prints the file shows the values. The mod keeps them out of the write that created the file.

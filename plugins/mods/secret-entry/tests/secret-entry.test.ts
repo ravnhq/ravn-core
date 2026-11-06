@@ -3,8 +3,7 @@
 // interactive flow (masked field, Enter, Write, Cancel) is verified in a real
 // session, and these tests cover what the kit does prove: the gating on
 // Write and Edit, and the refusal paths. The marker transforms, masking map,
-// dotenv patching, Edit application, and redaction are covered by
-// tests/entry.test.ts.
+// dotenv patching and Edit application are covered by tests/entry.test.ts.
 
 import { expect, test } from "claude-code/testing";
 

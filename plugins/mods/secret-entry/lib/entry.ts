@@ -1,7 +1,6 @@
 // Pure logic for the secret-entry mod: the {{secret:NAME}} marker convention,
-// the masked-entry mapping, dotenv patching, Edit application, and Read-result
-// redaction. Everything here works on plain strings, so every rule is testable
-// without the engine.
+// the masked-entry mapping, dotenv patching, and Edit application. Everything
+// here works on plain strings, so every rule is testable without the engine.
 
 /** The marker a file's content carries where a secret goes. */
 export const MARKER = "{{secret:NAME}}";
@@ -157,33 +156,6 @@ export function elideMarkers(template: string, limit = 400): string {
   );
 
   return text.length > limit ? `${text.slice(0, limit)}…` : text;
-}
-
-/** What a redacted string shows in place of a secret. */
-export const REDACTED = "<secret redacted>";
-
-/** Replaces every occurrence of each value in a string. */
-export function redactText(text: string, values: string[]): string {
-  let out = text;
-
-  for (const value of values) {
-    if (value !== "" && out.includes(value))
-      out = out.split(value).join(REDACTED);
-  }
-
-  return out;
-}
-
-/**
- * Replaces each value inside serialized JSON, as a Read result travels. A
- * value is matched in its JSON-escaped form, so one holding a quote or a
- * backslash is found too.
- */
-export function redactSerialized(json: string, values: string[]): string {
-  return redactText(
-    json,
-    values.map((value) => JSON.stringify(value).slice(1, -1)),
-  );
 }
 
 type Json = null | boolean | number | string | Json[] | JsonObject;
