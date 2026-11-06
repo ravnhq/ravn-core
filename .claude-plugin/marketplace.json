@@ -53,7 +53,7 @@
     },
     {
       "name": "secret-entry",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "license": "MIT",
       "description": "Lets Claude write files that contain secrets: the write holds, you paste each value into a masked prompt, and the values never enter the chat.",
       "author": {

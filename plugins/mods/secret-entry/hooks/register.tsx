@@ -2,13 +2,11 @@ import { atom, read, update } from "claude-code";
 import type { EngineInterface, InputProps, Register } from "claude-code";
 import type { ElementConstructor } from "claude-code";
 
+import { applyEntry as writeEntry } from "../lib/apply-entry.ts";
 import {
   INPUT_SCHEMA,
-  applyDotenv,
-  applyEdit,
   clipboardReaders,
   elideMarkers,
-  fillMarkers,
   markerNames,
   maskOf,
   normalizeLineEnds,
@@ -96,67 +94,19 @@ async function applyEntry(
   $: EngineInterface,
   entry: Entry,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  let content: string;
+  // $.fs.write takes no mode, so a new file is created empty at 0600 and
+  // checked with stat before any secret byte is written into it.
+  const applied = await writeEntry(
+    {
+      read: (path) => $.fs.read(path),
+      write: (path, text) => $.fs.write(path, text),
+      exists: (path) => $.fs.exists(path),
+      run: (argv) => $.process.run(argv, { timeoutMs: 3000 }),
+    },
+    entry,
+  );
 
-  if (entry.edit !== null && entry.template !== null) {
-    let current: string;
-
-    try {
-      current = await $.fs.read(entry.file);
-    } catch {
-      return { ok: false, error: `could not read ${entry.file}` };
-    }
-
-    const applied = applyEdit(
-      current,
-      entry.edit.old,
-      fillMarkers(entry.template, entry.values),
-      entry.edit.replaceAll,
-    );
-
-    if (!applied.ok) return { ok: false, error: applied.error };
-    content = applied.content;
-  } else if (entry.template !== null) {
-    content = fillMarkers(entry.template, entry.values);
-  } else {
-    let current = "";
-
-    try {
-      current = await $.fs.read(entry.file);
-    } catch {
-      // a new file
-    }
-
-    content = applyDotenv(
-      current,
-      entry.keys.map((key) => ({ key, value: entry.values[key] ?? "" })),
-    );
-  }
-
-  let isNew = false;
-
-  try {
-    isNew = !(await $.fs.exists(entry.file));
-  } catch {
-    // a write that fails reports itself below
-  }
-
-  try {
-    await $.fs.write(entry.file, content);
-  } catch (error) {
-    return {
-      ok: false,
-      error: `could not write ${entry.file}: ${String(error)}`,
-    };
-  }
-
-  if (isNew) {
-    // A secrets file starts private, as the person's own habit does; an
-    // existing file keeps the permissions it already has.
-    await $.process
-      .run(["chmod", "600", entry.file], { timeoutMs: 3000 })
-      .catch(() => undefined);
-  }
+  if (!applied.ok) return applied;
 
   const known = written.get(entry.file) ?? [];
 
