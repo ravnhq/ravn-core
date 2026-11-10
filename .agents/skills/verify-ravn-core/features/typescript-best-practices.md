@@ -10,11 +10,11 @@ When an engineer asks for a TypeScript change without naming the skill, the agen
 
 ## How to get to it (user POV)
 
-- An engineer asks for a change to a `.ts` file in plain words, with no slash command.
+- An engineer asks for a change to a `.ts` file in plain words, with no invocation.
 
 ## Driving it with headless harness runs
 
-Use the skill isolation from [ship](ship.md): working-tree skills as Claude Code project skills, an isolated Codex `HOME` with skills under `.agents/skills/`, and Pi with `--no-skills --no-extensions --no-prompt-templates` plus one `--skill` per `ravn-core` skill.
+Use the README's Harness runs, with Claude Code's `--allowedTools "Bash Read Write Edit Glob Grep Skill"`.
 
 1. Per harness and case, create `/tmp/ravn-verify/$RUN_ID/ts-<harness>-<case>/repo`, a Git repo with one commit holding:
    - `src/order.ts`: `type Order = { id: string; status: string; shippedAt?: Date; trackingNumber?: string }`, a `parseOrder(json)` that returns `JSON.parse(json) as Order`, and a `describeOrder` that branches on `status === "shipped"`.
@@ -23,7 +23,6 @@ Use the skill isolation from [ship](ship.md): working-tree skills as Claude Code
 2. Run one turn:
    - `ts`: "In src/order.ts, add a cancelled order state that records the cancellation reason, and make describeOrder handle it. Edit the file directly; don't install anything or run a build."
    - `py`: "In src/report.py, make total() skip orders whose amount is missing. Edit the file directly; don't run anything."
-   - Claude Code: pipe the prompt on stdin to `claude -p --setting-sources project --output-format stream-json --verbose --allowedTools "Bash Read Write Edit Glob Grep Skill"`. Codex: `codex exec --json --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "<prompt>"`. Pi: `pi -p --mode json <isolation flags> "<prompt>"`.
 3. Keep `prompt.txt`, `transcript.jsonl`, `diff.patch`, and `src/` before and after under `.verify/$RUN_ID/typescript-best-practices-<harness>-<case>/`.
 4. Check:
    - `ts.load`: a `Skill` call to `typescript-best-practices` in Claude Code; a read of `typescript-best-practices/SKILL.md` in Codex and Pi.
@@ -32,6 +31,5 @@ Use the skill isolation from [ship](ship.md): working-tree skills as Claude Code
 
 ## Gotchas
 
-- `--allowedTools` is variadic, so a prompt passed after it is read as a tool name and Claude Code exits with "Input must be provided". Pipe the prompt on stdin.
 - Keeping the existing `as Order` in `parseOrder` is acceptable, since the request never touches parsing. Replacing it with a boundary parse is a bonus, not a requirement.
 - Your global Git hooks run on the fixture's initial commit. Their output is not the agent's.

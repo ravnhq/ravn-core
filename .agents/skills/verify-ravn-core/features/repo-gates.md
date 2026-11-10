@@ -41,6 +41,5 @@ Preconditions: a checkout or worktree with no `evals/private/` directory, and `p
 
 - With `evals/private/` absent, `evals/run.ts` never reaches the eval-config text. It stops first at the `--skills` check (`Unknown --skills value(s): . Known: `), or at the `CLAUDE_CODE_OAUTH_TOKEN` check when that is unset. The eval-config text needs a private config without fixtures, which is why `repo-gates-run-reason` uses a stub.
 - `run.ts` copies `~/.codex/auth.json` into its temp dir before it throws, and the throw never removes that copy. Always set `TMPDIR` under `/tmp/ravn-verify/$RUN_ID`, so `cleanup.ts` deletes it.
-- The `repo-gates-run-reason` stub must be removed before any `pnpm check` runs in the same tree.
 - `repo-gates-fetch` points the fetch at a local path that does not exist, so it does not touch the network. `eval:fetch` only pulls when `evals/private/.git` already exists; a fresh worktree has none.
 - `pnpm check` on `main` also exits 0 with the silent skip. The new reason, not the exit code, separates the two.

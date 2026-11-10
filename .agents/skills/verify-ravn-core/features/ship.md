@@ -16,21 +16,13 @@
 
 ## How to get to it (user POV)
 
-- An engineer types `/ravn-core:ship <idea>` in Claude Code, `$ship <idea>` in Codex, or `/skill:ship <idea>` in Pi, then answers each turn.
+- An engineer types `<invocation> <idea>` (invocation forms in the README), then answers each turn.
 
 ## Driving it with a multi-turn driver
 
-Preconditions: doctor exits 0 with `ok codex login`, `ok pi login`, and `ok gh auth`. The user names a target repo they accept PRs on; every harness opens a real PR there.
+Preconditions: the user names a target repo they accept PRs on; every harness opens a real PR there.
 
-- Clone the target once per harness into `/tmp/ravn-verify/$RUN_ID/ship-<harness>/work`.
-- Load the working-tree skills, not an installed copy:
-  - Claude Code: copy `plugins/agent/ravn-core/skills/*` into the clone's project skills directory and list each in `.git/info/exclude`. A managed `ravn-core` install shadows `--plugin-dir`, so that flag tests the installed version.
-  - Codex: use an isolated `HOME` with `~/.codex/auth.json` copied in, the skills under `$HOME/.agents/skills/`, `~/.gitconfig` copied in, and `GH_TOKEN=$(gh auth token)`.
-  - Pi: pass `--no-skills --no-extensions --no-prompt-templates`, plus `--skill` for every `ravn-core` skill and every skill in the clone. Keep context files on so the agent sees the repo's own instructions.
-- Run one turn per call and resume the same session:
-  - Claude Code: `claude -p --setting-sources project --output-format stream-json --verbose --allowedTools "Bash Read Write Edit Glob Grep Skill Agent WebFetch WebSearch" [--resume <id>]`.
-  - Codex: `codex exec --json --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check`, then `codex exec resume <id>`.
-  - Pi: `pi -p --mode json --session-dir <dir> --session-id <uuid>`.
+- Clone the target once per harness, set up as the README's Harness runs say, and resume one session per harness.
 - Answer as the user: confirm the goal, accept grilling recommendations, approve the plan, and say yes at the ready-to-push check.
 - Keep each turn's prompt, transcript, final message, tool calls, and `git status`/`log` under `.verify/$RUN_ID/ship-<harness>/turn-<n>/`.
 - Check in the transcripts:

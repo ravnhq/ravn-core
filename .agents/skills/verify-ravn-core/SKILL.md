@@ -1,6 +1,6 @@
 ---
 name: verify-ravn-core
-description: After every plugin skill or bundled-script change, run real user workflows in its supported harnesses and preserve the evidence; also use before release or when asked to verify, smoke-test, or dogfood a plugin. Static checks alone do not verify behavior; use the validate skill for them.
+description: Run real user workflows for a plugin in its supported harnesses and keep the evidence. Use after any plugin skill or bundled-script change, before release, or when asked to verify or dogfood. Structural checks belong to the validate skill.
 argument-hint: "[feature-id|plugin|all]"
 ---
 
@@ -24,7 +24,7 @@ Run `ravn-core` features, bundled scripts, and repo commands through the collect
 node .agents/skills/verify-ravn-core/scripts/collect.ts <feature-id> <command> [args...]
 ```
 
-It runs the command from the repo root. `evals/run.ts` builds and deletes its own temp workspace and isolated Codex `HOME`, so its teardown is automatic. Never run bare `pnpm eval` or `pnpm eval:compare` without the user's go-ahead; both spend tokens on every runner.
+`evals/run.ts` builds and deletes its own temp workspace and isolated Codex `HOME`. Get the user's go-ahead before bare `pnpm eval` or `pnpm eval:compare`; both spend tokens on every runner.
 
 Mods act only in an interactive terminal, so the collector cannot show them. Drive a live `claude` session in tmux instead, as `features/skill-nudge.md` does.
 
@@ -34,17 +34,17 @@ Mods act only in an interactive terminal, so the collector cannot show them. Dri
 node .agents/skills/verify-ravn-core/scripts/doctor.ts   # read-only
 ```
 
-Require exit 0. Doctor prints the revision, any uncommitted files, and the `claude`, `codex`, and `pi` versions. It checks Node 24 or later, pnpm, and promptfoo, and validates the marketplace and every plugin. It fails when `codex`, `pi`, or `gh` is installed but not logged in, and skips each one that is absent; features that need a skipped tool report as unverified.
+Require exit 0. Doctor prints the revision, uncommitted files, and tool versions, checks Node 24 or later, pnpm, and promptfoo, and validates the marketplace and every plugin. It fails when `codex`, `pi`, or `gh` is installed but not logged in, and skips each one that is absent; features that need a skipped tool report as unverified.
 
 ## Drive
 
-Follow the feature file. Invoke the slash command with the same kind of input a user gives. Keep prompts specific enough that a headless run never stops to ask a question. A run that ends on a question is a failed attempt; tighten the prompt and record both attempts. Do not call skill internals or edit fixtures to make a run pass.
+Follow the feature file. Invoke the skill with the same kind of input a user gives, specific enough that a headless run never stops to ask a question. A run that ends on a question is a failed attempt; tighten the prompt and record both attempts. Drive only the skill's public entry and leave fixtures unedited.
 
 ## Evidence
 
 The collector writes to `.verify/$RUN_ID/<feature-id>/`, which is gitignored.
 
-- `collect.ts` keeps `run.json` (command, exit code, commit), `stdout.txt`, `stderr.txt`, and a copy of `evals/results/` when the command refreshed it. `evals/run.ts` wipes `evals/results/` on every run, so only the `.verify/` copy counts.
+`collect.ts` keeps `run.json` (command, exit code, commit), `stdout.txt`, `stderr.txt`, and a copy of `evals/results/` when the command refreshed it. `evals/run.ts` wipes `evals/results/` on every run, so only the `.verify/` copy counts.
 
 Add feature-specific proof, such as screenshots and `unzip` output, to the same directory. For each sub-feature ID, report pass or fail and quote the line or command output that shows it. Check side effects in the transcript as well as the files: a skill that ran a command it should not have fails even when the file looks right.
 
@@ -56,13 +56,8 @@ node .agents/skills/verify-ravn-core/scripts/cleanup.ts $RUN_ID
 
 It deletes `/tmp/ravn-verify/$RUN_ID` and keeps `.verify/$RUN_ID`. It refuses paths outside `/tmp/ravn-verify`. Clean up failed attempts the same way.
 
-## Helpers
+## Scratch repos
 
-| Script | Invocation | Purpose |
-|---|---|---|
-| `scripts/collect.ts` | `<feature-id> <command> [args...]` | Run a command from the repo root and keep its evidence |
-| `scripts/doctor.ts` | | Read-only preflight |
-| `scripts/cleanup.ts` | `[run-id]` | Remove the run's scratch work dirs, keep evidence |
-| `scripts/scratch.ts` | `babysit <dir> [thread\|approved\|late\|queue\|no-skill\|uncovered]`, `bug-fix <dir>`, or `review-and-simplify <dir>` | Build a scratch repo in a known state; for babysit, a simulated PR with `github-sim.ts` as `gh` |
+`scripts/scratch.ts` builds a scratch repo in a known state: `babysit <dir> [thread|approved|late|queue|no-skill|uncovered]` (a simulated PR, with `github-sim.ts` as `gh`), `bug-fix <dir>`, or `review-and-simplify <dir>`.
 
 Keep the map current with the `maintain-verification-skill` skill when skills or features change.

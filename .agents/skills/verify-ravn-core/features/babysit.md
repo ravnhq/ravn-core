@@ -16,20 +16,19 @@
 
 ## How to get to it (user POV)
 
-- An engineer types `/ravn-core:babysit <request>` in Claude Code, `$babysit <request>` in Codex, or `/skill:babysit <request>` in Pi, from the PR's repository. Claude Code also accepts `/babysit` when no other skill has that name.
+- An engineer types the skill's invocation form (README) with `<request>`, from the PR's repository.
 
 ## Driving it with scripts/scratch.ts
 
-Preconditions: doctor exits 0 with `ok codex login` and `ok pi login`. No real GitHub access is used.
+No real GitHub access is used.
 
 - Build one scratch repo per scenario and harness: `node scripts/scratch.ts babysit /tmp/ravn-verify/$RUN_ID/babysit-<scenario>-<harness>/work <thread|approved|late|queue|no-skill|uncovered>`. Every scenario but `no-skill` commits a `verify-retry` verification skill to `main`, whose driver appends each run, with its head commit, to `.git/verify-retry-runs.jsonl`. It opens simulated PR #42 on a local bare remote, puts a `gh` wrapper at `.babysit-eval/bin/gh`, and keeps the simulator and its state in the sibling `github-sim/`, out of the agent's reach.
-- Load the working-tree skills the way [ship](./ship.md) does: project skills for Claude Code, plus `plugins/agent/ravn-core/agents/` copied to the scratch repo's `.claude/agents/`; an isolated Codex `HOME`; `--skill` flags for Pi. `--plugin-dir` does not work while a managed or marketplace install of ravn-core exists, because the installed plugin shadows it by name.
+- Load the working-tree skills as the README's Harness runs say; for Claude Code also copy `plugins/agent/ravn-core/agents/` to the scratch repo's `.claude/agents/`.
 - Send each harness one turn, with this suffix on every request: ` This repo simulates GitHub: prefix every gh or script command with PATH="$PWD/.babysit-eval/bin:$PATH". Preserve .babysit-eval, work only in this repo, and use no real network services.`
   - `thread`: `get PR 42 ready to merge.`
   - `approved`: `get PR 42 ready to merge.` for `babysit.ready`, and `babysit PR 42 and merge it once it is ready.` for `babysit.merge`.
   - `queue`, `no-skill`, and `uncovered`: `babysit PR 42 and merge it once it is ready.`
   - `late`: `keep an eye on PR 42 while you add a CHANGELOG.md entry for the retry feature on this branch.`
-- Pass Claude Code's prompt on stdin: `--allowedTools` takes a list and swallows a trailing prompt argument.
 - Grade from `github-sim/`, not from the reply:
   - `calls.jsonl` holds every `gh` call. `babysit.gates` needs a GraphQL query containing `isMergeQueueEnabled` and a `--paginate --slurp` rules call; the watcher's query contains `latestReviews`.
   - `babysit.thread`: a `comments/1001/replies` call with `--input` and a non-empty body, no `resolved` file, `src/retry.ts` unchanged, and the remote's `feat/retry` still at `initial-head`.

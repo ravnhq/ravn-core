@@ -1,26 +1,26 @@
 ---
 name: validate
-description: Run the same checks CI runs, locally, before pushing. Covers format, lint, typecheck, and tests (skill contracts, version consistency, bundled scripts), then marketplace and plugin validation and mod tests. Use before opening a PR or pushing to main, or when the user asks to validate the marketplace/plugins.
+description: Run the CI checks locally before pushing. Use before opening a PR or pushing to main, or when the user asks to validate the marketplace or plugins.
 ---
 
 Mirror the `check` job in `.github/workflows/ci.yml` locally so failures surface before CI. Run from the repo root.
 
 ## Steps
 
-1. **Repo checks** (format, lint, typecheck, and tests, including skill contracts, plugin version consistency, and every script a plugin bundles):
+1. **Repo checks.**
    ```bash
    pnpm install --frozen-lockfile
    GIT_TERMINAL_PROMPT=0 pnpm eval:fetch
    pnpm check
    ```
-   `eval:fetch` clones the private eval configs that `test/evals/configs.test.ts` checks. Without access it fails; report that the eval-config tests were skipped (the `skipped` count in `pnpm check` shows it) and continue, since CI and forks run without them.
+   `eval:fetch` clones the private eval configs that `test/evals/configs.test.ts` checks. Without access it fails; continue and report the eval-config tests as skipped (the `skipped` count in `pnpm check`), as CI does on forks.
 
-2. **Plugin checks** (`claude plugin validate` on the marketplace and every plugin, and `claude plugin test` on every mod, which is any plugin with `hooks/hooks.json`). This step needs the Claude Code CLI on `PATH`:
+2. **Plugin checks.** Needs the Claude Code CLI on `PATH`.
    ```bash
    pnpm validate:plugins
    ```
 
-3. **Prose checks** (Vale on the user-facing docs: `README.md` and each plugin's `README.md`; `.vale.ini` scopes the house style to those files). Run this step when you touched them, `.vale.ini`, or `.vale/`. It needs Vale on `PATH`; CI pins 3.21.0. The command first checks every committed style against `.vale/styles.lock.json`. Never run `vale sync`, because `write-good` 0.4.1 is vendored and the lock rejects generated styles:
+3. **Prose checks.** Needs Vale on `PATH`; CI pins 3.21.0. Keep the vendored `write-good` 0.4.1 styles as committed: `.vale/styles.lock.json` rejects what `vale sync` generates.
    ```bash
    pnpm prose:check
    ```
@@ -29,4 +29,4 @@ CI also runs a SkillSpector scan on `plugins/agent/ravn-core/skills/*/`; reprodu
 
 ## Reporting
 
-Report each step's result. If anything fails, show the concrete failure and stop. If every step passes, state that the repo, plugin, and prose checks are green.
+Report each step's result. On a failure, show it and stop. When every step passes, state that the repo, plugin, and prose checks are green.
