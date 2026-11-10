@@ -32,7 +32,7 @@ Features that drive Claude Code, Codex, and Pi headless share this setup. Per ha
 - Run one turn per call, resuming the same session for multi-turn features:
   - Claude Code: `claude -p --setting-sources project --output-format stream-json --verbose --allowedTools "Bash Read Write Edit Glob Grep Skill Agent WebFetch WebSearch" [--resume <id>]`. Pipe the prompt on stdin: `--allowedTools` is variadic and swallows a trailing prompt argument ("Input must be provided").
   - Codex: `codex exec --json --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "<prompt>"`, then `codex exec resume <id>`.
-  - Pi: `pi -p --mode json --session-dir <dir> --session-id <uuid> "<prompt>"`.
+  - Pi: `pi -p --mode json --session-dir <dir> --session-id <uuid> "<prompt>"`. With `RAVN_VERIFY_PI_PROVIDER` selected for doctor, add `--provider <same-provider> --model <model>` and record both names. Manual provider selection does not alter promptfoo's fixed runners.
 - Keep each turn's prompt, transcript, final message, and tool calls under the feature's evidence directory.
 
 ## Feature entry contract
