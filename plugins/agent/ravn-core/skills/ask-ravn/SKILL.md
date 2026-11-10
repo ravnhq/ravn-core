@@ -8,7 +8,7 @@ metadata:
 
 # Ask Ravn
 
-Route only to ravn-core's own skills linked in this map. When asked for another marketplace plugin, explain that it is outside this map and keep the advice within ravn-core. Do not supply other-plugin routes or invocation guidance, or propose extending the map to include them.
+Route only to ravn-core's own skills linked in this map. For another marketplace plugin, say it is outside this map and keep the advice within ravn-core: give no route or invocation form for it, and leave the map as it is.
 
 Use these invocation forms, replacing `<skill>` with the recommended skill's frontmatter `name`:
 
@@ -19,7 +19,7 @@ Use these invocation forms, replacing `<skill>` with the recommended skill's fro
 | Codex | `$<skill>` | `$ask-ravn` |
 | Pi | `/skill:<skill>` | `/skill:ask-ravn` |
 
-Use this map to choose a ravn-core skill. It points to skills; it does not run them. Before explaining what a skill does or suggesting that a step can be skipped, read its linked `SKILL.md`. The descriptions here are only orientation. Classify invocation from each skill's own frontmatter: `disable-model-invocation: true` requires human invocation; an absent or false flag means model-invocable and may start when the request matches it. A trigger requiring an explicit user request still permits model invocation: "pause for now" can trigger `pause-safely` without the user naming the skill. Check each recommended skill separately, including skills grouped in the same flow or section.
+This map points to skills; it does not run them. Its descriptions are orientation only: before explaining what a skill does or suggesting that a step can be skipped, read its linked `SKILL.md`. Classify invocation from each recommended skill's own frontmatter, one skill at a time, including skills grouped in the same flow or section: `disable-model-invocation: true` requires human invocation; an absent or false flag means model-invocable and may start when the request matches it, even without the user naming it ("pause for now" can trigger `pause-safely`).
 
 ## Main flow: idea to ready PR
 
@@ -31,7 +31,7 @@ Start with [ship](../ship/SKILL.md) when an idea or requested change should beco
 4. Check the real result with [prove-it-works](../principle-prove-it-works/SKILL.md). [Create a verification skill](../create-verification-skill/SKILL.md) when a user-facing project has no such path; [maintain it](../maintain-verification-skill/SKILL.md) when its existing path has drifted. Use [blast-radius](../blast-radius/SKILL.md) when a change may affect behavior beyond its diff.
 5. [pr](../pr/SKILL.md) shapes the PR body; `ship` owns [delivery](../ship/DELIVER-GREEN-CI.md). Explain its completion condition: the PR is marked ready and all applicable checks, including readiness-triggered jobs, pass on its verified latest commit. Passing draft checks is an intermediate gate.
 
-Read `ship` before choosing an entry point within that sequence. This map does not turn its phases into independently automatic commands.
+Read `ship` before choosing an entry point within that sequence; its phases are not independently automatic commands.
 
 ## On-ramps
 
@@ -42,7 +42,7 @@ Read `ship` before choosing an entry point within that sequence. This map does n
 
 ## Standalone work
 
-Reach for these without committing to the whole `ship` flow:
+Use these without the whole `ship` flow:
 
 | Need | Skill |
 |---|---|
@@ -87,4 +87,4 @@ Choose at a natural boundary, after recording any decisions and proof the next p
 - **Pause or hand off** when asked to stop or transfer work: [pause-safely](../pause-safely/SKILL.md) writes the checkpoint; [session-pickup](../session-pickup/SKILL.md) resumes it. Automatic compaction is not a pause.
 - **Use a subagent** for a bounded, independent slice when the active skill calls for one and the harness permits it. Keep the main thread responsible for integrating and checking the result.
 
-Only model-invocable skills can start on their own. For every user-invoked skill named here, this map is a hint for the human to invoke it, not a promise that the router will fire it.
+Only model-invocable skills can start on their own. For a user-invoked skill named here, this map hints that the human invoke it; the router cannot fire it.

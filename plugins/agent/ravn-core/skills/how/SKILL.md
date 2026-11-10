@@ -3,8 +3,7 @@ name: how
 description: >-
   Use for "how does X work", code walkthroughs before changing something, and
   placement / ownership / layering questions ("where should this live",
-  "which package owns this", "is this the right layer"). Explains subsystem
-  architecture, runtime flow, onboarding mental models. Use why for
+  "which package owns this", "is this the right layer"). Use why for
   motivation.
 disable-model-invocation: true
 license: See LICENSE.txt
@@ -14,7 +13,7 @@ license: See LICENSE.txt
 
 Adapted from pstack `how`, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-Explore the codebase to answer "how does X work?" questions. Produce architectural explanations at the level of a senior engineer onboarding onto a subsystem, enough to build a working mental model, not so much that it reads like annotated source code.
+Answer "how does X work?" with an architectural explanation at the level of a senior engineer onboarding onto a subsystem: a working mental model, not annotated source code.
 
 Each spawn below is a subagent. If your harness cannot spawn subagents, do that subagent's work yourself in turn, writing down its output before moving on. Explorers and the explainer read code only; they change nothing.
 
@@ -37,7 +36,7 @@ Once every explorer has returned, including any your harness runs in the backgro
 
 ## 4. Present
 
-Present the explainer's output. Light edits for clarity or context from the conversation are fine. Do not substantially rewrite it.
+Present the explainer's output with light edits for clarity or conversation context.
 
 ## Output format
 

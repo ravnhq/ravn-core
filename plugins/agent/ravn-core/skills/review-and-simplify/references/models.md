@@ -1,6 +1,6 @@
 # Specialist models
 
-Every specialist runs in your own harness, on your own model family. `tier` labels each specialist `session` or `step-down`:
+Every specialist runs in your own harness and model family. The tier JSON labels each specialist's `model` class `session` or `step-down`:
 
 - `session`: spawn it on the model you are running on now.
 - `step-down`: spawn it on the next cheaper model of the same family, where your harness lets a spawn pick a model. Where it does not, spawn it on your own model; the review is the same, only the cost differs.

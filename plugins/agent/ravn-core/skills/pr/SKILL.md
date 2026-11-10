@@ -1,6 +1,6 @@
 ---
 name: pr
-description: "Write a pull request body. Use when opening a PR for pushed work or rewriting an existing PR's body."
+description: "Write a pull request body, for pushed work or an existing PR."
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -87,7 +87,7 @@ sequenceDiagram
     Daemon-->>UI: stream result
 ```
 
-- Use `diff` when the point is what changes and the surrounding shape already exists. Match the diff shape to the topic.
+- Use `diff` when the point is what changes and the surrounding shape already exists. Diff the same shape you would draw: component tree, file tree, call tree, or pseudocode.
 
 For a component change:
 
@@ -113,30 +113,6 @@ For a file-layout change:
 +    └── stream.ts
 ```
 
-For a call-tree or call-stack change:
-
-```diff
- submitForm
-   createSession
-     persistPrompt
-+    expandSkillMention
-     launchAgent
--  navigateToSession
-+  navigateToSession
-+    subscribeToEvents
-```
-
-For a state or control-flow change:
-
-```diff
- on(save)
--  write content
-+  if content is unchanged
-+    return cached result
-+  write new content
-+  invalidate cache
-```
-
 - Show the whole block when most of it is new, when omitted context would hide ownership or order, or when the user needs a copyable target shape:
 
 ```ts
@@ -148,20 +124,17 @@ function expandSkill(command: string): string {
 
 #### Guidance
 
-Place each visual next to the short text it supports. Keep only the calls, files, props, states, and boundaries needed to answer the user's current question or the options to resolve the current discussion point.
-
-You may use one of these, you may use several, it is unlikely you will use all of them. Use your judgement and don't overwhelm the user.
+Place each visual next to the short text it supports. Keep only the calls, files, props, states, and boundaries the reader needs to grasp the change. Use one visual or a few; most changes need one.
 
 ### Evidence
 
-Concrete evidence that the change works. Show a before and after.
+Concrete before and after evidence that the change works.
 
-Screenshots are S-tier - when the environment is set up for it and the change is visual.
-
-Execution-based evidence is A-tier. Test results, console output. Show the exact test that now fails and passes, using pseudocode.
+- S-tier: screenshots, when the environment supports them and the change is visual.
+- A-tier: execution output, test results, console output. Show the exact test that failed and now passes, as pseudocode.
 
 ### Merge Danger
 
-Describe whether it's a one-way or two-way door. You can walk back through two-way doors, but not one-way doors. A PR that is cheap to roll back is lower risk. Changes that involve destructive actions or hard-to-reverse decisions are one-way doors.
+Door: a two-way door can be walked back; a one-way door cannot. Destructive actions and hard-to-reverse decisions are one-way; a PR cheap to roll back is lower risk.
 
-The blast radius is the potential impact or scope of the changes introduced by this PR. Consider all possibilities. Examples are layout shift, breakages for consumers, mobile responsiveness, etc.
+Blast radius: the scope of what the merge can affect, such as layout shift, breakage for consumers, or mobile responsiveness.

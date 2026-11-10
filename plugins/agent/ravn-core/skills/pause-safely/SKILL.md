@@ -1,28 +1,26 @@
 ---
 name: pause-safely
 description: >-
-  Pause work and leave a resumable checkpoint another agent, in any harness,
-  can pick up cold. Use when the user asks to pause, stop for now, go
-  offline, restart, or hand off. Requests to keep going and automatic
-  context compaction are not pauses. Use session-pickup to resume.
+  Pause work and leave a handoff note a cold-start agent, in any harness,
+  can resume from. Use when the user asks to pause, stop for now, go
+  offline, restart, or hand off; "keep going" and automatic context
+  compaction are not pauses. Use session-pickup to resume.
 license: See LICENSE.txt
 ---
 
 # Pause Safely
 
-You own a clean stop. The checkpoint is a handoff note a cold-start agent resumes from without reconstructing this session.
-
-Only an explicit request pauses. On "keep going", "don't stop", or a context compaction, keep the same checkpoint facts in mind and continue the authorized work.
+You own a clean stop. The checkpoint is a handoff note a cold-start agent resumes from without reconstructing this session. Only an explicit request pauses; on "keep going" or a context compaction, continue the authorized work.
 
 ## Step 1. Stop at a safe boundary
 
-Finish the current atomic step, or back out of only your own incomplete change; leave unrelated work as it is. Start nothing new. Settle or stop background work you started (processes, subagents) where that is safe, and record anything still running and how to inspect it.
+Finish the current atomic step, or back out of only your own incomplete change; leave unrelated work as it is. Start nothing new. Stop or settle the background work you started (processes, subagents) where safe.
 
 Done when nothing you started is mid-edit and every running operation is either stopped or recorded.
 
 ## Step 2. Commit the work
 
-Commit your in-progress edits on the current branch, staging only the changes this work made, with a conventional commit message that describes them. If the tree is broken, say so in one line of the commit body. Take no outward action to pause: no push, no PR, no messages.
+Commit your in-progress edits on the current branch, staging only the changes this work made, with a conventional commit message that describes them. If the tree is broken, say so in one line of the commit body.
 
 ## Step 3. Write the handoff note
 
@@ -38,13 +36,13 @@ The note covers:
 - **Key paths**: files and artifacts that matter, plus gotchas.
 - **Next action**: the first concrete step on resume.
 
-Link to existing evidence (commits, PRs, logs) instead of copying it. Keep secrets out.
+Link evidence (commits, PRs, logs) instead of copying it. Keep secrets out.
 
 Done when an agent with only the note and the repository could take the next action.
 
 ## Step 4. Commit the note
 
-Commit the note as `chore: pause handoff`. The pause request authorizes the work and note commits and nothing more. If the directory is not a repository or a hook rejects the commit, leave the note on disk and report why it is uncommitted.
+Commit the note as `chore: pause handoff`. The pause request authorizes the work and note commits and nothing more: no push, no PR, no messages. If the directory is not a repository or a hook rejects the commit, leave the note on disk and report why it is uncommitted.
 
 ## Report
 

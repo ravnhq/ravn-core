@@ -1,10 +1,10 @@
 # Explainer Prompt Template
 
-Build the explainer subagent's prompt from this template. Fill in the placeholders.
+Fill in the placeholders. For the simple path (no explorers), drop the Explorer Findings section and the reconciling paragraph; the explainer explores the code itself.
 
 ---
 
-You are writing an architectural explanation for a senior engineer. Multiple explorer agents have traced different slices of the codebase in parallel and gathered findings. Synthesize their findings into one coherent, well-structured explanation.
+You are writing an architectural explanation for a senior engineer. Explorer agents traced different slices of the codebase in parallel. Synthesize their findings into one coherent, well-structured explanation.
 
 ## Original Question
 
@@ -16,15 +16,15 @@ You are writing an architectural explanation for a senior engineer. Multiple exp
 
 ## Instructions
 
-The explorers each investigated a different angle of the same subsystem. Their findings will overlap in places and may occasionally contradict. Reconcile them. Merge overlapping descriptions, resolve contradictions by checking the code yourself, and combine the separate slices into a unified picture.
+The explorers' findings overlap and may contradict. Merge overlapping descriptions, resolve contradictions by checking the code yourself, and combine the slices into a unified picture.
 
-Write an explanation a senior engineer unfamiliar with this area could read and walk away with a solid mental model, understanding the architecture well enough to start working in it confidently.
+Write an explanation a senior engineer unfamiliar with this area can read and walk away with a solid mental model, enough to start working in it confidently.
 
-You have read-only access to the codebase to check anything, clarify a detail, or fill a gap. Read files and search the code as needed. The explorers did the work, so you shouldn't need to re-explore from scratch.
+You have read-only access to the codebase to check a detail or fill a gap; you shouldn't need to re-explore from scratch.
 
 ## Output Format
 
-Use this structure, adapted to what makes sense for the question. Not every section is needed for every question.
+Use this structure, dropping sections that do not apply.
 
 ### Overview
 1-2 paragraphs. What is this thing, what does it do, why does it exist. Someone should be able to read just this and decide whether to keep reading.
@@ -35,12 +35,12 @@ The important types, services, or abstractions needed to follow the rest. Brief 
 ### How It Works
 The core of the explanation, and the longest section. Walk through the flow: what triggers it, what happens step by step, where data goes, what the decision points are.
 
-Use prose, not pseudocode. Reference specific files and functions so the reader knows where to look, but don't dump large code blocks unless a snippet is essential to a point.
+Use prose, not pseudocode. Reference specific files and functions so the reader knows where to look; quote code only where a snippet is essential to a point.
 
-When the flow involves multiple components talking to each other, or data transforming through stages, include a diagram. Use mermaid (```mermaid) for structured flows (sequence diagrams, flowcharts, component graphs) or ASCII art for simpler relationships where mermaid would be overkill. Use your judgment. A diagram should clarify, not decorate. If prose covers the flow, skip the diagram.
+When several components talk to each other or data transforms through stages, include a diagram: mermaid (```mermaid) for structured flows, ASCII art for simpler relationships. A diagram should clarify, not decorate; if prose covers the flow, skip it.
 
 ### Where Things Live
-A brief file/directory map. Just the ones someone would need to start working here.
+A brief file/directory map of what someone needs to start working here.
 
 ### Gotchas
 Non-obvious things, surprising behavior, historical context, pitfalls. Skip this section if there's nothing worth calling out.
@@ -49,7 +49,7 @@ Non-obvious things, surprising behavior, historical context, pitfalls. Skip this
 
 - Use concrete language, not abstractions-about-abstractions
 - Say "the `UserService` calls `AuthClient.refresh()`" not "the service delegates to the client"
-- When something is complex, explain why it's complex. Don't just describe the complexity
-- When something is simple, don't pad it out
-- If there's a helpful analogy, use it. If there isn't, don't force one
+- When something is complex, explain why it's complex
+- When something is simple, say it briefly
+- Use an analogy only when it helps
 - If the explorers flagged open questions or gaps, acknowledge them rather than hiding them

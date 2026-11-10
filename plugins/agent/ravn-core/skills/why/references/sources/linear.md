@@ -1,48 +1,31 @@
 # Linear Tickets
 
-## What this source contains
-
-- Issues describing features, bugs, and their motivation
-- Project docs attached to issues (often PRDs or specs)
-- Parent/sub-issue relationships (broader initiative → specific tickets)
-- Comments on issues (clarifications, scope changes, "why we're doing this" rationale)
-- Labels (e.g., `compliance`, `customer-request`, `perf`) that signal the type of motivation
-- Status updates that explain scope changes
-- Attachments and linked GitHub PRs
-
-Linear is where the product/business context often lives: the "we're doing this because customer X asked" or "this is for the Q3 compliance initiative" layer.
+Where the product and business context often lives: "customer X asked" or "this is for the Q3 compliance initiative". Issues, attached project docs (PRDs, specs), parent and sub-issue relationships, comments (scope changes, rationale), labels (`compliance`, `customer-request`, `perf`), milestones, status updates, and linked GitHub PRs.
 
 ## How to search it
 
 Use the Linear MCP.
 
-1. **Start with linked tickets.** If the seed commits or PRs reference ticket IDs (e.g., `ENG-1234`, `[BUG-567]`), fetch those first with `get_issue`. Read the full issue including comments.
-2. **List related issues by keyword.** Use `list_issues` with text search for the feature name, key symbol, or business term. Try multiple phrasings.
-3. **Walk the issue tree.** If you land on a sub-issue, fetch its parent. Sub-issues are tactical. Parents often carry the "why."
-4. **Read project docs.** If the issue belongs to a project, use `get_project` and check attached docs. Project-level documents are where specs and rationale are most often captured.
-5. **Check labels and milestones.** Labels hint at the category of motivation (customer-request, incident-followup, compliance). Milestones tie work to deadlines, which often reveal motivation.
+1. **Start with linked tickets.** Fetch the ticket IDs in the seed commits or PRs (e.g. `ENG-1234`, `[BUG-567]`) with `get_issue` and read the full issue including comments.
+2. **List related issues by keyword** with `list_issues`: the feature name, key symbol, or business term, in multiple phrasings.
+3. **Walk the issue tree.** Sub-issues are tactical; their parents often carry the "why". Follow duplicate-of chains back to the canonical ticket.
+4. **Read project docs** via `get_project`, where specs and rationale are most often captured.
+5. **Check labels and milestones.** Labels hint at the category of motivation (customer-request, incident-followup, compliance); milestones tie work to deadlines.
 
 ## What good evidence looks like here
 
 - An issue description stating the business problem: "Customer Acme needs X because of their SOC2 audit"
 - A comment recording a decision: "We decided to go with approach B because approach A would require touching the billing service"
-- A parent issue titled like an initiative: "Q3 Enterprise Readiness" or "Reduce Payment Failures"
+- A parent issue titled like an initiative: "Q3 Enterprise Readiness"
 - An attached PRD or spec
 - Labels like `customer:acme`, `incident-followup`, `compliance`, `perf-regression`
 
 ## Common pitfalls
 
-- **Scope drift.** The ticket the PR references may have been closed and reopened with a different scope. Read the whole history.
-- **Mechanical templates.** Some teams require "Why" sections but fill them with boilerplate. Generic text ("improve user experience") is probably not a real answer.
-- **Stale tickets.** Old tickets often reflect a version of the plan that changed. Check dates and cross-reference with the code's ship date.
-- **Closed-as-duplicate chains.** Follow the duplicate-of relationships back to the canonical ticket.
-- **Private workspace content.** If you can't access an issue, note that as a gap rather than guessing.
+- **Scope drift.** A ticket may have been closed and reopened with a different scope. Read the whole history.
+- **Boilerplate "Why" sections.** Generic text ("improve user experience") is probably not a real answer.
+- **Stale tickets.** Check dates against the code's ship date.
 
 ## What to return
 
-For each relevant ticket:
-- Ticket ID and title
-- The problem/motivation quoted from the description or comments (not paraphrased. The synthesizer needs the exact text to cite)
-- Labels, parent issue, project
-- Author, created date, closed date
-- Link to the ticket if available
+For each relevant ticket: ID and title, the problem or motivation quoted exactly (the synthesizer needs the text to cite), labels, parent issue, project, author, created and closed dates, and a link.
