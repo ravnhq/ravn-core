@@ -36,6 +36,8 @@ node .agents/skills/verify-ravn-core/scripts/doctor.ts   # read-only
 
 Require exit 0. Doctor prints the revision, uncommitted files, and tool versions, checks Node 24 or later, pnpm, and promptfoo, and validates the marketplace and every plugin. It fails when `codex`, `pi`, or `gh` is installed but not logged in, and skips each one that is absent; features that need a skipped tool report as unverified.
 
+Pi checks the `openai` provider by default. For a different authenticated provider, set `RAVN_VERIFY_PI_PROVIDER` when running doctor and pass that same provider with an explicit model to each manual Pi run (`--provider <provider> --model <model>`). Record both names in the evidence. This selection does not change the fixed promptfoo runner matrix.
+
 ## Drive
 
 Follow the feature file. Invoke the skill with the same kind of input a user gives, specific enough that a headless run never stops to ask a question. A run that ends on a question is a failed attempt; tighten the prompt and record both attempts. Drive only the skill's public entry and leave fixtures unedited.

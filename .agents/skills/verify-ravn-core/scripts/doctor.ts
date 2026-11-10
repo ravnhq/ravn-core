@@ -75,12 +75,15 @@ const codexAuth = join(
   "auth.json",
 );
 
+const piProvider = process.env.RAVN_VERIFY_PI_PROVIDER || "openai";
+
 const harnessChecks = [
   { tool: "codex", label: "codex login", ok: () => existsSync(codexAuth) },
   {
     tool: "pi",
-    label: "pi login",
-    ok: () => run("pi", ["auth", "check", "--provider", "openai"]).status === 0,
+    label: `pi login (${piProvider})`,
+    ok: () =>
+      run("pi", ["auth", "check", "--provider", piProvider]).status === 0,
   },
   {
     tool: "gh",
