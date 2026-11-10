@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Take a change from idea to a ready PR with passing CI, chaining research, grilling, domain-modeling, codebase-design, the verification skills, and pr.
+description: Take a change from idea to a ready PR with passing CI, running research, grilling, design, verification, and the pr skill in sequence.
 disable-model-invocation: true
 metadata:
   proof: subjective
@@ -8,25 +8,25 @@ metadata:
 
 # Ship
 
-Take a change from a loose idea to a ready pull request with evidence that it works and passing CI on its latest commit. The clarifying in the first steps matters more than any document they produce: where a request is ambiguous, an agent that builds now builds the wrong thing.
+Take a change from a loose idea to a ready pull request with evidence that it works and passing CI on its latest commit. The clarifying in the first steps matters more than any document they produce.
 
-Run every step in order. Skip a step only when the user says to, or when its condition below does not hold. This is the full path on purpose; the user learns which steps a small change can drop.
+Run every step in order. Skip a step only when the user says to, or when its condition below does not hold.
 
 When the request is a bug with a known symptom, switch to [Bug Fix](../bug-fix/SKILL.md) and follow it in place of this skill: it owns the repro, the cause, and the red-then-green history.
 
 ## Step 1. Shape the idea
 
-If the user brings only an idea or a problem, lay out two or three ways to approach it, with the trade-off of each, and recommend one. Then state in two or three sentences what the change is, who it serves, and the observable condition that means it is done, such as a passing check or a behavior a user can see. Ask the user to correct it. Do not continue on a goal the user has not confirmed.
+If the user brings only an idea or a problem, lay out two or three ways to approach it, with the trade-off of each, and recommend one. Then state in two or three sentences what the change is, who it serves, and the observable condition that means it is done, such as a passing check or a behavior a user can see. Continue once the user confirms the goal.
 
 ## Step 2. Gather the facts
 
-Read the code the change touches. Use [How](../how/SKILL.md) for how that code works now, and [Why](../why/SKILL.md) when existing behavior looks deliberate or odd. If the change builds on a library, API, or tool, use the `research` skill to read its official docs and examples for this use case. If the reading spans many files or large outputs, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
+Read the code the change touches with [How](../how/SKILL.md), and [Why](../why/SKILL.md) when existing behavior looks deliberate or odd. For a library, API, or tool the change builds on, use the `research` skill. For reading that spans many files or large outputs, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
 
 For a bug you find mid-change, run [Bug Fix](../bug-fix/SKILL.md)'s Steps 1 to 3 before choosing a fix. For a measured performance or eval claim, use [Explain the Number](../principle-explain-the-number/SKILL.md) to vet the baseline before planning from it.
 
 ## Step 3. Grill the assumptions
 
-Use the `grilling` skill on the goal and everything you assumed while gathering facts. This step is the core of the plan. Ask each round through the harness's question tool when it has one, as `grilling` describes; otherwise make its questions your final message. Either way, wait for the user's answers before the next round. Move to Step 4 only when the frontier is empty.
+Use the `grilling` skill on the goal and everything you assumed while gathering facts. This step is the core of the plan. Wait for the user's answers before each next round. Move to Step 4 only when the frontier is empty.
 
 ## Step 4. Settle the terms
 
@@ -36,13 +36,13 @@ If the change introduces stateful logic or repeated shape assumptions, use `doma
 
 ## Step 5. Shape the design
 
-If the change adds a module or reshapes an interface, use the `codebase-design` skill to place the seam and keep the module deep.
+If the change adds a module or reshapes an interface, use the `codebase-design` skill.
 
 Apply these principles when their conditions hold:
 
 - For types or function signatures in a statically typed language, use [Type System Discipline](../principle-type-system-discipline/SKILL.md), and in TypeScript also [TypeScript Best Practices](../typescript-best-practices/SKILL.md).
-- For validation, error handling, or framework adapters, use [Boundary Discipline](../principle-boundary-discipline/SKILL.md). Validate external inputs at entry points. Inside, a guard is a fix only for a legitimate state, per [Fix Root Causes](../principle-fix-root-causes/SKILL.md); for a state that should never exist, fix what produced it.
-- For mutating commands, lifecycle steps, or processing loops amid retries and interruptions, use [Make Operations Idempotent](../principle-make-operations-idempotent/SKILL.md).
+- For validation, error handling, or framework adapters, use [Boundary Discipline](../principle-boundary-discipline/SKILL.md) and [Fix Root Causes](../principle-fix-root-causes/SKILL.md).
+- For mutating commands, lifecycle steps, or loops that retries or interruptions can repeat, use [Make Operations Idempotent](../principle-make-operations-idempotent/SKILL.md).
 - For concurrent actors that might write the same object, use [Separate Before Serializing Shared State](../principle-separate-before-serializing-shared-state/SKILL.md).
 
 For each triggered principle, record the concrete design decision and the check that will prove it in Step 6.
@@ -60,13 +60,13 @@ Write a short plan with these sections, dropping any that are empty:
 - **Steps**: ordered work, each with how you will verify it.
 - **Delivery**: the branch name, the base branch the PR targets, and the expected CI check names, separating draft checks from checks triggered by readiness.
 
-For multi-step work or stacked delivery, use [Sequence Verifiable Units](SEQUENCE-VERIFIABLE-UNITS.md). Pair each principle's decision with a verification check in Steps. A citation alone does not satisfy the plan.
+For multi-step work or stacked delivery, use [Sequence Verifiable Units](SEQUENCE-VERIFIABLE-UNITS.md). Pair each principle's decision with a verification check in Steps.
 
 Show the plan in your reply. Write it to a file only when the user asks, or when the work will span sessions; then put it where the repo keeps its docs and report the path.
 
 ## Step 7. Confirm the plan
 
-Ask the user to approve the plan. Do not write code before they approve.
+Ask the user to approve the plan; write code only after they approve.
 
 ## Step 8. Create the branch and prepare verification
 
@@ -96,11 +96,11 @@ If the repo has a verification skill, update it on this branch: add a `features/
 
 ## Step 11. Check it is ready to push
 
-Show the user the branch, the files changed, how the change differs from the plan, and the checks with their results. Ask whether to push unless they already authorized delivery. Approval covers opening the PR and subsequent CI repair commits and pushes within the approved scope. Do not push without authorization.
+Show the user the branch, the files changed, how the change differs from the plan, and the checks with their results. Ask whether to push unless they already authorized delivery; push only with that authorization. It covers opening the PR and later CI repair commits and pushes within the approved scope.
 
 ## Step 12. Open the PR
 
-Commit with the repo's commit convention, push the branch, and open a draft PR against the base branch from the plan. Write the body with the `pr` skill, and put the evidence from Step 10 under Evidence. Never push to the default branch, force-push, or merge.
+Commit with the repo's commit convention, push the branch, and open a draft PR against the base branch from the plan. Write the body with the `pr` skill, and put the evidence from Step 10 under Evidence. Hard guardrails: no push to the default branch, no force-push, no merge.
 
 ## Step 13. Deliver green CI
 

@@ -1,6 +1,6 @@
 # Deliver Green CI
 
-Run from the target repo using its existing `gh` login. Resolve the script path from this installed skill's directory.
+Run from the target repo on the existing `gh` login. Resolve the script path from this installed skill's directory.
 
 1. Run the gate with every check expected on a draft PR from the delivery plan:
 
@@ -8,9 +8,9 @@ Run from the target repo using its existing `gh` login. Resolve the script path 
    node <ship-directory>/scripts/check-ci.ts <PR-url> --expect "Check" --expect "Scan ravn-core skills"
    ```
 
-   Use the target repo's names. Exit 0 means the observed checks passed and the PR head stayed the same during inspection; 1 means delivery is incomplete; 2 means the inspection failed. The JSON output includes the head, check links, and blockers. Repeat while jobs are queued or running, with short waits and progress updates. A missing check needs investigation of its trigger, filters, permissions, or approval requirement; an empty check list is incomplete.
+   Use the target repo's names. Exit 0 means the observed checks passed and the PR head stayed the same during inspection; 1 means delivery is incomplete; 2 means the inspection failed. The JSON output includes the head, check links, and blockers. Repeat with short waits while jobs are queued or running. Investigate a missing check's trigger, filters, permissions, and approval requirement; an empty check list is incomplete.
 
-2. For a failing check, read its linked logs (`gh run view <run-id> --log-failed` for Actions), reproduce it when possible, and use [Fix Root Causes](../principle-fix-root-causes/SKILL.md). Run the repaired check and relevant regression checks, commit, push, and return to the gate. Each push requires fresh CI evidence. Rerun a transient infrastructure failure only after identifying it; repeated reruns are not a fix. Preserve the repo's gates and thresholds.
+2. For a failing check, read its linked logs (`gh run view <run-id> --log-failed` for Actions), reproduce it when possible, and use [Fix Root Causes](../principle-fix-root-causes/SKILL.md). Run the repaired check and relevant regression checks, commit, push, and return to the gate. Each push requires fresh CI evidence. Rerun only an identified transient infrastructure failure. Preserve the repo's gates and thresholds.
 
 3. If a fix changes the approved scope, ask the user to settle that decision. If credentials, an external outage, or required human approval prevent progress, retain the draft and report incomplete delivery with the blocker and check links. Pre-existing failures also leave delivery incomplete.
 

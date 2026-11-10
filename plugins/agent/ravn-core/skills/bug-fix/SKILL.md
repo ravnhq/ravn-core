@@ -9,7 +9,7 @@ license: See LICENSE.txt
 
 Adapted from the pstack Bug fix playbook and `tdd` skill, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-You own the diagnosis and the proof. Work like a scientist: every shipped line traces to runtime evidence. A change that "might help" is a hypothesis, and a hypothesis does not ship. When evidence refutes a hypothesis, revert what it motivated. Ship the smallest change the evidence justifies.
+You own the diagnosis and the proof. Work like a scientist: every shipped line traces to runtime evidence, and a change that "might help" is a hypothesis that stays out. Revert what a refuted hypothesis motivated. Ship the smallest change the evidence justifies.
 
 Apply [Fix Root Causes](../principle-fix-root-causes/SKILL.md) throughout.
 
@@ -17,7 +17,7 @@ Work on a new branch, never the default branch. If the working tree has changes 
 
 ## Step 1. Reproduce it yourself
 
-Drive the bug on the surface where it was reported: the UI, CLI, or service, through the project's `verify-<app>` skill when it has one, and otherwise with the tools the repo already uses to run it. Creating a verification skill is separate work: when the surface lacked one, offer [Create Verification Skill](../create-verification-skill/SKILL.md) in your reply, and do not create it unasked. For library code, a script or test that calls the public interface is the surface.
+Drive the bug on the surface where it was reported: the UI, CLI, or service, through the project's `verify-<app>` skill when it has one, and otherwise with the tools the repo already uses to run it. When the surface lacked a verification skill, offer [Create Verification Skill](../create-verification-skill/SKILL.md) in your reply and create it only when asked. For library code, a script or test that calls the public interface is the surface.
 
 If the bug will not reproduce directly, synthesize the trigger, tighten the conditions, or add instrumentation until it fires. Ask the user to reproduce only after you have driven the surface as far as it goes, and name the specific thing it cannot reach.
 
@@ -33,9 +33,11 @@ Done when one mechanism survives and you have runtime evidence for it: a log lin
 
 Follow [Failing Test First](FAILING-TEST-FIRST.md). It decides whether the bug gets a regression test or another executable check, and keeps that check honest.
 
+Done when the check is _red_ for the bug's reason.
+
 ## Step 4. Fix it
 
-Make the smallest change at the root cause. If the fix crosses a module boundary or changes an interface, use the `codebase-design` skill to place it. Grep for the same faulty pattern elsewhere and fix each instance the evidence covers. Remove the instrumentation you added in Step 2 unless it belongs in the product.
+Make the smallest change at the root cause. If the fix crosses a module boundary or changes an interface, use [Codebase Design](../codebase-design/SKILL.md) to place it. Grep for the same faulty pattern elsewhere and fix each instance the evidence covers. Remove the instrumentation you added in Step 2 unless it belongs in the product.
 
 ## Step 5. Verify on the same surface
 
@@ -51,6 +53,6 @@ Done when `git log` on the branch shows the test commit, then the fix commit, an
 
 ## Step 7. Deliver
 
-Ask the user before pushing unless they already authorized delivery; when they said not to push, stop here. Otherwise push, open a draft PR with a body written by the `pr` skill, and put the red and green repro output under Evidence. Deliver it with [Deliver Green CI](../ship/DELIVER-GREEN-CI.md). Never push to the default branch, force-push, or merge.
+Push only with the user's authorization, asking when they have not given it; when they said not to push, stop here. Otherwise push, open a draft PR with a body written by the `pr` skill, and put the red and green repro output under Evidence. Deliver it with [Deliver Green CI](../ship/DELIVER-GREEN-CI.md). Never push to the default branch, force-push, or merge.
 
 **Reply:** what was broken, the root cause and the evidence for it, the fix, and how you verified it. Paste the failing and passing repro output verbatim. Give the branch, its worktree if you made one, and its two commits, and the PR URL when you delivered. For a delivered PR, end with how to land it: the user runs [Babysit](../babysit/SKILL.md) on it, which clears later review threads and merges only when they ask.

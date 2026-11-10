@@ -15,11 +15,11 @@
 
 ## How to get to it (user POV)
 
-Invoke `/ship` in Claude Code with working-tree skills installed as project skills, `$ship` in Codex, or `/skill:ship` in Pi. Give a synthetic local repo with a reproducible bug, retrying file writes, concurrent workers, a typed state model, internal legacy callers, and a suspect measurement. Confirm the goal and grilling decisions, then inspect the plan before approving the build.
+Invoke `ship` (invocation forms in the README) with working-tree skills. Give a synthetic local repo with a reproducible bug, retrying file writes, concurrent workers, a typed state model, internal legacy callers, and a suspect measurement. Confirm the goal and grilling decisions, then inspect the plan before approving the build.
 
 ## Driving it with a multi-turn driver
 
-Use the harness isolation and transcript conventions in [ship](ship.md). Use the default model and keep the run local; stop at the ready-to-push check. No remote repo or PR is needed to verify these additions.
+Use the README's Harness runs and the transcript conventions in [ship](ship.md). Use the default model and keep the run local; stop at the ready-to-push check. No remote repo or PR is needed to verify these additions.
 
 1. Create one scratch repo per harness with the same fixtures and an existing project verification skill. Keep the exact initial files and prompt in evidence.
 2. Invoke `ship` with a confirmed goal and settled decisions. Explicitly skip Steps 1 and 3, and skip `how`, `why`, and outside research for this self-contained fixture. Request the plan and stop at Step 7.

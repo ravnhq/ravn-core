@@ -6,22 +6,34 @@ This map is the maintained source for verifying what each plugin does for a user
 
 - Run from the repo root after `pnpm install`. `scripts/doctor.ts` exits 0.
 - `claude` is logged in. Runs spend real API budget.
-- `RUN_ID` is exported once per verification pass, so every feature lands in `.verify/$RUN_ID/<feature-id>/`.
-- `ravn-core`, bundled scripts, and repo commands run through `scripts/collect.ts <feature-id> <command> [args...]` from the repo root.
+- A feature driven in Codex, Pi, or against GitHub needs doctor's `ok codex login`, `ok pi login`, or `ok gh auth`; feature files list only extra preconditions.
 
 ## Driving conventions
 
-- Invoke the skill the way a user does: its slash command plus the same kind of input a user gives (a file path, pasted text, a short request).
+- Invoke the skill the way a user does: its invocation form plus the same kind of input a user gives (a file path, pasted text, a short request). The forms are `/ravn-core:<skill>` in Claude Code (also `/<skill>` when no other skill has that name), `$<skill>` in Codex, and `/skill:<skill>` in Pi.
 - Judge the output against the source and the skill's contract, not against memory of an earlier run.
 - Name the runner (`claude-code/...`, `codex/...`, `pi/...`) for every `ravn-core` harness result.
 
 ## Proof and skip reporting
 
-- `collect.ts` keeps `run.json`, `stdout.txt`, `stderr.txt`, and `results/` when evals ran.
 - Evidence paths in feature files are relative to `.verify/$RUN_ID/<feature-id>/`; `<evidence>` means that directory.
 - Quote the exact lines from an output file or `stdout.txt` that prove each sub-feature.
 - A feature that needs a tool doctor skipped (codex, pi, gh, tmux) is reported as unverified, with the missing tool named. Do not count another harness instead.
 - A run that exits non-zero or hits the budget is a failed attempt. Report it; do not retry silently.
+
+## Harness runs
+
+Features that drive Claude Code, Codex, and Pi headless share this setup. Per harness, work in a scratch repo at `/tmp/ravn-verify/$RUN_ID/<feature>-<harness>/work`.
+
+- Load the working-tree skills, not an installed copy:
+  - Claude Code: copy `plugins/agent/ravn-core/skills/*` into the clone's project skills directory and list each in `.git/info/exclude`. A managed `ravn-core` install shadows `--plugin-dir`, so that flag tests the installed version.
+  - Codex: an isolated `HOME` with `~/.codex/auth.json` and `~/.gitconfig` copied in, the skills under `$HOME/.agents/skills/`, and `GH_TOKEN=$(gh auth token)` when the run needs `gh`.
+  - Pi: `--no-skills --no-extensions --no-prompt-templates`, plus `--skill` for every `ravn-core` skill and every skill in the clone. Keep context files on so the agent sees the repo's own instructions.
+- Run one turn per call, resuming the same session for multi-turn features:
+  - Claude Code: `claude -p --setting-sources project --output-format stream-json --verbose --allowedTools "Bash Read Write Edit Glob Grep Skill Agent WebFetch WebSearch" [--resume <id>]`. Pipe the prompt on stdin: `--allowedTools` is variadic and swallows a trailing prompt argument ("Input must be provided").
+  - Codex: `codex exec --json --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check "<prompt>"`, then `codex exec resume <id>`.
+  - Pi: `pi -p --mode json --session-dir <dir> --session-id <uuid> "<prompt>"`.
+- Keep each turn's prompt, transcript, final message, and tool calls under the feature's evidence directory.
 
 ## Feature entry contract
 

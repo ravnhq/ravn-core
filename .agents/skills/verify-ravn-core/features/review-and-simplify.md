@@ -12,14 +12,12 @@
 
 ## How to get to it (user POV)
 
-- An engineer on a feature branch types `/ravn-core:review-and-simplify` in Claude Code, `$review-and-simplify` in Codex, or `/skill:review-and-simplify` in Pi.
+- An engineer on a feature branch types the skill's invocation form (README).
 
 ## Driving it with scripts/scratch.ts
 
-Preconditions: doctor exits 0 with `ok codex login` and `ok pi login`.
-
 - Build one scratch repo per harness: `node scripts/scratch.ts review-and-simplify /tmp/ravn-verify/$RUN_ID/review-<harness>/work`. It is on `feature/page-slices`, one commit ahead of `main`, with four seeded findings; its test passes on them.
-- Load the working-tree skill as [ship](./ship.md) does. For Claude Code, also copy `plugins/agent/ravn-core/agents/review-specialist.md` into the clone's `.claude/agents/`.
+- Load the working-tree skills as the README's Harness runs say. For Claude Code, also copy `plugins/agent/ravn-core/agents/review-specialist.md` into the clone's `.claude/agents/`.
 - Send one turn: `<invocation> Review this branch (feature/page-slices) against main and apply the simplifications that are safe. Do not post anything to GitHub and do not ask me questions; use the defaults.`
 - Keep the transcript, the final message, `git status --short`, `git diff`, `git log --oneline`, and `npm test` output under `.verify/$RUN_ID/review-and-simplify-<harness>/`.
 - Check:
@@ -30,7 +28,7 @@ Preconditions: doctor exits 0 with `ok codex login` and `ok pi login`.
 
 ## Gotchas
 
-- Run Claude Code on an Opus session (`--model opus`) so the step-down spawns use `sonnet`, and put the prompt before `--allowedTools`, whose variadic value otherwise swallows it.
+- Run Claude Code on an Opus session (`--model opus`) so the step-down spawns use `sonnet`, and pipe the prompt on stdin.
 - Codex caps concurrent subagents (`agents.max_concurrent_threads_per_session`); with eight specialists some spawns are refused, which is the case `review.specialists` checks.
 - The fixture's commit is on the branch, so the tree starts clean and simplify may edit `src/page.ts`. Uncommitted edits there would make simplify report instead.
 - A user's `diff.mnemonicPrefix` makes plain `git diff` write `c/` and `w/` prefixes; `review.ts` rejects that diff with `diff_prefix`, and the skill's commands pass `--src-prefix=a/ --dst-prefix=b/`.
