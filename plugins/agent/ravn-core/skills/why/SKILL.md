@@ -1,10 +1,8 @@
 ---
 name: why
 description: >-
-  Use for 'why does X work this way', 'why we picked Y', design rationale,
-  regressions, postmortems, or data-backed thresholds. Queries every
-  available evidence MCP in parallel and returns a cited read on decisions
-  and tradeoffs. Use how for runtime behavior.
+  Investigate design rationale, regressions, postmortems, or data-backed
+  thresholds with cited evidence. Use how for runtime behavior.
 disable-model-invocation: true
 license: See LICENSE.txt
 ---
@@ -19,7 +17,9 @@ Each spawn below is a subagent. If your harness cannot spawn subagents, do that 
 
 ## Operating Posture
 
-Operate as a **careful, cautious, and precise investigator**. Separate what you know from what you infer. Trace past the latest commit: the current shape is usually the accretion of many earlier decisions. The synthesizer follows `references/epistemics.md`, the confidence framework and phrasing guide.
+Separate evidence from inference using `references/epistemics.md`. Trace past the latest commit: the current shape is usually the accretion of many earlier decisions.
+
+Diagnose transient tool failures and try another read-only route; respect withheld access and continue with reachable sources, recording inaccessible evidence as gaps.
 
 ## Step 1. Understand the Target and the Question
 
@@ -35,7 +35,7 @@ The bundled script runs `git blame`, `git log --follow`, and `gh pr view` for ea
 
 ## Step 3. Spawn Parallel Investigators
 
-**Default to the full parallel investigation.** The goal is a complete coverage map: document the null, don't skip the search.
+Use parallel investigators for independent source searches; the simple inline case is below. The goal is a complete coverage map, including null results.
 
 ### Discovery
 
@@ -43,7 +43,7 @@ List the MCP servers and tools available in this session and map each to one evi
 
 | Category | Playbook in `references/sources/` | Example MCPs | Best at |
 |---|---|---|---|
-| Source control (git, `gh`, code comments, tests) | `code-archaeology.md` | always spawn | implementation-time rationale captured during review |
+| Source control (git, `gh`, code comments, tests) | `code-archaeology.md` | git, `gh` | implementation-time rationale captured during review |
 | Issue / ticket tracker | `linear.md` | Linear, Jira, GitHub Issues, Plane, Shortcut | the product or business forcing function, strongest when the why is external to engineering |
 | Long-form documents | `notion.md` | Notion, Confluence, Google Docs, Coda | design rationale written out before it became code |
 | Real-time team chat | `slack.md` | Slack, Discord, Microsoft Teams, Mattermost | deliberation that never reached a doc, vital when the other paper trail is thin |
@@ -51,7 +51,7 @@ List the MCP servers and tools available in this session and map each to one evi
 | Error / exception tracking | `sentry.md` | Sentry, Rollbar, Bugsnag, Airbrake | the exceptions behind catch blocks, null guards, type checks, retries |
 | Product analytics warehouse | `databricks.md` | Databricks, Snowflake, BigQuery, ClickHouse, dbt, Redshift | product and data reality behind flag-gated code, experiments, migrations, "where did this number come from" |
 
-Spawn one investigator per category with a matching MCP, all at once so they run concurrently, each owning exactly one tool or MCP and given the MCP tools its category needs. Wait until every investigator has returned, including any your harness runs in the background, before Step 4.
+Except for the trivial inline case below, spawn a source-control investigator using git and `gh`, plus one per other category with a matching MCP. Run them concurrently, each owning one category and its read-only tools. Wait until every investigator has returned, including any your harness runs in the background, before Step 4.
 
 Each investigator's prompt is `references/investigator-prompt.md` filled in, plus:
 - the playbook for its category, adapted when the MCP is not the example
@@ -62,10 +62,10 @@ Each investigator's prompt is `references/investigator-prompt.md` filled in, plu
 
 Only with an **explicit, written justification** in the final Sources Consulted. Two valid reasons:
 
-- **No MCP is available for that category.** Flag it as a gap: "Real-time team chat skipped. No matching MCP available, so the conversational record was not searchable."
+- **No MCP is available for a category other than source control.** Flag it as a gap: "Real-time team chat skipped. No matching MCP available, so the conversational record was not searchable."
 - **The source is provably irrelevant**, a high bar: "Error / exception tracking skipped. Target is a build-time script with no runtime code path."
 
-For a single-commit trivial target whose PR description holds the complete answer, you may answer inline only after confirming every available category search would be redundant. Say so explicitly. This should be rare.
+For a single-commit trivial target whose PR description holds the complete answer, answer inline using the synthesis template when other category searches would be redundant; record why in Sources Consulted.
 
 ## Step 4. Synthesize
 
@@ -73,7 +73,7 @@ Spawn one synthesizer with the same MCP tools, since it spot-verifies citations.
 
 ## Step 5. Present
 
-Present the synthesizer's output. Light edits for clarity or conversation context are fine; keep its confidence language verbatim.
+Present the synthesis after every category has findings, a null result, or a justified gap. Light edits for clarity or context are fine; keep its confidence language verbatim.
 
 ## Output Format
 

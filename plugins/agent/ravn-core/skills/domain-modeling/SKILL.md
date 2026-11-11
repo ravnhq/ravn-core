@@ -11,7 +11,7 @@ metadata:
 
 # Domain Modeling
 
-Actively build and sharpen the project's domain model as you design: challenge terms, invent edge-case scenarios, and write the glossary and decisions down the moment they crystallise. Use it when changing the model; merely reading `GLOSSARY.md` for vocabulary needs no skill.
+Sharpen the domain model as you design; merely reading `GLOSSARY.md` needs no skill. Resolve ambiguity from code and glossaries; ask only when unresolved domain meaning changes the model, and continue independent work. Finish with resolved terms and accepted ADRs written to their files.
 
 ## File structure
 
@@ -29,13 +29,13 @@ A single-context repo has one `GLOSSARY.md` at the root and ADRs in `docs/adr/`.
         └── GLOSSARY.md
 ```
 
-Create files lazily: a `GLOSSARY.md` when the first term is resolved, `docs/adr/` when the first ADR is needed. With several contexts, infer which one the topic belongs to; ask if unclear.
+Create files lazily: a `GLOSSARY.md` when the first term is resolved, `docs/adr/` when the first ADR is needed. With several contexts, use the context that owns the topic.
 
 ## During the session
 
 ### Choose the representation
 
-For stateful logic, scattered branches, or repeated shape assumptions, apply [Model the Domain](MODEL-THE-DOMAIN.md). Implementation representations belong in code and plans, never in `GLOSSARY.md`.
+For stateful logic, scattered branches, or repeated shape assumptions, apply [Model the Domain](MODEL-THE-DOMAIN.md). Put implementation representations in code and plans.
 
 ### Challenge against the glossary
 
@@ -65,4 +65,4 @@ Offer an ADR only when all three hold, else skip it:
 2. **Surprising without context**: a future reader will wonder "why did they do it this way?"
 3. **The result of a real trade-off**: genuine alternatives, picked for specific reasons
 
-Write it in the format of [ADR-FORMAT.md](./ADR-FORMAT.md).
+Write an offered ADR once the user accepts it, in the format of [ADR-FORMAT.md](./ADR-FORMAT.md).

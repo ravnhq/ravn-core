@@ -1,6 +1,6 @@
 # Apply simplifications
 
-Apply the simplify findings you kept, then prove the repo's checks still pass. Correctness, security, and every other specialty's findings stay report-only.
+Apply kept simplify findings within the reviewed change; report nearby problems. Correctness, security, and other specialties stay report-only. The review request covers eligible local edits and checks.
 
 ## When it applies
 
@@ -12,9 +12,9 @@ All of these hold, or every simplify finding stays a reported `suggestion`:
 
 ## Steps
 
-1. **Baseline.** Take the repo's check commands from `guidance.md`; when it names none, read `package.json` scripts, the `Makefile`, and the CI workflow in one parallel batch. Run the checks that cover the files you will edit and record which pass. A check that already fails stays out of the comparison.
+1. **Baseline.** Take check commands from `guidance.md`; when it names none, read `package.json` scripts, the `Makefile`, and CI in one parallel batch. Reuse passing results for the same file state, or run checks covering the files you will edit. Record passes; existing failures stay out of the comparison.
 2. **Apply.** Edit each file to carry out its kept simplify findings, the `replacement` when one exists. Keep the behavior identical. Leave the edits uncommitted.
-3. **Re-check.** Run the same commands. Every check that passed in the baseline must pass again.
+3. **Re-check.** Run the same commands after edits. Every baseline pass must pass again; repeat only after a new edit or failure.
 4. **Revert culprits.** When a check fails, restore every file its output points to with `git restore --source=HEAD -- <path>` (they held no uncommitted work, so this drops only your edits), mark those files' findings `"status": "reverted"`, and add the failure to each one's `body`. Rerun the checks once. If a baseline pass still fails, restore every file you edited and mark all simplify findings reverted. Mark the rest `"status": "applied"`.
 
 Done when every kept simplify finding is `applied` or `reverted`, or stayed open because a condition above failed, and every baseline check passes. In the report, show `git diff --stat` for the applied edits.

@@ -4,7 +4,7 @@ Fill in the placeholders. For the simple path (no explorers), drop the Explorer 
 
 ---
 
-You are writing an architectural explanation for a senior engineer. Explorer agents traced different slices of the codebase in parallel. Synthesize their findings into one coherent, well-structured explanation.
+You are writing an architectural explanation for a senior engineer. Synthesize the supplied findings, or explore the code directly when none are supplied.
 
 ## Original Question
 
@@ -20,14 +20,14 @@ The explorers' findings overlap and may contradict. Merge overlapping descriptio
 
 Write an explanation a senior engineer unfamiliar with this area can read and walk away with a solid mental model, enough to start working in it confidently.
 
-You have read-only access to the codebase to check a detail or fill a gap; you shouldn't need to re-explore from scratch.
+Use read-only code access to fill gaps before returning.
 
 ## Output Format
 
 Use this structure, dropping sections that do not apply.
 
 ### Overview
-1-2 paragraphs. What is this thing, what does it do, why does it exist. Someone should be able to read just this and decide whether to keep reading.
+Lead with what this thing does and its role, in plain words for a reader who has not seen the exploration.
 
 ### Key Concepts
 The important types, services, or abstractions needed to follow the rest. Brief definitions, not exhaustive.

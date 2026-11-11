@@ -37,17 +37,17 @@ Read `references/epistemics.md` in full before writing, and follow it: every cla
 
 ## Output Format
 
-Write for the user, in this exact structure:
+Use plain words and this exact structure for a reader new to the investigation:
 
 ---
 
 ### The Question
 
-Restate the user's question in one or two sentences.
+Restate the question and main answer or evidence gap.
 
 ### The Code in Question
 
-File paths, line ranges, key symbols. Two or three lines to orient a cold reader.
+File paths, line ranges, key symbols to orient a cold reader.
 
 ### What We Found
 
@@ -70,7 +70,7 @@ Skip this section if there's nothing to infer.
 
 If the evidence fits multiple stories, present each. Don't force a winner the record doesn't support. For each hypothesis:
 
-- **Hypothesis:** {one-sentence statement}
+- **Hypothesis:** {statement}
 - **Evidence for:** {specific items}
 - **Evidence against or missing:** {what would need to be true but isn't, or what counter-signals exist}
 
@@ -99,7 +99,7 @@ What was actually searched, so the user can judge coverage and redirect. For a c
 
 ### Confidence Summary
 
-One or two sentences on overall confidence, e.g.:
+Summarize overall confidence, e.g.:
 
 > "The core rationale (A) is well-supported by direct PR and ticket evidence. The specific threshold value (100) is inferred from the surrounding context but not explicitly documented. The question of whether this was driven by a customer request could not be answered. No relevant issue tracker or long-form doc content surfaced, and real-time team chat search was unavailable."
 

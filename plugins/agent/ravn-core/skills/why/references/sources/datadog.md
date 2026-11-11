@@ -1,6 +1,6 @@
 # Datadog Telemetry
 
-The runtime record: what actually happened in production, as opposed to what was planned or discussed. A metric's *presence* is itself evidence that someone thought the number worth watching, and a monitor firing on `rate_limit_hit > 10/min` is direct evidence the team worried about that threshold. Also covers dashboards, APM traces and spans, logs, incidents (timelines and linked postmortems), and notebooks.
+The runtime record: what happened in production. Covers dashboards, monitors, APM traces and spans, logs, incidents (timelines and linked postmortems), and notebooks. Classify telemetry under [epistemics.md](../epistemics.md).
 
 ## How to search it
 

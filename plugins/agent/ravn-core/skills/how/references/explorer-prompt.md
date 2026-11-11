@@ -17,7 +17,7 @@ Other explorers are investigating different slices of the same subsystem in para
 ## Output
 
 ### Components Found
-The key types, services, classes, and abstractions. For each: name, file path, and a one-sentence description of what it does.
+The key types, services, classes, and abstractions. For each: name, file path, and what it does.
 
 ### Flow
 The execution flow step by step. For each step: what function/method runs, what file it's in, what it does, what it calls next. Include the data that flows between steps.

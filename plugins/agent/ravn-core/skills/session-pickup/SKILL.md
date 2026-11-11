@@ -17,11 +17,11 @@ You own the resume point. Read the prior trail, then continue from where it stop
 
 Use what the user supplied: a handoff note, transcript, agent URL, branch, or PR. Otherwise list `.agents/handoffs/` at the repository root and take the note matching the request, else the most recently committed one for the current branch. Run `git log -1 -- <note>` to see when it was written; later commits may supersede its claims.
 
-Read a transcript only when the user or the note points at one; a note named with a session ID names the transcript of the session that wrote it. Read its summary and last turns first, then scan back for the decision points. If your harness can spawn subagents, have one reduce a long transcript to a timeline and keep only the timeline; otherwise read it in slices and write the timeline down as you go.
+Read a transcript only when the user or note points at one; a session ID in a note's name identifies its transcript. Start with its summary and last turns. For a long transcript, delegate reduction to keep bulk out of context: brief the agent with the goal, known state, source, and a timeline of decisions, evidence, and pending work as the done condition and reply. Read short transcripts inline; without subagents, read long ones in slices.
 
 ## Step 2. Reconstruct the state
 
-Recover the objective, the user's constraints, decisions made, branch and worktree, changed files, verification evidence, blockers, and running operations; a `pause-safely` note carries them under Objective, State, Done, Pending, Running, Key paths, and Next action. Check them against the repository now: `git status`, `git log`, and `git diff` against the base. Where a source is missing, work from what remains and name the gap.
+Recover the objective, constraints, decisions, branch and worktree, changed files, verification evidence, blockers, and running operations from the trail. Check them against the repository now: `git status`, `git log`, and `git diff` against the base. Where a source is missing, work from what remains and name the gap.
 
 Done when every pending item from the trail is either confirmed open or confirmed landed.
 
@@ -37,4 +37,4 @@ Pick the verdict: continue the work, deliver a finished recommendation, ratify o
 
 ## Report
 
-State the resume point in one line, then work. When no trail exists, name what you checked (the `.agents/handoffs/` listing, `git status`, the recent `git log` on the current branch), then name a resume point that state grounds, or ask what to resume. The final reply gives where the prior session stopped, what you inherited versus redid, and the outcome.
+State the resume point, then work. When no trail exists, name what you checked (the `.agents/handoffs/` listing, `git status`, the recent `git log` on the current branch), then name a grounded resume point or ask what to resume. Lead the final reply with the outcome, then explain where the prior session stopped and what you inherited versus redid.

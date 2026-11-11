@@ -1,9 +1,8 @@
 ---
 name: blast-radius
 description: >-
-  Find what a change could break outside its diff, and prove the fact it is
-  safe because of by running real code. Use for "blast radius of X", "what
-  could this break", or a small diff you don't trust yet.
+  Find what a change could break outside its diff and prove its safety by
+  running real code.
 disable-model-invocation: true
 license: See LICENSE.txt
 metadata:
@@ -39,9 +38,11 @@ Rung 4 is usually one small script that imports the same library the app ships a
 3. **Look where search stops.** Read the source of the library you call, and check its pinned version and any local patch. Work out when things run: microtasks, unmount and teardown, the framework's render and effect order. Follow what a symbol search misses: the JSON an API returns, a DB column, a wire format, another language reading the same bytes, a feature flag, code three hops downstream.
 4. **Rate each risk honestly.** Give it a real chance of happening and a real cost if it does. Keep the confirmed risks; list the ones you checked and cleared separately. Count a search that finds nothing as an answer, and name only callers and APIs you saw.
 5. **Prove the one fact.** Write a script or test that runs the real code, run it, and paste what happened.
-6. **For a big or wide change, get a second pass.** Run the investigation again independently, as a fresh subagent or on a different model if your harness offers one, and merge the findings. Independent passes catch different real bugs.
+6. **For a big or wide change, get a second pass.** Use a fresh subagent for an independent judgment; small changes stay inline. Brief it with the diff, known facts, goal, proof criterion, and the report format below, without your conclusions. Merge its evidenced findings. Without subagents, make a second pass yourself and label it self-reviewed.
 
 ## What to hand back
+
+Lead with the safety result and write for a reader who has not seen the investigation.
 
 - **What it does.** What changed, including the part that isn't obvious.
 - **The one fact it's safe because of.** State it, name the rung you got it to, and show the proof. If you couldn't prove it, write unproven.

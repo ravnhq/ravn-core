@@ -15,7 +15,7 @@ Turn evidence from past work into an approved prevention mechanism. Prefer struc
 
 ## 1. Bound the evidence
 
-Establish the project and time range from the request. Default to the current project; ask for a time range when none is available. Expand to other projects only with the user's permission.
+Use the requested project and time range, defaulting to the current project. Ask for a missing range while inspecting the current corpus. Search other projects only within the user's authorized scope.
 
 Scan session sources for every coding agent available in the environment, not just the one running this skill. Supplied transcripts are additional evidence, not a substitute for that scan. Use available history-search tools and their source discovery to identify recorded harnesses, then search each within the project and time range. If retrieval is unavailable or a source is inaccessible, report the gap and ask for exports; invent no session locations and claim no complete search.
 
@@ -62,7 +62,7 @@ Present a small, ranked batch. For each proposal give:
 - **Proof:** how to demonstrate the mechanism works, or how to review judgment-based guidance against relevant code.
 - **Decision:** approve, revise, reject, or defer.
 
-Resolve ambiguity with a focused question and a recommended interpretation. Wait for explicit item-level or batch approval before changing code, checks, or instructions. Approval to analyze history is not approval to edit global files, install hooks, or commit. When context changes a proposal's meaning, revise it and obtain approval for the revised scope.
+Apply code, check, instruction, global-file, or hook changes only within explicit item-level or batch approval, including approval already given. Prepare patches and run read-only analysis and safe existing checks without further approval. Ask about unresolved decisions while continuing independent proposals; obtain new approval when a proposal's scope changes.
 
 ## 6. Apply and prove the lesson
 
@@ -70,10 +70,10 @@ Apply only approved changes, preserving unrelated work. For checks, demonstrate 
 
 Verify allowed cases as well as violations: the mechanism preserves the behavior the expectation permits.
 
-Report concrete findings with file/line evidence. Fix violations within the approved scope; propose broader cleanup separately. Investigate ambiguous findings against surrounding code and user intent before changing either code or guidance. Rerun the review after each edit until the approved scope is clean or a blocker is explicit.
+Report findings with file/line evidence. Fix violations within the approved scope; propose broader cleanup separately. Resolve ambiguous findings against surrounding code and user intent. Repeat affected checks and review only after edits or failures until the approved scope is clean or blocked by missing access or a user decision.
 
 ## 7. Close the loop
 
-Re-read the effective corpus after edits and review the final diff against it. When a commit is requested, inspect staged changes separately against the current corpus before committing; this skill alone authorizes neither staging nor committing. Run the relevant checks again when covered files change. Future automatic or periodic review requires a separately approved integration.
+Re-read the effective corpus after edits and review the final diff against it. Stage or commit when the user authorizes it; inspect staged changes against the corpus before committing. Automatic or periodic review requires approval for that integration.
 
-Report sources and gaps, accepted changes and verification evidence, deferred proposals, and remaining findings. Keep transcript excerpts in the analysis, not in a new memory store or the shipped ravn-core skills. The durable output is the approved mechanism or instruction at its actual scope.
+Lead with the applied result, then sources and gaps, accepted changes and verification evidence, deferred proposals, and remaining findings. Keep transcript excerpts out of new memory stores and shipped ravn-core skills; the durable output is the approved mechanism or instruction at its actual scope.

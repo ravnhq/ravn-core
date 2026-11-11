@@ -12,5 +12,5 @@ metadata:
 # Guard the Context Window
 
 - **Skip what you won't use.** Read selectively; leave out files the current task does not need.
-- **Route bulk to subagents.** Large outputs, long files, repeated reads, and fan-out work go to a subagent; the main thread keeps summaries, not raw payloads.
-- **Size phases and cap scope.** Limit files per phase, set turn budgets, account for mechanism costs.
+- **Route bulk to subagents.** Delegate independent scans or bulky reads that would crowd the main context; keep small reads inline. Brief with the goal, known facts, completion condition, and a summary with evidence paths as the reply. Without subagents, use bounded reads and summarize locally.
+- **Size phases and cap scope.** Bound scans by the task's files and questions.

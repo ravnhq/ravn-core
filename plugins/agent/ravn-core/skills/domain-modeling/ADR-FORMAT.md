@@ -7,7 +7,7 @@ ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slu
 ```md
 # {Short title of the decision}
 
-{1-3 sentences: what's the context, what did we decide, and why.}
+{Context, decision, and why.}
 ```
 
 An ADR can be a single paragraph: record *that* a decision was made and *why*, not filled-out sections.

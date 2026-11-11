@@ -11,6 +11,8 @@ Adapted from the pstack Bug fix playbook and `tdd` skill, MIT License, Copyright
 
 You own the diagnosis and the proof. Work like a scientist: every shipped line traces to runtime evidence, and a change that "might help" is a hypothesis that stays out. Revert what a refuted hypothesis motivated. Ship the smallest change the evidence justifies.
 
+Work through errors and failed tools; pause only affected work for user decisions, protected files, or withheld access.
+
 Apply [Fix Root Causes](../principle-fix-root-causes/SKILL.md) throughout.
 
 Work on a new branch, never the default branch. If the working tree has changes you did not make, leave them untouched: do the work in a new worktree beside the repository (`git worktree add ../<repo>-<branch> -b <branch>`) and tell the user where it is.
@@ -31,28 +33,26 @@ Done when one mechanism survives and you have runtime evidence for it: a log lin
 
 ## Step 3. Lock the failure in a test
 
-Follow [Failing Test First](FAILING-TEST-FIRST.md). It decides whether the bug gets a regression test or another executable check, and keeps that check honest.
-
-Done when the check is _red_ for the bug's reason.
+Follow [Failing Test First](FAILING-TEST-FIRST.md) to choose a regression test or executable check. Done when it is _red_ for the bug's reason.
 
 ## Step 4. Fix it
 
-Make the smallest change at the root cause. If the fix crosses a module boundary or changes an interface, use [Codebase Design](../codebase-design/SKILL.md) to place it. Grep for the same faulty pattern elsewhere and fix each instance the evidence covers. Remove the instrumentation you added in Step 2 unless it belongs in the product.
+Make the smallest change at the root cause. If the fix crosses a module boundary or changes an interface, use [Codebase Design](../codebase-design/SKILL.md) to place it. Search for the same faulty pattern and fix instances the evidence ties to this bug; report unrelated problems. Remove Step 2's instrumentation unless it belongs in the product.
 
 ## Step 5. Verify on the same surface
 
-Re-run the Step 1 repro on the same surface. It now shows the correct behavior. An inconclusive run, or a run on a different surface, is not a pass; report it as such. Run the regression check from Step 3 and the repo's own checks. A passing unit test shows branch behavior, not that the bug is gone.
+Re-run the Step 1 repro on the same surface and confirm the correct behavior. An inconclusive run, or a run on a different surface, is not a pass. Run Step 3's regression check and the applicable repo checks; repeat passing checks only after a relevant change or failure.
 
 If the fix touches shared code, a data or wire format, or a public interface, use [Blast Radius](../blast-radius/SKILL.md).
 
 ## Step 6. Commit the history
 
-Always commit, even when the user said not to push: the failing test or check first, then the fix on top, so a reviewer can watch it go red, then green. See [Sequence Verifiable Units](../ship/SEQUENCE-VERIFIABLE-UNITS.md). Use the repo's commit convention.
+Commit locally without separate approval, even if pushing was declined: the failing test or check first, then the fix, so a reviewer can watch red turn green. Follow [Sequence Verifiable Units](../ship/SEQUENCE-VERIFIABLE-UNITS.md) and the repo's commit convention.
 
 Done when `git log` on the branch shows the test commit, then the fix commit, and `git status` shows none of your changes uncommitted.
 
 ## Step 7. Deliver
 
-Push only with the user's authorization, asking when they have not given it; when they said not to push, stop here. Otherwise push, open a draft PR with a body written by the `pr` skill, and put the red and green repro output under Evidence. Deliver it with [Deliver Green CI](../ship/DELIVER-GREEN-CI.md). Never push to the default branch, force-push, or merge.
+Push once the user authorizes delivery; that approval covers the draft PR and CI repair commits and pushes within scope. Ask with the verified branch ready; if they declined pushing, stop here. Open the draft with a body from the `pr` skill and red and green repro output under Evidence. Use [Deliver Green CI](../ship/DELIVER-GREEN-CI.md). Keep pushes on this branch and preserve pushed history; merging belongs to Babysit.
 
-**Reply:** what was broken, the root cause and the evidence for it, the fix, and how you verified it. Paste the failing and passing repro output verbatim. Give the branch, its worktree if you made one, and its two commits, and the PR URL when you delivered. For a delivered PR, end with how to land it: the user runs [Babysit](../babysit/SKILL.md) on it, which clears later review threads and merges only when they ask.
+**Reply:** lead with the result, then what broke, its cause and evidence, the fix, and verification, readable without tool history. Paste the failing and passing repro output verbatim. Give the branch, any new worktree, its two commits, and the PR URL when delivered. For a delivered PR, end with how to land it: run [Babysit](../babysit/SKILL.md), which clears later review threads and owns merge authorization.

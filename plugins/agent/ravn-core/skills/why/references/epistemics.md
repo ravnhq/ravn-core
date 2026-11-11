@@ -10,6 +10,8 @@ Every claim in the output sits in one tier. The tier sets its section and its ph
 
 An explicit, textual citation answers the question: something an author actually *wrote* that says why, not "the code does X so the author must have wanted X." Examples: a PR description "this fixes the bug where users with >1000 items couldn't paginate", a code comment "// clamp to 100 because the upstream API rejects larger values", a chat message from the author "switching to this approach since the old one was flaky in tests".
 
+Metrics establish what was measured, not intent; pair them with a textual rationale before claiming causation.
+
 Phrasing: confident, present tense, cited. "This exists because X."
 
 ### 2. Supported

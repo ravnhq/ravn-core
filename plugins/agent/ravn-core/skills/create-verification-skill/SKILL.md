@@ -1,6 +1,6 @@
 ---
 name: create-verification-skill
-description: "Generate a project-local verification skill that drives your app the way a user does — any language, framework, or platform. Use for /create-verification-skill, \"make a control skill for this repo\", or when a project has no scripted way to prove UI/CLI/service behavior."
+description: "Generate a project-local verification skill. Use for /create-verification-skill, \"make a control skill for this repo\", or when a project has no scripted way to prove UI/CLI/service behavior."
 disable-model-invocation: true
 license: See LICENSE.txt
 metadata:
@@ -11,7 +11,7 @@ metadata:
 
 Create a project-local `verify-<app>` skill that drives the real app and preserves evidence.
 
-Inspect the repository for its user-facing surface, launch command, readiness signal, auth/data needs, existing automation, observable outputs, and isolation constraints. Ask only for missing decisions. Fix or report startup failures before generating instructions; label temporary scaffolding and remove it during cleanup.
+Inspect user-facing paths, launch command, readiness, auth/data needs, automation, outputs, and isolation. Ask only for missing decisions while continuing independent inspection. Diagnose startup failures and fix those within scope; report withheld access or protected changes as blockers. Label temporary scaffolding and remove it during cleanup.
 
 Generate `SKILL.md` with name/description and these grounded sections:
 
@@ -24,4 +24,4 @@ Generate `SKILL.md` with name/description and these grounded sections:
 
 Seed `features/README.md` and files for the top 3–5 user-facing features using [the feature-map example](references/feature-map-example/README.md). Each file needs `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>`, and `Gotchas`. When the seed data lacks a precondition a journey needs, the journey reports a failure and the reason goes in that feature's `Gotchas`; keep the journey as the user walks it.
 
-Run the generated instructions: launch, doctor, drive one mapped feature, capture evidence, clean up, and confirm evidence survives. Clean failed attempts too. Unexecuted instructions are a draft. If you proved them on a stand-in for the real target (a container for a fresh VM, a local stack for a remote one), list every setup step the stand-in did that the target will not; those stay unverified until a run on the real target covers them. Point to `maintain-verification-skill` for upkeep; schedule nothing unless requested.
+Run the generated instructions: launch, doctor, drive one mapped feature, capture evidence, clean up, and confirm evidence survives. Clean failed attempts too. Unexecuted instructions are a draft; repeat passing checks only after relevant changes or failures. Report the result and evidence paths. If using a stand-in (a container for a VM, a local stack for a remote one), list setup steps the stand-in did that the target will not; those stay unverified until run on the real target. Point to `maintain-verification-skill` for upkeep; schedule only when requested.

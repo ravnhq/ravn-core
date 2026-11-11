@@ -96,7 +96,7 @@ Done when every specialist finding is kept, merged, moved, or dropped for a reas
 
 ## Step 5. Apply simplifications
 
-When `simplify` ran and you kept any of its findings, follow [simplify.md](references/simplify.md). It decides whether they apply. When they do, it applies them, proves the repo's checks still pass, and marks each one `applied` or `reverted` in `<run>/judged.json`.
+When `simplify` ran and you kept any findings, follow [simplify.md](references/simplify.md) for eligibility, checks, and `applied` or `reverted` status in `<run>/judged.json`.
 
 ## Step 6. Check
 
@@ -116,7 +116,7 @@ Save `{"head": "<head>", "merge_base": "<merge-base>", "findings": [...]}` to th
 
 Reply with the `report` from Step 6 as it is, verdict line first, then the tier and why, the specialists that ran, were skipped, or failed, and for applied simplifications their `git diff --stat` and the checks that passed.
 
-Post to the pull request only when the user asks:
+Post the prepared review once the user requests posting; that request covers this review's submission:
 
 - **Pull request:** `gh api --method POST repos/<owner>/<repo>/pulls/<number>/reviews --input <run>/github-review.json`.
 - **Branch:** first find its pull request with `gh pr view --json number,url,headRefOid`. Post only when `headRefOid` is `<head>` and Step 1's `git status --porcelain` was empty, so every anchor exists on GitHub. Otherwise tell the user to push and review again.

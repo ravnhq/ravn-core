@@ -22,7 +22,7 @@ List every file the change touches first (`git diff --stat`, `git show --stat`, 
 
 Four parts, each markdown rendered the way an assistant reply is:
 
-- **background**: the existing system the change lives in. Open with a deep background for newcomers, marked as skippable for readers who know the code, then narrow to the part the change touches.
+- **background**: lead with what changed for a reader new to the diff. Give deep background on the existing system, marked as skippable for readers who know it, then narrow to the part the change touches.
 - **intuition**: the essence of the change, not its details. Walk a concrete example with toy data through the before and the after.
 - **code**: a walkthrough of every file on the checklist, grouped and ordered so each group builds on the last. A schema migration, code moved to a new module, or a deleted file each gets its own sentence, since a reviewer misses those first. Cite files as `path:line` only for lines you read in the diff, with paths resolved against the repository containing that diff (`git rev-parse --show-toplevel` from the change's directory, which matters for a nested repository). Before showing the lesson, check that every link target is a checklist file and a line read in its diff.
 - **quiz**: five medium questions that take the substance of the change to answer, not gotchas. Each has three or four options, exactly one correct and shuffled so its letter changes from question to question, and every option carries feedback saying why it is right or wrong.
@@ -51,7 +51,7 @@ To show what the change does to any of these shapes, draw the same shape in a `d
 
 ## 3. Show it
 
-Where the `mcp__explain-change__show` tool exists (Claude Code with the `explain-change` mod), load it with ToolSearch (`select:mcp__explain-change__show`) and call it with `title`, a one-sentence `summary`, `background`, `intuition`, `code`, and `quiz`. A denial names the field to fix: fix it and call again. Then reply in one line saying what the change does, and pass on the tool's result.
+Where the `mcp__explain-change__show` tool exists (Claude Code with the `explain-change` mod), load it with ToolSearch (`select:mcp__explain-change__show`) and call it with `title`, a one-sentence `summary`, `background`, `intuition`, `code`, and `quiz`. A denial names the field to fix: fix it and call again. Then say what the change does and pass on the tool's result.
 
 Everywhere else, write the four parts in chat. Gather the quiz answers after the last question, so the reader can try the quiz before reading why, with a line for every option, the wrong ones too:
 

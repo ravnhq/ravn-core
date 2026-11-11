@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: Shared vocabulary for designing deep modules. Use when designing or improving a module interface, placing a seam, or making code testable or AI-navigable, and when another skill needs the deep-module vocabulary.
+description: Design deep modules. Use when designing or reshaping an interface, placing a testable seam, or when another skill needs the deep-module vocabulary.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -8,7 +8,7 @@ metadata:
 
 # Codebase Design
 
-Design **deep modules**: much behaviour behind a small interface, placed at a clean seam, testable through that interface. Use these terms exactly, never "component," "service," "API," or "boundary": the aim is leverage for callers, locality for maintainers, testability for everyone.
+Design **deep modules**: much behaviour behind a small interface, placed at a clean seam, testable through that interface. Use the glossary for architectural concepts; preserve domain terms, code identifiers, and quotations. The aim is leverage for callers, locality for maintainers, testability for everyone.
 
 ## Glossary
 
@@ -32,7 +32,7 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 
 - **Depth is a property of the interface, not the implementation.** A deep module can be built from small, mockable, swappable parts that stay outside its interface. It has an external seam at its interface and may have internal seams, private to its implementation and its own tests.
 - **The deletion test.** Imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity reappears across N callers, it earned its keep.
-- **The interface is the test surface.** Callers and tests cross the same seam. A test that must reach past the interface says the module has the wrong shape.
+- **The interface is the test surface.** Caller-facing tests cross the callers' seam; needing internal knowledge to verify their contract signals the wrong module shape.
 - **One adapter means a hypothetical seam. Two adapters means a real one.** Introduce a seam only where something actually varies across it.
 - **Shrink the interface.** Fewer methods, simpler parameters, more complexity hidden inside.
 
@@ -45,6 +45,6 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 ## Going deeper
 
 - **Deepening a cluster given its dependencies**: [DEEPENING.md](DEEPENING.md), dependency categories, seam discipline, and replace-don't-layer testing.
-- **Exploring alternative interfaces**: [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md), parallel sub-agents each design the interface a radically different way; compare on depth, locality, and seam placement.
+- **Exploring alternative interfaces**: [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md), contrasting designs compared on depth, locality, and seam placement.
 - **Code that is hard to trace, or a proposed new layer or mutable state**: [Minimize Reader Load](MINIMIZE-READER-LOAD.md).
 - **Replacing an internal API** when old callers remain, no external users need compatibility, and coordinated breaking changes are permitted: [Migrate Callers Then Delete Legacy APIs](MIGRATE-CALLERS.md).
