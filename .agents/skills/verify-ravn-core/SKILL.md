@@ -36,7 +36,14 @@ node .agents/skills/verify-ravn-core/scripts/doctor.ts   # read-only
 
 Require exit 0. Doctor prints the revision, uncommitted files, and tool versions, checks Node 24 or later, pnpm, and promptfoo, and validates the marketplace and every plugin. It fails when `codex`, `pi`, or `gh` is installed but not logged in, and skips each one that is absent; features that need a skipped tool report as unverified.
 
-Pi checks the `openai` provider by default. For a different authenticated provider, set `RAVN_VERIFY_PI_PROVIDER` when running doctor and pass that same provider with an explicit model to each manual Pi run (`--provider <provider> --model <model>`). Record both names in the evidence. This selection does not change the fixed promptfoo runner matrix.
+Pi uses `openai` and `gpt-6-luna` by default. Set `RAVN_VERIFY_PI_PROVIDER` for both doctor and evals, and `RAVN_VERIFY_PI_MODEL` for the model ID registered with that provider. For the Codex login through CLIProxy:
+
+```bash
+export RAVN_VERIFY_PI_PROVIDER=cliproxyapi
+export RAVN_VERIFY_PI_MODEL=codex/gpt-6-luna
+```
+
+Keep these exports for doctor, smoke, and skill evals. For manual Pi runs, pass `--provider "$RAVN_VERIFY_PI_PROVIDER" --model "$RAVN_VERIFY_PI_MODEL"`. Record both names in the evidence; doctor checks the selected provider's login, while smoke proves the model works.
 
 ## Drive
 
