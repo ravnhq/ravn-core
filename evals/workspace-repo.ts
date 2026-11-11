@@ -49,6 +49,8 @@ export function createWorkspaceRepo(workspaceDir: string, fixture: string) {
   );
 
   git(["remote", "remove", "origin"], workspaceDir);
+  git(["config", "user.name", "Eval Agent"], workspaceDir);
+  git(["config", "user.email", "eval@example.com"], workspaceDir);
 }
 
 export function removeWorkspaceWorktrees(workspaceDir: string) {
