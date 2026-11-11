@@ -13,7 +13,7 @@ metadata:
 
 Adapted from pstack `show-me-your-work`, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-Keep one canonical decision log per piece of work.
+Keep one canonical decision log per piece of work. A request for a trail authorizes inspection and logging; product changes follow the underlying task’s decisions and approval scope.
 
 ## The format
 
