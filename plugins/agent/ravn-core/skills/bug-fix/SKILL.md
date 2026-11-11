@@ -25,7 +25,7 @@ Drive the bug on the surface where it was reported: the UI, CLI, or service, thr
 
 If the bug will not reproduce directly, synthesize the trigger, tighten the conditions, or add instrumentation until it fires. Ask the user to reproduce only after you have driven the surface as far as it goes, and name the specific thing it cannot reach.
 
-Done when you hold a repro that is _red_: a command or recipe that calls the affected code and shows the wrong behavior every time you run it. A copied formula or a calculation of what the code should return is not a repro. Keep the command, inputs, actual result, and expected result verbatim.
+Done when you hold a repro that is _red_: a command or recipe that calls the affected code and shows the wrong behavior every time you run it. A copied formula or a calculation of what the code should return is not a repro. Make that command print the input, observed result, and expected result so a successful rerun preserves the corrected state, not just a test count. Keep this evidence record verbatim.
 
 ## Step 2. Binary-search the cause
 
@@ -45,7 +45,7 @@ Make the smallest change at the root cause. If the fix crosses a module boundary
 
 ## Step 5. Verify on the same surface
 
-Re-run the Step 1 repro on the same surface and confirm the correct behavior. An inconclusive run, or a run on a different surface, is not a pass. For the same inputs, capture the observed result after the fix as well as before it; a suite pass count alone does not show the corrected value or state. Run Step 3's regression check and the applicable repo checks; repeat passing checks only after a relevant change or failure.
+Re-run the Step 1 repro on the same surface and confirm the correct behavior. An inconclusive run, or a run on a different surface, is not a pass. For the same inputs, capture the observed result after the fix as well as before it. Print it even when the assertion passes; a suite pass count alone does not show the corrected value or state. Run Step 3's regression check and the applicable repo checks; repeat passing checks only after a relevant change or failure.
 
 If the fix touches shared code, a data or wire format, or a public interface, use [Blast Radius](../blast-radius/SKILL.md).
 
