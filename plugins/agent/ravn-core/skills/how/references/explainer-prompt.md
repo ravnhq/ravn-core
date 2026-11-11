@@ -35,6 +35,8 @@ The important types, services, or abstractions needed to follow the rest. Brief 
 ### How It Works
 The core of the explanation, and the longest section. Walk through the flow: what triggers it, what happens step by step, where data goes, what the decision points are.
 
+For each accepting or rejecting gate, name the checked policy and its concrete limit or outcome from the code. Distinguish separate entry points and follow each through to the observable result, including what makes an apparently successful run fail.
+
 Use prose, not pseudocode. Reference specific files and functions so the reader knows where to look; quote code only where a snippet is essential to a point.
 
 When several components talk to each other or data transforms through stages, include a diagram: mermaid (```mermaid) for structured flows, ASCII art for simpler relationships. A diagram should clarify, not decorate; if prose covers the flow, skip it.

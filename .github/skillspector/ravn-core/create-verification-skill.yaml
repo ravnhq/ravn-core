@@ -4,7 +4,7 @@ version: 2
 scanner_version: 2.12.0
 rules: []
 fingerprints:
-- hash: sha256:55cc2a0ca9eba1199e8696215e34628507e0bc2d942decd86f1b811f66241773
+- hash: sha256:4833f069d0624c6d145ad377d2ee4287938471f16b7b9d4759ea3dbf4a3434e9
   rule_id: AE1
   file: SKILL.md
   reason: Accepted upstream pstack text; the skill tells the agent to write a new SKILL.md for the target project, not to read its own
