@@ -24,6 +24,7 @@ import {
   privateDir,
   installSkills,
   pluginSkillDirs,
+  removeWorkspaceWorktrees,
 } from "./workspace-repo.ts";
 
 const evalsDir = import.meta.dirname;
@@ -324,7 +325,7 @@ try {
       console.log(`started ${label}`);
     }
 
-    return new Promise((resolve) => {
+    const status = await new Promise<number>((resolve) => {
       child.on("close", (status) => {
         if (parallel) {
           console.log(`finished ${label}: exit ${status}`);
@@ -333,6 +334,16 @@ try {
         resolve(status ?? promptfooErrorStatus);
       });
     });
+
+    for (const fixture of fixtureNames) {
+      for (const arm of allArms) {
+        removeWorkspaceWorktrees(join(jobWorkspacesDir, fixture, arm));
+      }
+    }
+
+    rmSync(jobDir, { recursive: true, force: true });
+
+    return status;
   }
 
   const statuses: number[] = [];
@@ -353,9 +364,13 @@ try {
     }
   }
 
-  await Promise.all(
+  const outcomes = await Promise.allSettled(
     Array.from({ length: Math.max(1, jobLimit) }, () => worker()),
   );
+
+  for (const outcome of outcomes) {
+    if (outcome.status === "rejected") throw outcome.reason;
+  }
 
   process.exitCode = statuses.find((status) => status !== 0) ?? 0;
 } finally {
