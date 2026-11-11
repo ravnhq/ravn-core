@@ -1,8 +1,13 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { TestCase } from "promptfoo";
 import { z } from "zod";
-import { applyEdits, resetWorkspaceRepo } from "./workspace-repo.ts";
+import { arms } from "./skill-eval.ts";
+import {
+  applyEdits,
+  fixtureNames,
+  resetWorkspaceRepo,
+} from "./workspace-repo.ts";
 
 const setupSchema = z.object({
   fixture: z.string(),
@@ -18,9 +23,18 @@ export function extensionHook(hookName: string, context: { test?: TestCase }) {
     return;
   }
 
-  for (const fixture of readdirSync(workspacesDir)) {
-    for (const arm of readdirSync(join(workspacesDir, fixture))) {
+  for (const fixture of fixtureNames) {
+    for (const arm of arms) {
       resetWorkspaceRepo(join(workspacesDir, fixture, arm), fixture);
+    }
+
+    for (const entry of readdirSync(join(workspacesDir, fixture))) {
+      if (!arms.some((arm) => arm === entry)) {
+        rmSync(join(workspacesDir, fixture, entry), {
+          recursive: true,
+          force: true,
+        });
+      }
     }
   }
 
@@ -32,7 +46,7 @@ export function extensionHook(hookName: string, context: { test?: TestCase }) {
 
   const { fixture, edits } = setup.data;
 
-  for (const arm of readdirSync(join(workspacesDir, fixture))) {
+  for (const arm of arms) {
     applyEdits(join(workspacesDir, fixture, arm), edits);
   }
 }
