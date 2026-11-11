@@ -13,6 +13,8 @@ Create a project-local `verify-<app>` skill that drives the real app and preserv
 
 Trace each real entry point through dispatch to the executor and its observable effects; distinguish separate boundaries such as a timed trigger and an API route. Map user-facing paths, launch command, readiness, auth/data needs, automation, outputs, and isolation to files or observed behavior. Ask only for missing decisions while continuing independent inspection. Diagnose startup failures and fix those within scope; report withheld access or protected changes as blockers. Label temporary scaffolding and remove it during cleanup.
 
+Inspection is complete when the draft cites the opened source for each distinct entry point, its registration, dispatch, executor, and observable effect. Follow discovered entry-point references before generating the draft; search hits alone leave that path unverified.
+
 Generate `SKILL.md` with name/description and these grounded sections:
 
 - Launch: commands found in the project, readiness, teardown. Launch reaches a usable state from an empty data dir, including migrations and seed data; ready means usable, not just a process answering (a database health check can pass while its init scripts still run). Short-lived CLIs use fresh isolated sessions. If launch instructions are absent, record what is missing instead of guessing commands.
