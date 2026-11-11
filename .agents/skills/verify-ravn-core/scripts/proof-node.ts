@@ -1,5 +1,10 @@
 import { spawnSync } from "node:child_process";
-import { appendFileSync, existsSync, readFileSync } from "node:fs";
+import {
+  appendFileSync,
+  existsSync,
+  readFileSync,
+  realpathSync,
+} from "node:fs";
 import { join } from "node:path";
 
 // Observe the unmodified recipe through the simulator's node entry, including
@@ -24,7 +29,12 @@ if (git.status !== 0) throw new Error(git.stderr);
 
 const log = join(git.stdout.trim(), "verify-retry-runs.jsonl");
 
-if (existsSync(log))
-  appendFileSync(join(root, "verify-retry-runs.jsonl"), readFileSync(log));
+const target = join(root, "verify-retry-runs.jsonl");
+
+if (
+  existsSync(log) &&
+  (!existsSync(target) || realpathSync(log) !== realpathSync(target))
+)
+  appendFileSync(target, readFileSync(log));
 
 process.exitCode = result.status ?? 1;
