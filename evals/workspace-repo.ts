@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import {
   cpSync,
@@ -5,6 +6,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
@@ -31,6 +33,8 @@ export const missingFixtures =
 function git(args: string[], cwd: string) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });
 
+  if (result.error) throw result.error;
+
   if (result.status !== 0) {
     throw new Error(`git ${args[0]} failed: ${result.stderr.trim()}`);
   }
@@ -47,7 +51,22 @@ export function createWorkspaceRepo(workspaceDir: string, fixture: string) {
   git(["remote", "remove", "origin"], workspaceDir);
 }
 
+export function removeWorkspaceWorktrees(workspaceDir: string) {
+  const worktrees = git(["worktree", "list", "--porcelain", "-z"], workspaceDir)
+    .split("\0")
+    .filter((record) => record.startsWith("worktree "))
+    .map((record) => record.slice("worktree ".length));
+
+  for (const worktree of worktrees) {
+    if (worktree !== workspaceDir) {
+      git(["worktree", "remove", "--force", "--force", worktree], workspaceDir);
+    }
+  }
+}
+
 export function resetWorkspaceRepo(workspaceDir: string, fixture: string) {
+  removeWorkspaceWorktrees(workspaceDir);
+
   git(
     ["fetch", "-q", join(fixturesDir, `${fixture}.git`), "main"],
     workspaceDir,
@@ -66,6 +85,22 @@ export function resetWorkspaceRepo(workspaceDir: string, fixture: string) {
   git(["reflog", "expire", "--expire=now", "--all"], workspaceDir);
 
   git(["gc", "-q", "--prune=now"], workspaceDir);
+
+  const installedAgentsDir = join(
+    workspaceDir,
+    ".git",
+    "ravn-installed-agents",
+  );
+
+  if (existsSync(installedAgentsDir)) {
+    rmSync(join(workspaceDir, ".claude", "agents"), {
+      recursive: true,
+      force: true,
+    });
+    cpSync(installedAgentsDir, join(workspaceDir, ".claude", "agents"), {
+      recursive: true,
+    });
+  }
 
   git(
     [
@@ -126,10 +161,44 @@ export function installSkills(workspaceDir: string, skillDirs: string[]) {
   for (const skillDir of skillDirs) {
     const agentsDir = join(dirname(skillDir), "agents");
 
-    if (existsSync(agentsDir))
+    if (existsSync(agentsDir)) {
+      const gitExclude = join(workspaceDir, ".git", "info", "exclude");
+      const excluded = readFileSync(gitExclude, "utf8");
+
+      const agentExcludes = readdirSync(agentsDir)
+        .map((name) => `/.claude/agents/${name}`)
+        .filter((pattern) => !excluded.split("\n").includes(pattern));
+
+      if (agentExcludes.length > 0) {
+        writeFileSync(
+          gitExclude,
+          `${excluded.trimEnd()}\n${agentExcludes.join("\n")}\n`,
+        );
+      }
+
       cpSync(agentsDir, join(workspaceDir, ".claude", "agents"), {
         recursive: true,
       });
+      cpSync(agentsDir, join(workspaceDir, ".git", "ravn-installed-agents"), {
+        recursive: true,
+      });
+
+      const agentHashes = Object.fromEntries(
+        readdirSync(agentsDir).map((name) => {
+          const content = readFileSync(join(agentsDir, name));
+
+          return [
+            `.claude/agents/${name}`,
+            createHash("sha256").update(content).digest("hex"),
+          ];
+        }),
+      );
+
+      writeFileSync(
+        join(workspaceDir, ".git", "ravn-installed-agents.json"),
+        JSON.stringify(agentHashes),
+      );
+    }
   }
 }
 
