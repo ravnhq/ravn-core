@@ -17,7 +17,7 @@ Verify every task output against the real thing before declaring it done; a prox
 - Read the actual value, not a cached or derived representation.
 - When verification fails, suspect the observation method before the system.
 
-Pin the behavior the user wants verified, separating the artifact's functional contract from downstream business impact. When the full environment is unavailable, inspect the changed implementation and its existing checks, run the narrower applicable checks, and name the remaining prerequisite. For each check, report the implementation and test paths inspected, command, actual result, and scope still unobserved. A source read or hand calculation establishes less than executing the implementation; missing production data leaves narrower artifact checks to run.
+Pin the behavior the user wants verified, separating the artifact's functional contract from downstream business impact. For executable changes, trace the changed implementation and existing checks, then attempt the real entry point. Diagnose observed setup or import failures and run any reachable narrower path. An unavailable check has an attempted command, its actual error, and the remaining prerequisite; leave its behavior unverified. For each check, report the implementation and test paths inspected, command, actual result, and scope still unobserved. A source read or hand calculation establishes less than executing the implementation; missing production data leaves narrower artifact checks to run.
 
 For executable code and features, use the applicable steps:
 1. Build it when needed to exercise the artifact (necessary but not sufficient)
