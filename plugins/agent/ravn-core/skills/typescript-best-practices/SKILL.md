@@ -30,3 +30,7 @@ Apply [Type System Discipline](../principle-type-system-discipline/SKILL.md) fir
 | Object args | Pass objects, not positional args, so order is self-documenting. Skip on hot paths (per-frame render, tokenizers, parsers). |
 | Real tests | Mock only what you can't run locally. Prefer framework test primitives with leak/disposable checks; exercise changed UI in a running build. |
 | Structured telemetry | Use structured logger diagnostics with enough context to debug from an id; `console.log` stays out of shipped code. |
+
+## Complete the change
+
+Inspect the edited code against every applicable rule, including boundary narrowing. Preserve the existing success path, fallback behavior, and error responses. Run the relevant checks; when setup is incomplete, name the missing prerequisite and distinguish inspected code from executed proof in the reply. A plan or an unchecked assertion is not a completed type-safety change.

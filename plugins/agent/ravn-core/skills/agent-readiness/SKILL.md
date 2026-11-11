@@ -43,6 +43,8 @@ Keep trial files and package-manager caches inside the scratch directory; after 
 
 Give each command a five-minute timeout and use only local resources. Log anything that deploys, publishes, pushes, touches shared or production data, or needs real credentials as skipped, with the reason.
 
+When setup or testing fails, trace the first failing import or dependency through the source and declared dependencies. Record missing local files and undeclared external packages as concrete blockers, rather than stopping at a missing manifest or runner.
+
 Done when every documented command has been attempted or logged as skipped, the second run, the break, and the offline run are logged, and every checklist item has the evidence it needs.
 
 ### 3. Grade
@@ -69,7 +71,7 @@ Write the report to the developer in this order:
 
 Report passing items as a count only.
 
-Done when every `fail` has a concrete proposed fix: the file to change and what to put in it.
+End with the selection question: ask which proposed fixes to apply, unless the developer already selected them. Done when every `fail` has a concrete proposed fix naming the file to change and what to put in it, and the developer has that question or the selected fixes are ready for Step 5.
 
 ### 5. Fix
 

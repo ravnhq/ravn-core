@@ -28,6 +28,10 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 
 **Locality**: what maintainers get from depth. Change, bugs, knowledge, and verification concentrate in one place. Fix once, fixed everywhere.
 
+## Ground the recommendation
+
+Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares. Anchor the recommendation to source paths, not just an illustrative interface.
+
 ## Principles
 
 - **Depth is a property of the interface, not the implementation.** A deep module can be built from small, mockable, swappable parts that stay outside its interface. It has an external seam at its interface and may have internal seams, private to its implementation and its own tests.

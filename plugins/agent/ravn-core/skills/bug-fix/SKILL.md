@@ -9,6 +9,8 @@ license: See LICENSE.txt
 
 Adapted from the pstack Bug fix playbook and `tdd` skill, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
+Run this workflow only when the user explicitly invokes Bug Fix. Otherwise handle their request without starting this workflow.
+
 You own the diagnosis and the proof. Work like a scientist: every shipped line traces to runtime evidence, and a change that "might help" is a hypothesis that stays out. Revert what a refuted hypothesis motivated. Ship the smallest change the evidence justifies.
 
 Work through errors and failed tools; pause only affected work for user decisions, protected files, or withheld access.
@@ -23,11 +25,13 @@ Drive the bug on the surface where it was reported: the UI, CLI, or service, thr
 
 If the bug will not reproduce directly, synthesize the trigger, tighten the conditions, or add instrumentation until it fires. Ask the user to reproduce only after you have driven the surface as far as it goes, and name the specific thing it cannot reach.
 
-Done when you hold a repro that is _red_: a command or recipe that shows the wrong behavior every time you run it. Keep its output verbatim.
+Done when you hold a repro that is _red_: a command or recipe that calls the affected code and shows the wrong behavior every time you run it. A copied formula or a calculation of what the code should return is not a repro. Keep the command, inputs, actual result, and expected result verbatim.
 
 ## Step 2. Binary-search the cause
 
 List candidate hypotheses. Seed them with [How](../how/SKILL.md) over the affected subsystem, and with [Why](../why/SKILL.md) when the bug looks like a regression or the code looks deliberate. Each pass, pick the check that rules out the most remaining hypotheses, run it, and eliminate. When program state is unclear, add logging or instrumentation and read it as the code runs. When large logs or traces crowd the session, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
+
+For a regression, compare the failing code with its last working revision and name the introducing commit. Keep the intended contract (units, thresholds, limits) separate from the faulty computation.
 
 Done when one mechanism survives and you have runtime evidence for it: a log line, a value read at the faulty step, or a reverted change that makes the bug disappear. A plausible reading of the source is not evidence.
 

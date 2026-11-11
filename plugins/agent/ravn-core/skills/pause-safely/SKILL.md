@@ -20,7 +20,9 @@ Done when nothing you started is mid-edit and every running operation is either 
 
 ## Step 2. Commit the work
 
-The pause request authorizes work and note commits on the current branch; push, PR creation, and messages need separate authorization. Stage only this work's changes and use a conventional commit message. If the tree is broken, say so in the commit body.
+The pause request authorizes work and note commits on the current branch; push, PR creation, and messages need separate authorization. Include the in-progress edits that belong to the paused objective, even when they predate this turn; the user is asking to checkpoint that work. Leave unrelated changes untouched. Stage only the objective's changes and use a conventional commit message. If the tree is broken, say so in the commit body.
+
+Done when the paused work is in a commit, or a failed commit is reported with its cause; writing the note alone does not checkpoint the work.
 
 ## Step 3. Write the handoff note
 
