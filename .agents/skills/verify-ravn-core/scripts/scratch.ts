@@ -82,6 +82,22 @@ export function setupBabysitPR(cwd: string, scenario: string, sim: string) {
       ' "$@"\n',
     { mode: 0o755 },
   );
+  copyFileSync(
+    join(import.meta.dirname, "proof-node.ts"),
+    join(root, "node.ts"),
+  );
+  writeFileSync(
+    join(bin, "node"),
+    "#!/bin/sh\nBABYSIT_SIM_ROOT=" +
+      JSON.stringify(root) +
+      " exec " +
+      JSON.stringify(process.execPath) +
+      " " +
+      JSON.stringify(join(root, "node.ts")) +
+      ' "$@"\n',
+    { mode: 0o755 },
+  );
+
   git(cwd, ["config", "user.name", "Verify"]);
   git(cwd, ["config", "user.email", "noreply@example.com"]);
   git(cwd, ["init", "--bare", "-q", join(root, "remote.git")]);
