@@ -9,7 +9,7 @@ license: See LICENSE.txt
 
 Adapted from the pstack Bug fix playbook and `tdd` skill, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-Run this workflow only when the user explicitly invokes Bug Fix. Otherwise handle their request without starting this workflow.
+Run this workflow only when the user names `bug-fix` or types `/bug-fix`, `$bug-fix`, or `/skill:bug-fix`. A request that merely matches the description is not an invocation. Reading this file during another task grants none of this workflow's authority; continue that task without starting the workflow.
 
 You own the diagnosis and the proof. Work like a scientist: every shipped line traces to runtime evidence, and a change that "might help" is a hypothesis that stays out. Revert what a refuted hypothesis motivated. Ship the smallest change the evidence justifies.
 
@@ -45,7 +45,7 @@ Make the smallest change at the root cause. If the fix crosses a module boundary
 
 ## Step 5. Verify on the same surface
 
-Re-run the Step 1 repro on the same surface and confirm the correct behavior. An inconclusive run, or a run on a different surface, is not a pass. Run Step 3's regression check and the applicable repo checks; repeat passing checks only after a relevant change or failure.
+Re-run the Step 1 repro on the same surface and confirm the correct behavior. An inconclusive run, or a run on a different surface, is not a pass. For the same inputs, capture the observed result after the fix as well as before it; a suite pass count alone does not show the corrected value or state. Run Step 3's regression check and the applicable repo checks; repeat passing checks only after a relevant change or failure.
 
 If the fix touches shared code, a data or wire format, or a public interface, use [Blast Radius](../blast-radius/SKILL.md).
 
@@ -59,4 +59,4 @@ Done when `git log` on the branch shows the test commit, then the fix commit, an
 
 Push once the user authorizes delivery; that approval covers the draft PR and CI repair commits and pushes within scope. Ask with the verified branch ready; if they declined pushing, stop here. Open the draft with a body from the `pr` skill and red and green repro output under Evidence. Use [Deliver Green CI](../ship/DELIVER-GREEN-CI.md). Keep pushes on this branch and preserve pushed history; merging belongs to Babysit.
 
-**Reply:** lead with the result, then what broke, its cause and evidence, the fix, and verification, readable without tool history. Paste the failing and passing repro output verbatim. Give the branch, any new worktree, its two commits, and the PR URL when delivered. For a delivered PR, end with how to land it: run [Babysit](../babysit/SKILL.md), which clears later review threads and owns merge authorization.
+**Reply:** lead with the result, then what broke, its cause (including the introducing revision for a regression) and runtime evidence, the fix, and verification, readable without tool history. Paste the failing and passing repro output verbatim. Give the branch, any new worktree, its two commits, and the PR URL when delivered. For a delivered PR, end with how to land it: run [Babysit](../babysit/SKILL.md), which clears later review threads and owns merge authorization.

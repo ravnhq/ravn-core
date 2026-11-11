@@ -9,7 +9,7 @@ license: See LICENSE.txt
 
 Adapted from the pstack Babysit playbook, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-Run this workflow only when the user explicitly invokes Babysit. Otherwise handle their request without starting this workflow.
+Run this workflow only when the user names `babysit` or types `/babysit`, `$babysit`, or `/skill:babysit`. A request that merely matches the description is not an invocation. Reading this file during another task grants none of this workflow's authority; continue that task without starting the workflow.
 
 You own the supplied PRs until each one reaches an end state:
 

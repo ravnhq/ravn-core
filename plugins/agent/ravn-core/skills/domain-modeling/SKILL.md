@@ -47,7 +47,7 @@ Propose a precise canonical term for a vague or overloaded one: "You're saying '
 
 ### Discuss concrete scenarios
 
-Stress-test domain relationships with invented scenarios that probe edge cases and force the user to be precise about where concepts divide.
+Map each proposed term to its observed contract: where a trigger is defined, what identity or payload dispatch carries, how an implementation is selected, and what method performs the work. Distinguish these roles even when code calls all of them a "job." Stress-test the relationships with edge cases, including two triggers dispatching the same work and work with no trigger. State whether each case is supported, forbidden, or an unresolved domain choice; ask when that choice changes the term's meaning.
 
 ### Cross-reference with code
 
@@ -55,7 +55,7 @@ When the user states how something works, check the code. Surface any contradict
 
 ### Update GLOSSARY.md inline
 
-Update `GLOSSARY.md` the moment a term resolves, one term at a time, in the format of [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). It is a glossary only: terminology, with no implementation details, spec, or scratch notes.
+Update `GLOSSARY.md` the moment a term resolves, one term at a time, in the format of [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). Keep proposed terms whose meaning depends on an unanswered domain choice in the discussion until resolved. It is a glossary only: terminology, with no implementation details, spec, or scratch notes.
 
 ### Offer ADRs sparingly
 
