@@ -30,7 +30,7 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 
 ## Ground the recommendation
 
-Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares. Read each implementation and caller you rely on; an unopened counterpart is an investigation gap, not a completed recommendation.
+Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares, or report that none exists. Read each implementation and caller you rely on; an unopened counterpart is an investigation gap, not a completed recommendation.
 
 ## Principles
 
@@ -55,4 +55,4 @@ Trace an actual caller before proposing a seam. State what it supplies, what it 
 
 ## Recommendation
 
-Give a concrete caller example: the input shape and the result each execution path returns. Name the module that hides the rules, the source paths to change, and the existing test that guards the contract. Explain what callers no longer need to know. When execution paths cannot share an implementation, state what each still implements and how the parity check detects divergence; shared constants alone prove only shared values.
+Give a concrete caller example: the input shape and the result each execution path returns. Name the module that hides the rules, the source paths to change, and the test that guards the contract, or the missing check to add. Explain what callers no longer need to know. When execution paths cannot share an implementation, state what each still implements and how the parity check detects divergence; shared constants alone prove only shared values.

@@ -71,7 +71,7 @@ Write the report to the developer in this order:
 
 Report passing items as a count only.
 
-End with the selection question: ask which proposed fixes to apply, unless the developer already selected them. Done when every `fail` has a concrete proposed fix naming the file to change and what to put in it, and the developer has that question or the selected fixes are ready for Step 5.
+When proposed fixes need a scope decision, end by asking which to apply. Continue directly to Step 5 for fixes already authorized; ask nothing when there are no fixes. Done when every `fail` has a concrete proposed fix naming the file to change and what to put in it, and any unresolved selection is with the developer.
 
 ### 5. Fix
 
