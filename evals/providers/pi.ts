@@ -138,12 +138,21 @@ function runPi(args: string[], cwd: string): Promise<PiRun> {
 export default class PiProvider implements ApiProvider {
   label?: string;
   private readonly providerId: string;
+  private readonly provider: string;
   private readonly model: string;
   private readonly workingDir: string;
 
   constructor(options: ProviderOptions) {
     this.providerId = options.id ?? "pi";
-    this.model = String(options.config?.model);
+    const model = String(options.config?.model);
+    const separator = model.indexOf("/");
+
+    if (separator < 1 || separator === model.length - 1) {
+      throw new Error("Pi model must be <provider>/<model>");
+    }
+
+    this.provider = model.slice(0, separator);
+    this.model = model.slice(separator + 1);
     this.workingDir = resolve(
       String(options.config?.basePath ?? process.cwd()),
       String(options.config?.working_dir),
@@ -171,6 +180,8 @@ export default class PiProvider implements ApiProvider {
         "--no-skills",
         "--no-context-files",
         "--no-prompt-templates",
+        "--provider",
+        this.provider,
         "--model",
         this.model,
         ...skillArgs,
