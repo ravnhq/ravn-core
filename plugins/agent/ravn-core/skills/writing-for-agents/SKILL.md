@@ -1,6 +1,6 @@
 ---
 name: writing-for-agents
-description: Writing documents for agents. Use when creating or editing skills, or modifying AGENTS.md or CLAUDE.md.
+description: Draft instructions for agents. Use when drafting agent-facing guidance, creating or editing skills, or modifying AGENTS.md or CLAUDE.md.
 license: See LICENSE.txt
 metadata:
   proof: subjective
