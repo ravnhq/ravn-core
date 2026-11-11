@@ -26,11 +26,9 @@ Third-party services (Stripe, Twilio, etc.) you don't control. The deepened modu
 
 ## Seam discipline
 
-- **Port only for two adapters.** Introduce a port when two adapters are justified (typically production + test); a single-adapter seam is indirection.
-- **Keep internal seams internal.** Tests that use an internal seam do not justify exposing it through the interface.
+Apply the seam principles in [SKILL.md](SKILL.md#principles).
 
 ## Testing strategy: replace, don't layer
 
-- Write new tests at the deepened module's interface, asserting observable outcomes, not internal state.
-- Delete the old unit tests on the shallow modules once those exist.
-- A test that must change when the implementation changes is testing past the interface.
+- Write replacement tests through the deepened module's interface using [Test Behavior, Not Implementation](../principle-prove-it-works/TEST-BEHAVIOR.md).
+- Delete shallow-module tests once their observable contracts are covered there.

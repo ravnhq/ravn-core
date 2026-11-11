@@ -31,7 +31,7 @@ Use this template for writing the PR body:
 
 ## Sections
 
-Skip all preambles and keep prose brief. Use the user's domain language from `GLOSSARY.md`.
+Lead Summary with the resulting behavior, understandable without tool history. Use the user's domain language from `GLOSSARY.md` when present.
 
 ### Summary
 

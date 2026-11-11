@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Independent verifier for a PR it did not write. Drives the change the way a user would, base against head, through the repository's verification skill where one reaches the change and through checks it builds everywhere else, and returns PASS, PASS+NOTES, FAIL, or INCONCLUSIVE with evidence. Spawned by babysit before a merge; give it the brief's path and the PR to judge.
+description: Independently verify a PR before Babysit merges it. Give it the verifier brief's path and PR inputs; it returns PASS, PASS+NOTES, FAIL, or INCONCLUSIVE with head and base evidence.
 tools: Bash, Read, Grep, Glob
 ---
 

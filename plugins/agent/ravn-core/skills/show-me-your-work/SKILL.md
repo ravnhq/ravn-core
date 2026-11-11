@@ -17,7 +17,7 @@ Keep one canonical decision log per piece of work.
 
 ## The format
 
-A single TSV file, one row per decision. Cells stay single-line. Write each in plain words, as you'd tell a teammate what you did. Columns:
+A single TSV file, one row per decision, with single-line cells in plain words. Columns:
 
 - **ts.** ISO 8601 timestamp.
 - **phase.** The phase or workstream.
@@ -42,7 +42,7 @@ node <this-skill-dir>/scripts/log.ts <logfile> <phase> <decision> <why> <evidenc
 
 It stamps `ts`, writes the header on first use, flattens tabs and newlines, and prefixes any cell starting with `=`, `+`, `-`, or `@` with a single quote so a spreadsheet won't run it as a formula.
 
-Log decision points and checkpoints: a fork chosen, a unit completed with its verification result, a pivot or revert with its trigger, a blocker surfaced, a gate fixed. For loop runs, one row per iteration. Skip the trivial and self-evident.
+Log decisions and checkpoints: a fork chosen, a verified unit, a pivot or revert with its trigger, a blocker, a gate fixed. For loops, one row per iteration. Skip the trivial and self-evident.
 
 A run is one agent conversation, including its later turns and any summary of it. A pickup, a replacement agent, or a new chat starts a new run. When a run adds to a log that already has rows, its first row has phase `start`, and so does its first row after another run's `start` row; so a run returning to a log in a later turn first reads the last rows to see whether another run wrote since. A `start` row names the `ts` range of the rows before it that this run did not write, and its evidence names this run, such as its session or agent ID. Phase `start` is reserved for this.
 
@@ -60,18 +60,18 @@ Before handing back, walk this run's rows against what actually happened, using 
 - Each row's evidence resolves and shows what the row claims.
 - A fork, pivot, or abandoned approach that shaped the work but isn't logged is a gap. Add it.
 
-The audit only appends. A row whose claim or evidence is wrong, or that records neither a real decision nor a real action, gets a superseding row with what actually happened and a pointer that resolves. Rows outside this run's stretches are out of scope, unless this run's own work shows one is wrong.
+A row whose claim or evidence is wrong, or that records neither a real decision nor a real action, gets a superseding row with what actually happened and a pointer that resolves. Rows outside this run's stretches are out of scope, unless this run's own work shows one is wrong.
 
 ## Independent review of the trail
 
-Before handing back, have a reviewer that did not do the work read the trail and the run's transcript: a subagent on a different model family if your harness offers one, otherwise a fresh subagent. Your own review does not count. The reviewer flags what the user should pay attention to and leaves the work as it is:
+Before handing back, get an independent reviewer: a fresh subagent, on a different model family when available, to judge evidence without the author's context. Give it the goal, known facts, trail, run's transcript, and the checks and flag format below; it finishes when every row and material decision is checked. It reads and flags, leaving the work unchanged:
 
 - Decisions logged with weak or absent evidence.
 - Verification steps skipped, or claimed without proof in the transcript.
 - Choices that look risky in hindsight: premature, scope-creeping, papering over a symptom.
 - Gaps the user would otherwise miss on a casual skim.
 
-Every reply for a run that produced a trail ends with an **Attention** section. Its first line is `reviewed by <model>`, then each flag, pointing to specific rows or moments. "No flags" is a valid list; the model line is always there.
+Lead the reply with the audited result and trail path, readable without tool history. End with **Attention**, first line `reviewed by <model>`, then flags pointing to rows or moments; "No flags" is valid. Without subagents, use `unavailable` for the model and flag independent review as pending; your audit does not replace it.
 
 ## Composing this skill
 

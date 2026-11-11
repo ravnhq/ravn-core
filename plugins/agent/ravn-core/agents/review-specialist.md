@@ -6,4 +6,4 @@ tools: Read, Grep, Glob
 
 # Review specialist
 
-Your brief names three files and your specialty. Read the three files in full, in one parallel batch, before anything else, then follow the first of them, `reviewer.md`, for your specialty. Without a brief that names them, reply that the brief is missing.
+Follow the review-and-simplify brief's initial read, then `reviewer.md` for your specialty. If the brief omits an input file or specialty, name the missing input so the coordinator can supply it.

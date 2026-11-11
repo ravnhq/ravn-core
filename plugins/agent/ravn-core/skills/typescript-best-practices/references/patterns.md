@@ -34,7 +34,7 @@ type DiffState =
   | { kind: "error"; error: string };
 ```
 
-Pick one discriminant name (`kind`, `type`, `tag`) and keep it.
+For discriminant naming, follow [SKILL.md](../SKILL.md).
 
 ## Constructive modeling
 
@@ -132,7 +132,7 @@ Refactoring an `as` out: find why TypeScript can't infer.
 - Missing discriminant: add one, use a discriminated union.
 - Overly wide source type (`Record<string, unknown>`): narrow it.
 - Untyped boundary: parse with the schema that owns the shape; add one only where none exists.
-- Genuinely inexpressible: use a branded type or `satisfies`.
+- Genuinely inexpressible: follow the `No as casts` rule in [SKILL.md](../SKILL.md).
 
 ## Narrowing hierarchy
 
@@ -188,7 +188,6 @@ const config = { theme: "dark", cols: 3 } satisfies Config;
 
 - **Wire formats** (proto, JSON-RPC): parse with `ignoreUnknownFields` so forward-compatible changes don't break old clients.
 - **Persisted JSON:** a versioned blob, with try/catch around the parse.
-- Re-validate nowhere deeper in the call chain.
 
 ## Schema-derived types
 

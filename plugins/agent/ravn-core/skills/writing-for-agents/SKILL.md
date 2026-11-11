@@ -18,6 +18,7 @@ A pointer states what the material is and lists the **branches** that should tri
 
 - **Front-load the leading word.**
 - **One trigger per branch.** Synonyms that rename a branch are one branch written twice; keep only genuinely distinct branches.
+- **Name the event.** "Adding or changing a migration" fires on the work; a domain ("working with databases") fires on everything near it.
 - **Cut identity the body already carries.**
 
 ## The two loads
@@ -54,6 +55,15 @@ Every step ends on a **completion criterion**, the condition that tells the agen
 
 The strongest criteria are both checkable and exhaustive.
 
+## Autonomy
+
+**Autonomy** sets where the agent stops, seeks approval, or delegates.
+
+- **Wanted stops**: name user decisions and deliberate blockers. Diagnose ordinary errors; continue work independent of an unanswered question.
+- **Approval rules**: name the action and approval scope together: "Push once the user authorizes delivery." Prepare a reviewable result before asking. A separate exception to "never push" may not override it.
+- **Guardrails**: state the scope and reason, so a prohibition does not block routine work. Remove cautions whose reason has gone.
+- **Delegation**: name the benefit (parallel work, bulk kept out of context, independent judgment), keep small cases inline, and give the goal, known facts, done condition, and reply format. Say what to do without subagents.
+
 ## When to split
 
 Splitting spends one of the two loads, so split only when the cut earns it:
@@ -80,3 +90,4 @@ Hunt for restatements a leading word retires: a triad spelled out at three sites
 - The **environment** is a source of truth too (`package.json` scripts, config files, directory layout, `--help` output); a document that restates it is a **cache**, earning its load only when the lookup is expensive. Cache what the agent cannot find by looking: the unwritten convention, the reason behind a choice, the gotcha no config confesses.
 - Check every line for **relevance**: does it still bear on what the document does? A line loses relevance by never bearing on the task (exposition, or a branch that should be disclosed) or by going stale. Without a pruning discipline the default fate is **sediment**: stale layers that settle because adding feels safe and removing feels risky, until you must core down through them to find what is still live.
 - Hunt **no-ops** sentence by sentence: an instruction the model already obeys by default pays load to say nothing. The test (does it change behaviour versus the default?) is model-relative: settle a disagreement by running the document, not by debate. Delete the whole sentence rather than trim words from it. The test also grades leading words: a word too weak to beat the default (_be thorough_) is a no-op, and the fix is a stronger word (_relentless_), not a different technique.
+- Rerun that test when the model changes. A line that corrected an older model (_think step by step_, _run every test_, _delegate by default_) becomes a no-op on the next one, or over-steers it. When several models read one document, the smallest sets how explicit a step must be and the largest pays for the excess: keep the constraint and the criterion, cut the itinerary. Ask for a decision and its evidence; the reasoning stays the model's own, and some models decline to reproduce it in a reply.

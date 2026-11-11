@@ -13,6 +13,8 @@ Surface architectural friction and propose **deepening opportunities**: refactor
 
 Use the `codebase-design` skill's vocabulary and principles in every suggestion. The domain language in `GLOSSARY.md` names good seams; ADRs in `docs/adr/` record decisions not to re-litigate.
 
+Work through scan or rendering failures; pause for the candidate choice, user design decisions, or deliberately withheld access needed to proceed.
+
 ## Process
 
 ### 1. Explore
@@ -22,7 +24,7 @@ Use the `codebase-design` skill's vocabulary and principles in every suggestion.
 - If the user named a direction (a module, subsystem, or pain point), take it and skip the inference below.
 - Otherwise read `git log --oneline` far enough back to find the hot spots, the files that keep coming up, and start there. With no clear hot spot, widen the net.
 
-Read `GLOSSARY.md` and any ADRs in the area first. Then spawn a sub-agent to walk the codebase organically, with no rigid heuristics, noting friction:
+Read `GLOSSARY.md` and ADRs in the area. Explore a small area inline; delegate a broad scan to keep bulk out of the main context, or scan inline without sub-agents. Brief the explorer with the scope, known glossary and ADR constraints, and questions below; require evidence-backed candidates with file paths, friction, and dependency categories:
 
 - Where does understanding one concept require bouncing between many small modules?
 - Where are modules **shallow**?
@@ -30,7 +32,7 @@ Read `GLOSSARY.md` and any ADRs in the area first. Then spawn a sub-agent to wal
 - Where do tightly-coupled modules leak across their seams?
 - Which parts are untested, or hard to test through their current interface?
 
-Apply the **deletion test** to each suspected shallow module: a candidate is one where deleting it would concentrate complexity, not just move it.
+Apply `codebase-design`'s **deletion test** to each suspected shallow module.
 
 ### 2. Present candidates as an HTML report
 
@@ -42,7 +44,7 @@ Name the domain with `GLOSSARY.md` terms ("the Order intake module," not "the Fo
 
 **ADR conflicts**: surface a candidate that contradicts an existing ADR only when the friction warrants reopening it, and mark it in the card (_"contradicts ADR-0007, but worth reopening because..."_). Skip refactors an ADR forbids that are merely theoretical.
 
-Propose no interfaces yet. After writing the file, ask the user: "Which of these would you like to explore?"
+Keep interface proposals for Step 3. Once the report's diagrams render and its path is delivered, ask: "Which of these would you like to explore?" Wait for the candidate choice.
 
 ### 3. Grilling loop
 
@@ -51,5 +53,7 @@ Once the user picks a candidate, use the grilling skill to walk the decision tre
 As decisions crystallize, use the domain-modeling skill to keep the model current inline:
 
 - **A deepened module named after a concept missing from `GLOSSARY.md`**, or **a fuzzy term sharpened**: update `GLOSSARY.md` right there, creating it lazily.
-- **User rejects the candidate with a load-bearing reason:** offer an ADR: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Offer only when a future explorer would need the reason to avoid re-suggesting it; skip ephemeral reasons ("not worth it right now") and self-evident ones.
+- **User rejects the candidate with a load-bearing reason:** apply `domain-modeling`'s ADR criteria before offering to record the reason.
 - **User wants alternative interfaces:** use the `codebase-design` skill's design-it-twice pattern.
+
+Finish when the grilling loop reaches shared understanding and resolved terms and accepted ADRs are recorded; implementing the refactor requires a request to do so.
