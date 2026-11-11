@@ -23,7 +23,7 @@ Diagnose transient tool failures and try another read-only route; respect withhe
 
 ## Step 1. Understand the Target and the Question
 
-The **target** is a chunk of code, a pattern, a feature, or a named design decision. The **question** is its rationale, tradeoff, motivating edge case, external constraint, or history.
+The **target** is a chunk of code, a pattern, a feature, or a named design decision. The **question** is its rationale, tradeoff, motivating edge case, external constraint, or history. When rationale survives only in history, trace its introduction and later removal or replacement, and label historical comments as historical.
 
 If the target is vague, guess from conversation context (open files, recent edits), state your interpretation briefly so the user can redirect, then proceed.
 

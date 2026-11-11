@@ -1,6 +1,12 @@
 # Background mode
 
-Start with a Step 3 watcher run using `--since-last --status-only` to establish the checkpoint before the other work. Keep `--since-last` on every watcher run for the whole session, so every result lists only what changed. Pick the first way of watching your harness supports:
+Establish the checkpoint before starting the other work, including when the PR already looks ready:
+
+```bash
+node <babysit-directory>/scripts/watch-pr.ts <PR>... --require <check>... --since-last --status-only
+```
+
+Keep its JSON as the baseline. Keep `--since-last` on every watcher run for the whole session, so every result lists only what changed. Pick the first way of watching your harness supports:
 
 - **The harness can run a command in the background and tell you when it ends** (Claude Code background tasks, Codex background terminals): start the watcher without `--status-only` in the background and continue your work. When it ends, triage its `changes`, then start it again. It ends on a change, or after 9 minutes with an empty `changes` list; restart it either way.
 - **Otherwise:** at each boundary in your other work (a finished step, a commit, before you report), run it with `--status-only` and triage its `changes`.

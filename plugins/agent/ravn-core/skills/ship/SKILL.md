@@ -18,7 +18,7 @@ When the request is a bug with a known symptom, switch to [Bug Fix](../bug-fix/S
 
 ## Step 1. Shape the idea
 
-If the user brings only an idea or a problem, lay out two or three ways to approach it, with the trade-off of each, and recommend one. State what the change is, who it serves, and the observable condition that means it is done. Continue once the user confirms the goal; gather facts that cannot depend on their choice meanwhile.
+If the user brings only an idea or a problem, lay out two or three ways to approach it, with the trade-off of each, and recommend one. State what the change is, who it serves, and the observable condition that means it is done. End this step by asking the user to confirm or correct the recommended goal and done condition. Gather facts independent of that choice meanwhile; scoping rounds follow goal confirmation in Step 3.
 
 ## Step 2. Gather the facts
 

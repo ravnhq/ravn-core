@@ -48,7 +48,7 @@ A run is one agent conversation, including its later turns and any summary of it
 
 ## Where it lives
 
-A working artifact kept out of git: `decisions.tsv` in the work dir, or `.audit/<task-slug>.tsv` when several efforts run at once. Commit it only when the work is ambitious enough that a reviewer needs the trail to trust the result.
+A working artifact kept out of git: `decisions.tsv` in the work dir, or `.audit/<task-slug>.tsv` when several efforts run at once. Resolve that path inside the work directory before appending. Start with an inspected baseline: cite the relevant source or revision and leave unresolved choices open in the row. Commit it only when the work is ambitious enough that a reviewer needs the trail to trust the result.
 
 Rows are append-only: a wrong call gets a new row that supersedes it. Prefer evidence produced by committed scripts over hand-made one-offs.
 

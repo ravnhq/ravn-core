@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: Place shared behavior and design deep modules. Use when deciding where a new rule belongs, designing or reshaping an interface, placing a testable seam, or when another skill needs the deep-module vocabulary.
+description: Place new rules and factors behind deep module interfaces. Use when deciding where behavior belongs so callers can ignore its details, reshaping an interface, placing a testable seam, or when another skill needs the deep-module vocabulary.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -30,7 +30,7 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 
 ## Ground the recommendation
 
-Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares, or report that none exists. Read each implementation and caller you rely on; an unopened counterpart is an investigation gap, not a completed recommendation.
+Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares, or report that none exists. Open each implementation, caller, and parity test you rely on. Summarize the evidence in a compact caller-contract table: path, input, result, hidden rules, shared values, and check. An unopened counterpart or test remains an investigation gap.
 
 ## Principles
 

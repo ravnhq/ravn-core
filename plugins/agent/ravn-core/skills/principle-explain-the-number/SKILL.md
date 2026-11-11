@@ -16,7 +16,8 @@ Adapted from pstack `principle-explain-the-number`, MIT License, Copyright (c) 2
 
 For performance numbers, apply these checks within the [benchmark checklist](BENCHMARK-CHECKLIST.md)'s scope, including its quick-ballpark exception.
 
-- **Trace the count.** Read the relevant measurement and admission code: distinguish attempted, admitted, completed, and failed work, and locate configured caps and their windows. Name a policy cap as a possible ceiling, separate from a limiter established by runtime evidence. Include those source-backed facts when explaining what remains unmeasured.
+First **trace the count** in the repository. Open the measurement and admission code, then state the counted event, cap, window, and source path, or the specific search that found none. Distinguish attempted, admitted, completed, and failed work. A policy cap is a possible ceiling; runtime evidence must establish the actual limiter. With that source-backed baseline, apply these checks:
+
 - **Ask "why not double?"** Name the resource or code path that bounds the result, such as a core, a lock, the disk, the network, or the load generator itself. Get it from a profile or from system counters taken during a run, then map it to source. A guess from reading the code is not a limiter. If you cannot say why the number is not twice as good, you do not know what you measured.
 - **List what else the number could be measuring, and rule out each one with evidence.** The usual suspects are errors, skipped or cached work, code that never ran, an untuned side (one left on default settings), noise, and a piece too small to matter end to end.
 - **Keep the evidence with the number.** Put the run count, the spread, and the limiter in the notes or a linked artifact.

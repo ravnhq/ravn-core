@@ -20,7 +20,7 @@ Apply [Type System Discipline](../principle-type-system-discipline/SKILL.md) fir
 | Simplest total type | Keep `T[]` while every operation on it stays total. Strengthen to `NonEmpty<T>` only where the loose type forces `!`, a cast, or a "should never happen" throw. |
 | `unknown` over `any` | External data is `unknown`. |
 | Schemas before guards | Before hand-writing a property-by-property type guard, use the repository's runtime schema library and infer the type from it (`z.infer`). Add no schema dependency for one guard. |
-| No `as` casts | Prefer inference and narrowing; assert only a fact that validation proves and the compiler cannot express. |
+| No `as` casts | Construct the validated value with the narrowest accepted type; prefer a checked annotation and narrowing. Assert only a proven fact the compiler cannot express. |
 | Narrowing hierarchy | Discriminant switch > `in` operator > `typeof`/`instanceof` > user-defined type guard > `as`. |
 | Type guards | Verify every required field of the claimed variant; checking its discriminant proves only the discriminant. A membership lookup accepts untrusted values before narrowing: widen the lookup container's key type rather than cast the input into membership. Name guards `isX` or `hasX`. |
 | Exhaustiveness | Assign the discriminant to `const _exhaustive: never = x;` in default arms so a new variant fails to compile. |

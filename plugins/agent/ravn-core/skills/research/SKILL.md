@@ -6,7 +6,7 @@ metadata:
   proof: subjective
 ---
 
-Delegate substantial reading to a **background agent** when independent work can continue or the source material would crowd the main context; do small lookups inline. If subagents are unavailable, research inline. Brief it with the question, known facts and sources, scope, and the file contract below.
+Delegate substantial reading when it would crowd the main context; do small lookups inline. Use a **background agent** while independent work continues, and foreground delegation when its result is needed to finish this turn. Collect asynchronous completion before delivering the research. If subagents are unavailable, research inline. Brief it with the question, known facts and sources, scope, and the file contract below.
 
 Its job:
 

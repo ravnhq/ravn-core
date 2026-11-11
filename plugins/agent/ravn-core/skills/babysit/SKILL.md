@@ -17,7 +17,7 @@ You own the supplied PRs until each one reaches an end state:
 - **Merge-ready**: Step 8 confirms the gates. Without a request to merge, stop here and name any required human approver.
 - **Blocked**: you name what blocks it, show the evidence, and say who can clear it.
 
-End your turn only when every PR has reached an end state, unless a background task outlives it and will report back. Diagnose ordinary errors, timeouts, and failed tools and continue to an end state; respect protected files and withheld access. GitHub only. Run from the PRs' repository on the existing `gh` login. Resolve script paths from this installed skill's directory.
+End your turn when every PR has reached an end state. Keep the turn active while a required verifier or watcher is still running; collect its result and perform the next workflow step. A background task can outlive the turn only when the harness resumes this owning session automatically on completion. Diagnose ordinary errors, timeouts, and failed tools and continue to an end state; respect protected files and withheld access. GitHub only. Run from the PRs' repository on the existing `gh` login. Resolve script paths from this installed skill's directory.
 
 A stack is PRs where each one's base is the branch of the PR below it. List them bottom to top and pass the same list to every script run. The **frontier** is the lowest PR that is neither merged nor merge-ready: it is the only one you fix until it is ready. A single PR is a stack of one.
 
@@ -143,7 +143,7 @@ Merge the lowest unmerged PR only, and only when all of these hold:
 - **Codex:** `spawn_agent` with a fresh context, not a fork of your conversation.
 - **A harness without subagents:** read the brief in full, then run its steps yourself, before any merge command. Label the verdict self-verified in your reply.
 
-Give the verifier the brief's absolute path, the repository path, PR number, `<sha>`, head and base branches, and any `verificationSkills` path. The brief defines the goal, completion condition, and reply; supply known facts, not an expected verdict. On `FAIL`, handle its reproduction like a failing check in Step 5; a fix needs a fresh verdict.
+Give the verifier the brief's absolute path, the repository path, PR number, `<sha>`, head and base branches, and any `verificationSkills` path. Use foreground delegation when its verdict is the only remaining work. For an asynchronous launch, wait for the completed verdict before reporting or merging; a launch acknowledgment leaves Step 9 in progress. The brief defines the goal, completion condition, and reply; supply known facts, not an expected verdict. On `FAIL`, handle its reproduction like a failing check in Step 5; a fix needs a fresh verdict.
 
 `INCONCLUSIVE` because no recipe reaches a behavior: read [Recipe PR](references/recipe-pr.md), which opens the missing recipes as their own PR. Any other `INCONCLUSIVE` is a blocker, with the verifier's reason. When the repository lacks a verification skill, the verifier builds its own checks: say so in your reply, and name [Create Verification Skill](../create-verification-skill/SKILL.md) as the follow-up that lets the next verifier drive those behaviors by recipe; the merge does not wait on it.
 
@@ -169,4 +169,4 @@ Stop when the frontier's blocker needs someone else or exceeds your authority: m
 
 ## Reply
 
-Lead with each PR's end state, understandable without tool history, then the Step 8 report (merge-ready) or Step 10 report (blocker). For a merge: the merge commit, method, head commit, and verdict: its producer, and each check with its head and base, recipe or built, and evidence. For every PR: the gate list and how each gate was met, each fix with its commit and checks before its push, and each thread with your reply.
+Lead with each PR's end state, understandable without tool history, then the Step 8 report (merge-ready) or Step 10 report (blocker). For a merge: the merge commit, method, head commit, and verdict: its producer, and each check with its head and base, recipe or built, and evidence. For built checks, include observed values against the fixed expectations and name the verification-skill follow-up. For a recipe PR, name its target base and the existing recipes preserved unchanged. For every PR: the gate list and how each gate was met, each fix with its commit and checks before its push, and each thread with your reply.
