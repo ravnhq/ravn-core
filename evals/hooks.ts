@@ -1,3 +1,4 @@
+import { readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { TestCase } from "promptfoo";
 import { z } from "zod";
@@ -25,6 +26,15 @@ export function extensionHook(hookName: string, context: { test?: TestCase }) {
   for (const fixture of fixtureNames) {
     for (const arm of arms) {
       resetWorkspaceRepo(join(workspacesDir, fixture, arm), fixture);
+    }
+
+    for (const entry of readdirSync(join(workspacesDir, fixture))) {
+      if (!arms.some((arm) => arm === entry)) {
+        rmSync(join(workspacesDir, fixture, entry), {
+          recursive: true,
+          force: true,
+        });
+      }
     }
   }
 
