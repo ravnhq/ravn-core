@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: Design deep modules. Use when designing or reshaping an interface, placing a testable seam, or when another skill needs the deep-module vocabulary.
+description: Place shared behavior and design deep modules. Use when deciding where a new rule belongs, designing or reshaping an interface, placing a testable seam, or when another skill needs the deep-module vocabulary.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -30,7 +30,7 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 
 ## Ground the recommendation
 
-Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares. Anchor the recommendation to source paths, not just an illustrative interface.
+Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares. Read each implementation and caller you rely on; an unopened counterpart is an investigation gap, not a completed recommendation.
 
 ## Principles
 
@@ -52,3 +52,7 @@ Trace an actual caller before proposing a seam. State what it supplies, what it 
 - **Exploring alternative interfaces**: [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md), contrasting designs compared on depth, locality, and seam placement.
 - **Code that is hard to trace, or a proposed new layer or mutable state**: [Minimize Reader Load](MINIMIZE-READER-LOAD.md).
 - **Replacing an internal API** when old callers remain, no external users need compatibility, and coordinated breaking changes are permitted: [Migrate Callers Then Delete Legacy APIs](MIGRATE-CALLERS.md).
+
+## Recommendation
+
+Give a concrete caller example: the input shape and the result each execution path returns. Name the module that hides the rules, the source paths to change, and the existing test that guards the contract. Explain what callers no longer need to know. When execution paths cannot share an implementation, state what each still implements and how the parity check detects divergence; shared constants alone prove only shared values.

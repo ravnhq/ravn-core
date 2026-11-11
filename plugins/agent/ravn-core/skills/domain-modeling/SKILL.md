@@ -47,7 +47,7 @@ Propose a precise canonical term for a vague or overloaded one: "You're saying '
 
 ### Discuss concrete scenarios
 
-Map each proposed term to its observed contract: where a trigger is defined, what identity or payload dispatch carries, how an implementation is selected, and what method performs the work. Distinguish these roles even when code calls all of them a "job." Stress-test the relationships with edge cases, including two triggers dispatching the same work and work with no trigger. State whether each case is supported, forbidden, or an unresolved domain choice; ask when that choice changes the term's meaning.
+Map each proposed term to its observed contract: identity, data, lifecycle, and the responsibilities implemented by each code path. Cite those paths in the discussion, keeping implementation details out of the glossary. Stress-test relationships with many-to-one and missing-participant cases. State whether each case is supported, forbidden, or an unresolved domain choice; ask when that choice changes the term's meaning.
 
 ### Cross-reference with code
 
