@@ -3,7 +3,7 @@ name: validate
 description: Run the CI checks locally before pushing. Use before opening a PR or pushing to main, or when the user asks to validate the marketplace or plugins.
 ---
 
-Mirror the `check` job in `.github/workflows/ci.yml` locally so failures surface before CI. Run from the repo root.
+Mirror CI's `check` job from the repo root. Reuse passing steps unless covered files or the environment changed.
 
 ## Steps
 
@@ -13,7 +13,7 @@ Mirror the `check` job in `.github/workflows/ci.yml` locally so failures surface
    GIT_TERMINAL_PROMPT=0 pnpm eval:fetch
    pnpm check
    ```
-   `eval:fetch` clones the private eval configs that `test/evals/configs.test.ts` checks. Without access it fails; continue and report the eval-config tests as skipped (the `skipped` count in `pnpm check`), as CI does on forks.
+   `eval:fetch` clones the private eval configs. Without access, continue and report the eval-config tests as skipped (the `skipped` count in `pnpm check`), as CI does on forks.
 
 2. **Plugin checks.** Needs the Claude Code CLI on `PATH`.
    ```bash
@@ -25,8 +25,8 @@ Mirror the `check` job in `.github/workflows/ci.yml` locally so failures surface
    pnpm prose:check
    ```
 
-CI also runs a SkillSpector scan on `plugins/agent/ravn-core/skills/*/`; reproduce it with the `skillspector` job in `.github/workflows/ci.yml`.
+For CI's SkillSpector scan on `plugins/agent/ravn-core/skills/*/`, follow its `skillspector` job.
 
 ## Reporting
 
-Report each step's result. On a failure, show it and stop. When every step passes, state that the repo, plugin, and prose checks are green.
+Diagnose failures, fix those within authorized scope, and rerun affected steps; continue independent checks, reporting missing access or protected changes as blockers. Lead with green or blocked, then each step's result and evidence; green requires all three steps to pass.

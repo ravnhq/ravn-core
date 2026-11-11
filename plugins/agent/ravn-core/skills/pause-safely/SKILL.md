@@ -20,7 +20,9 @@ Done when nothing you started is mid-edit and every running operation is either 
 
 ## Step 2. Commit the work
 
-Commit your in-progress edits on the current branch, staging only the changes this work made, with a conventional commit message that describes them. If the tree is broken, say so in one line of the commit body.
+The pause request authorizes work and note commits on the current branch; push, PR creation, and messages need separate authorization. Include the in-progress edits that belong to the paused objective, even when they predate this turn; the user is asking to checkpoint that work. Leave unrelated changes untouched. Stage only the objective's changes and use a conventional commit message. If the tree is broken, say so in the commit body.
+
+Done when the paused work is in a commit, or a failed commit is reported with its cause; writing the note alone does not checkpoint the work.
 
 ## Step 3. Write the handoff note
 
@@ -42,8 +44,8 @@ Done when an agent with only the note and the repository could take the next act
 
 ## Step 4. Commit the note
 
-Commit the note as `chore: pause handoff`. The pause request authorizes the work and note commits and nothing more: no push, no PR, no messages. If the directory is not a repository or a hook rejects the commit, leave the note on disk and report why it is uncommitted.
+Commit the note as `chore: pause handoff`. If the directory is not a repository or a hook rejects the commit, leave the note on disk and report why it is uncommitted.
 
 ## Report
 
-This is a pause, not a final report. Give the note path, the commits made, whether the tree is clean, anything unverified or still running, and the first action on resume.
+Confirm the pause and give the note path, commits made, whether the tree is clean, anything unverified or still running, and the first action on resume.

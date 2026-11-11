@@ -1,10 +1,8 @@
 ---
 name: how
 description: >-
-  Use for "how does X work", code walkthroughs before changing something, and
-  placement / ownership / layering questions ("where should this live",
-  "which package owns this", "is this the right layer"). Use why for
-  motivation.
+  Explain how code works and where it belongs: runtime behavior, placement,
+  ownership, and layering. Use why for motivation.
 disable-model-invocation: true
 license: See LICENSE.txt
 ---
@@ -21,14 +19,14 @@ Each spawn below is a subagent. If your harness cannot spawn subagents, do that 
 
 If the scope is ambiguous, state your interpretation and explore. The user can redirect.
 
-- **Simple** (a single module, a small utility, a narrow question such as "how does function X work"): no explorers. Spawn one explainer that explores and explains in one pass, built from `references/explainer-prompt.md` without the explorer-findings section. Go to step 4.
+- **Simple** (a single module, a small utility, a narrow question such as "how does function X work"): explore and explain inline using `references/explainer-prompt.md` without explorer findings or reconciliation. Go to step 4.
 - **Complex** (a subsystem spanning multiple files or services, a cross-cutting feature, a full architectural overview): go to step 2.
 
 When in doubt, take the simple path.
 
 ## 2. Explore (complex only)
 
-Decompose the question into 2 to 4 angles, each a distinct slice of the subsystem. Spawn all explorers in a single message, each with `references/explorer-prompt.md` and its angle filled in.
+Decompose the question into 2 to 4 independent angles. Spawn explorers together, each with `references/explorer-prompt.md`, the question, its angle, and any known paths or findings. Each returns the template's sections once its slice is traced or the remaining gaps are named.
 
 ## 3. Synthesize (complex only)
 
@@ -36,7 +34,7 @@ Once every explorer has returned, including any your harness runs in the backgro
 
 ## 4. Present
 
-Present the explainer's output with light edits for clarity or conversation context.
+Present the explanation once every angle is accounted for by code-backed findings or named gaps, with light edits for clarity or conversation context.
 
 ## Output format
 

@@ -10,7 +10,7 @@ For a quick ballpark the user asked for, one run is enough. Still check question
 
 - Write down the claim you expect to make, in the words you would ship ("export is 30% faster at p50 on the 60k-row dataset"). The questions test that sentence.
 - Read the measurement script. Note what it times, counts, and ignores.
-- Check the load average with `uptime` and the core count with `node -p "require('node:os').cpus().length"`. If the machine is busy, find out what is running. If you cannot stop it, interleave the sides so both see the same noise, and say so in the report.
+- Check the load average with `uptime` and the core count with `node -p "require('node:os').cpus().length"`. On a busy machine, identify the load, interleave the sides, and disclose the noise; stop unrelated workloads only if the user authorizes that interruption.
 
 ## The questions
 

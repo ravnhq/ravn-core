@@ -35,7 +35,7 @@ The architectural review is rendered as a single self-contained HTML file in the
 
 ## Header
 
-Repo name, date, and a compact legend: solid box = module, dashed line = seam, red arrow = leakage, thick dark box = deep module. No introduction paragraph. Straight into the candidates.
+Repo name, date, strongest candidate and its main benefit, and a compact legend: solid box = module, dashed line = seam, red arrow = leakage, thick dark box = deep module.
 
 ## Candidate card
 
@@ -47,12 +47,12 @@ Each candidate is one `<article>`:
 - **Badge row**: recommendation strength (`Strong` = emerald, `Worth exploring` = amber, `Speculative` = slate), plus a tag for the dependency category (`in-process`, `local-substitutable`, `ports & adapters`, `mock`).
 - **Files**: monospaced list, `font-mono text-sm`.
 - **Before / After diagram**: the centrepiece. Two columns, side by side. See patterns below.
-- **Problem**: one sentence. What hurts.
-- **Solution**: one sentence. What changes.
-- **Wins**: bullets, ≤6 words each. e.g. "Tests hit one interface", "Pricing logic stops leaking", "Delete 4 shallow wrappers".
-- **ADR callout** (if applicable): one line in an amber-tinted box.
+- **Problem**: what hurts, with enough context to understand it.
+- **Solution**: what changes.
+- **Wins**: concrete gains, e.g. "Tests hit one interface", "Pricing logic stops leaking", "Delete 4 shallow wrappers".
+- **ADR callout** (if applicable): in an amber-tinted box.
 
-No paragraphs of explanation. If the diagram needs a paragraph to be understood, redraw the diagram.
+Label diagrams so the reader can follow the change without seeing the exploration.
 
 ## Diagram patterns
 
@@ -101,11 +101,11 @@ Before: a tree of function calls rendered as nested boxes. After: the same tree 
 
 ## Top recommendation section
 
-One larger card. Candidate name, one sentence on why, anchor link to its card. That's it.
+One larger card. Candidate name, why it is recommended, anchor link to its card.
 
 ## Tone
 
-Plain English, concise. Use the `codebase-design` glossary terms exactly (module, interface, seam, adapter, leverage, locality), never its _Avoid_ words.
+Plain English, concise. Follow the vocabulary rules in [codebase-design](../codebase-design/SKILL.md).
 
 **Phrasings that fit:**
 
@@ -115,5 +115,3 @@ Plain English, concise. Use the `codebase-design` glossary terms exactly (module
 - "Two adapters justify the seam: HTTP in prod, in-memory in tests."
 
 **Wins bullets** name the gain in glossary terms: *"locality: bugs concentrate in one module"*, *"leverage: one interface, N call sites"*, *"interface shrinks; implementation absorbs the wrappers"*, never "easier to maintain" or "cleaner code".
-
-If a sentence could be a bullet, make it a bullet; if a bullet could be cut, cut it.

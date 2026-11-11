@@ -214,7 +214,10 @@ export default class PiProvider implements ApiProvider {
 
     return {
       output: textOf(reply),
-      metadata: { skillCalls: skillCallsFrom(events) },
+      metadata: {
+        skillCalls: skillCallsFrom(events),
+        piTranscript: run.stdout,
+      },
     };
   }
 }

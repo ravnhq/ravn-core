@@ -49,6 +49,8 @@ export function createWorkspaceRepo(workspaceDir: string, fixture: string) {
   );
 
   git(["remote", "remove", "origin"], workspaceDir);
+  git(["config", "user.name", "Eval Agent"], workspaceDir);
+  git(["config", "user.email", "eval@example.com"], workspaceDir);
 }
 
 export function removeWorkspaceWorktrees(workspaceDir: string) {
@@ -102,16 +104,21 @@ export function resetWorkspaceRepo(workspaceDir: string, fixture: string) {
     });
   }
 
+  const installedSkills: string[] = JSON.parse(
+    readFileSync(
+      join(workspaceDir, ".git", "ravn-installed-skills.json"),
+      "utf8",
+    ),
+  );
+
   git(
     [
       "clean",
       "-q",
       "-f",
       "-d",
-      "-e",
-      "/.claude/skills/",
-      "-e",
-      "/.agents/skills/",
+      "-x",
+      ...installedSkills.flatMap((path) => ["-e", path]),
       "-e",
       "/.claude/agents/",
     ],
@@ -200,6 +207,17 @@ export function installSkills(workspaceDir: string, skillDirs: string[]) {
       );
     }
   }
+
+  const installedSkills = [".claude", ".agents"].flatMap((harness) =>
+    readdirSync(join(workspaceDir, harness, "skills")).map(
+      (name) => `/${harness}/skills/${name}/`,
+    ),
+  );
+
+  writeFileSync(
+    join(workspaceDir, ".git", "ravn-installed-skills.json"),
+    JSON.stringify(installedSkills),
+  );
 }
 
 export function exportPluginsAt(

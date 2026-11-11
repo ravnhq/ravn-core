@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: Shared vocabulary for designing deep modules. Use when designing or improving a module interface, placing a seam, or making code testable or AI-navigable, and when another skill needs the deep-module vocabulary.
+description: Place new rules and factors behind deep module interfaces. Use when deciding where behavior belongs so callers can ignore its details, reshaping an interface, placing a testable seam, or when another skill needs the deep-module vocabulary.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -8,7 +8,7 @@ metadata:
 
 # Codebase Design
 
-Design **deep modules**: much behaviour behind a small interface, placed at a clean seam, testable through that interface. Use these terms exactly, never "component," "service," "API," or "boundary": the aim is leverage for callers, locality for maintainers, testability for everyone.
+Design **deep modules**: much behaviour behind a small interface, placed at a clean seam, testable through that interface. Use the glossary for architectural concepts; preserve domain terms, code identifiers, and quotations. The aim is leverage for callers, locality for maintainers, testability for everyone.
 
 ## Glossary
 
@@ -28,11 +28,15 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 
 **Locality**: what maintainers get from depth. Change, bugs, knowledge, and verification concentrate in one place. Fix once, fixed everywhere.
 
+## Ground the recommendation
+
+Trace an actual caller before proposing a seam. State what it supplies, what it receives, and which module owns the hidden rules. For parallel implementations (for example, in-memory and query execution), distinguish shared data from behavior that must remain separate; name the existing parity check and what it compares, or report that none exists. Open each implementation, caller, and parity test you rely on. Summarize the evidence in a compact caller-contract table: path, input, result, hidden rules, shared values, and check. An unopened counterpart or test remains an investigation gap.
+
 ## Principles
 
 - **Depth is a property of the interface, not the implementation.** A deep module can be built from small, mockable, swappable parts that stay outside its interface. It has an external seam at its interface and may have internal seams, private to its implementation and its own tests.
 - **The deletion test.** Imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity reappears across N callers, it earned its keep.
-- **The interface is the test surface.** Callers and tests cross the same seam. A test that must reach past the interface says the module has the wrong shape.
+- **The interface is the test surface.** Caller-facing tests cross the callers' seam; needing internal knowledge to verify their contract signals the wrong module shape.
 - **One adapter means a hypothetical seam. Two adapters means a real one.** Introduce a seam only where something actually varies across it.
 - **Shrink the interface.** Fewer methods, simpler parameters, more complexity hidden inside.
 
@@ -45,6 +49,10 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 ## Going deeper
 
 - **Deepening a cluster given its dependencies**: [DEEPENING.md](DEEPENING.md), dependency categories, seam discipline, and replace-don't-layer testing.
-- **Exploring alternative interfaces**: [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md), parallel sub-agents each design the interface a radically different way; compare on depth, locality, and seam placement.
+- **Exploring alternative interfaces**: [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md), contrasting designs compared on depth, locality, and seam placement.
 - **Code that is hard to trace, or a proposed new layer or mutable state**: [Minimize Reader Load](MINIMIZE-READER-LOAD.md).
 - **Replacing an internal API** when old callers remain, no external users need compatibility, and coordinated breaking changes are permitted: [Migrate Callers Then Delete Legacy APIs](MIGRATE-CALLERS.md).
+
+## Recommendation
+
+The recommendation is complete when the reply shows a concrete caller example: the input shape and the result each execution path returns. Name the module that hides the rules, the source paths to change, and the test that guards the contract, or the missing check to add. Explain what callers no longer need to know. For parallel execution paths, show which exported values each consumes, which formulas each implements, and how the parity check detects divergence. Shared constants prove shared values, not formula equivalence. Preserve an existing seam unless its callers demonstrate a reason to move it.

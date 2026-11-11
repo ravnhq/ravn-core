@@ -12,6 +12,8 @@ When a test would need broad harness setup, mocks of most collaborators, slow en
 
 No new test beats a bad test: one that mostly exercises mocks, encodes the current implementation, depends on timing or unrelated global state, or would be deleted right after it proves the fix. Judge it by [Test Behavior, Not Implementation](../principle-prove-it-works/TEST-BEHAVIOR.md).
 
+A missing test runner, dependency, or import alias is a harness failure, not the bug. Repair the local execution path with the repository toolchain, or use a small executable check that loads and calls the actual affected module. Preserve its behavior and inputs; do not substitute a rewritten copy of its logic. Continue until the check reaches the code, or identify a protected prerequisite that prevents execution.
+
 ## Run it red
 
 1. Write the smallest check that would have caught the bug. Derive the expected value from the intended behavior, not from a run of the code.

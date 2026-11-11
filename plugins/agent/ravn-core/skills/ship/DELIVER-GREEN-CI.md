@@ -12,7 +12,7 @@ Run from the target repo on the existing `gh` login. Resolve the script path fro
 
 2. For a failing check, read its linked logs (`gh run view <run-id> --log-failed` for Actions), reproduce it when possible, and use [Fix Root Causes](../principle-fix-root-causes/SKILL.md). Run the repaired check and relevant regression checks, commit, push, and return to the gate. Each push requires fresh CI evidence. Rerun only an identified transient infrastructure failure. Preserve the repo's gates and thresholds.
 
-3. If a fix changes the approved scope, ask the user to settle that decision. If credentials, an external outage, or required human approval prevent progress, retain the draft and report incomplete delivery with the blocker and check links. Pre-existing failures also leave delivery incomplete.
+3. If a fix changes the approved scope, ask the user to settle that decision; continue checks and repairs that cannot depend on it. If withheld credentials, an outage with no available workaround, or required human approval prevent completion, retain the draft and report incomplete delivery with the blocker and check links. Pre-existing failures also leave delivery incomplete.
 
 4. A conditional job may be omitted from `--expect`, or named with `--allow-skipped`, only after confirming from the workflow that it does not apply to this change. Required applicable checks must pass. The gate inspects all reported checks, including those outside the expected list. A neutral result is incomplete.
 

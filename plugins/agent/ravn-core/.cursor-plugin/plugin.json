@@ -1,6 +1,6 @@
 {
   "name": "ravn-core",
-  "version": "0.15.2",
+  "version": "0.15.4",
   "description": "Core Ravn agent plugin. Bundles reusable skills and MCP server configuration.",
   "author": {
     "name": "Ravn AI Enablement Team"

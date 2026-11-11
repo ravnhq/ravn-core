@@ -90,7 +90,8 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           working_dir: workingDir,
           setting_sources: ["project"],
           skills: "all",
-          append_allowed_tools: ["Bash", "Agent"],
+          append_allowed_tools: ["Bash", "Agent", "Write", "Edit"],
+          permission_mode: "acceptEdits",
           env: openRouter
             ? {
                 ...claudeCodeEnv(true),

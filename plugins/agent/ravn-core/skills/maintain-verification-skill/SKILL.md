@@ -1,6 +1,6 @@
 ---
 name: maintain-verification-skill
-description: "Periodic pass that keeps a project's verification skill and feature map honest: source readers per feature, one live session driving every feature, at most one PR of proven corrections. Use for /maintain-verification-skill or \"audit the verify skill\"."
+description: "Audit a project's verification skill and feature map. Use for /maintain-verification-skill or \"audit the verify skill\"."
 disable-model-invocation: true
 license: See LICENSE.txt
 metadata:
@@ -9,13 +9,13 @@ metadata:
 
 # Maintain verification skill
 
-Audit an existing verification skill and feature map. Edit only its directory, never product code.
+Audit an existing verification skill and feature map. Keep edits in its directory; report product regressions for separate repair.
 
-1. Locate the target; clarify multiple candidates. If absent, use `create-verification-skill`. Reconcile the feature index with its files.
-2. Read source for every feature, delegating independent read-only slices when permitted. Collect behavior, cited drift, and a live-verification recipe; find missing features from concrete source paths.
+1. Locate the target; clarify multiple candidates. If absent, inspect the relevant source, tests, and launch setup; report the missing guide, feature map, and runtime prerequisites, and name `create-verification-skill` as the next workflow. Reconcile an existing feature index with its files.
+2. Read source for every feature. For large maps, delegate independent reads with the goal, known context, source paths, and a reply of behavior, cited drift, missing features, and live recipes as the done condition. Work inline for small maps or without subagents.
 3. Reconcile overlapping recipes. One coordinator drives every feature live through the skill's launch model. Doctor before first use, each fresh session, and after unexpected behavior. Reset wedged state rather than guessing.
-4. Preserve evidence across cleanup, stop only owned processes, and clean failed attempts. Correct a drift-caused doctor failure and retry once before reporting a blocker.
-5. Fix documentation drift and harness gaps; report product regressions without disguising them in docs. Re-drive every harness fix. Mark a feature unreachable only with its prerequisite and attempted route; document missing prerequisites.
-6. Perform final teardown and confirm evidence survives. Report clean (source and live coverage complete), changed (one PR of proven corrections), or blocked (specific incomplete coverage). Re-read changes before publication; clean/blocked outcomes need no PR.
+4. Preserve evidence across cleanup, stop only owned processes, and clean failed attempts. Diagnose errors and retry safe operations; report a blocker only for missing access, a protected prerequisite, or a product regression that prevents verification.
+5. Fix documentation drift and harness gaps. Re-drive affected paths after each fix; reuse passing evidence for unchanged paths. Mark a feature unreachable only with its prerequisite and attempted route; document missing prerequisites.
+6. Perform final teardown and confirm evidence survives. Lead the report with clean (source and live coverage complete), changed (one PR of proven corrections), or blocked (specific incomplete coverage), then evidence paths. Re-read changes before publication; clean/blocked outcomes need no PR.
 
 Keep concise task-local coverage notes; do not commit them.

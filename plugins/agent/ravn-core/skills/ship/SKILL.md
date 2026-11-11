@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Take a change from idea to a ready PR with passing CI, running research, grilling, design, verification, and the pr skill in sequence.
+description: Take a change from idea to a ready PR with passing CI and evidence it works.
 disable-model-invocation: true
 metadata:
   proof: subjective
@@ -8,15 +8,17 @@ metadata:
 
 # Ship
 
-Take a change from a loose idea to a ready pull request with evidence that it works and passing CI on its latest commit. The clarifying in the first steps matters more than any document they produce.
+Take a change from a loose idea to a ready pull request with evidence that it works and passing CI on its latest commit.
 
 Run every step in order. Skip a step only when the user says to, or when its condition below does not hold.
+
+Work through ordinary errors, timeouts, and failed tools; stop for named user decisions, protected files, or withheld access only on work they block.
 
 When the request is a bug with a known symptom, switch to [Bug Fix](../bug-fix/SKILL.md) and follow it in place of this skill: it owns the repro, the cause, and the red-then-green history.
 
 ## Step 1. Shape the idea
 
-If the user brings only an idea or a problem, lay out two or three ways to approach it, with the trade-off of each, and recommend one. Then state in two or three sentences what the change is, who it serves, and the observable condition that means it is done, such as a passing check or a behavior a user can see. Continue once the user confirms the goal.
+If the user brings only an idea or a problem, lay out two or three ways to approach it, with the trade-off of each, and recommend one. State what the change is, who it serves, and the observable condition that means it is done. End this step by asking the user to confirm or correct the recommended goal and done condition. Gather facts independent of that choice meanwhile; scoping rounds follow goal confirmation in Step 3.
 
 ## Step 2. Gather the facts
 
@@ -45,8 +47,6 @@ Apply these principles when their conditions hold:
 - For mutating commands, lifecycle steps, or loops that retries or interruptions can repeat, use [Make Operations Idempotent](../principle-make-operations-idempotent/SKILL.md).
 - For concurrent actors that might write the same object, use [Separate Before Serializing Shared State](../principle-separate-before-serializing-shared-state/SKILL.md).
 
-For each triggered principle, record the concrete design decision and the check that will prove it in Step 6.
-
 ## Step 6. Write the plan
 
 Read the repo's CI workflows and the scripts they call. Identify the checks applicable to this change, their names, triggers, and local commands, including build, migration, security, and architecture gates. Account for conditional jobs and jobs that run only on ready PRs. Include these checks in Steps and Delivery below.
@@ -66,11 +66,11 @@ Show the plan in your reply. Write it to a file only when the user asks, or when
 
 ## Step 7. Confirm the plan
 
-Ask the user to approve the plan; write code only after they approve.
+Write code once the user approves the plan, unless they already approved it in the conversation; that approval covers implementation, local verification, and commits on this branch.
 
 ## Step 8. Create the branch and prepare verification
 
-Create the branch from the plan; never work on the default branch.
+Create the branch from the plan so the default branch stays unchanged.
 
 Skip the rest of this step if the repo has no user-facing surface, such as a UI, CLI, or service; Step 10 then relies on the repo's own checks.
 
@@ -78,7 +78,7 @@ Find the repo's project-local verification skill, a `verify-<app>` skill with a 
 
 ## Step 9. Build
 
-Work the steps in order and run each step's verification before starting the next. If the work contradicts a decision from Step 3, stop and ask the user instead of choosing yourself.
+Run each step's verification before starting the next. If the work contradicts a decision from Step 3, ask the user to settle it and continue planned work that cannot depend on their answer.
 
 If the user steps away while you build, keep a decision trail with [Show Me Your Work](../show-me-your-work/SKILL.md).
 
@@ -86,11 +86,11 @@ For a new internal API with old callers, use [Migrate Callers Then Delete Legacy
 
 ## Step 10. Prove it works
 
-Use [Prove It Works](../principle-prove-it-works/SKILL.md). Drive every user-facing behavior the change adds or alters through the verification skill, and keep the evidence it captures. Run the repo's own checks too.
+Use [Prove It Works](../principle-prove-it-works/SKILL.md). Drive every user-facing behavior the change adds or alters through the verification skill, and keep the evidence it captures. Run the applicable repo checks from Step 6; reuse passing results unless a later change or failure invalidates them.
 
 If the change touches shared code, a data or wire format, or a public interface, use [Blast Radius](../blast-radius/SKILL.md) and keep its proof with the evidence.
 
-Run every check paired with a principle's decision in Step 6 and keep the evidence. For a bug, re-run the original reproduction. For retries or interruptions, show that re-execution converges. For shared writes, exercise the ownership or serialization contract. For a measured performance or eval claim, use [Explain the Number](../principle-explain-the-number/SKILL.md) before reporting it.
+Keep evidence for every principle check from Step 6. For a bug, re-run the original reproduction. For retries or interruptions, show that re-execution converges. For shared writes, exercise the ownership or serialization contract. For a measured performance or eval claim, use [Explain the Number](../principle-explain-the-number/SKILL.md) before reporting it.
 
 If the repo has a verification skill, update it on this branch: add a `features/` file for each new feature, and correct the files for features the change altered. Re-drive each corrected recipe once.
 
@@ -100,8 +100,8 @@ Show the user the branch, the files changed, how the change differs from the pla
 
 ## Step 12. Open the PR
 
-Commit with the repo's commit convention, push the branch, and open a draft PR against the base branch from the plan. Write the body with the `pr` skill, and put the evidence from Step 10 under Evidence. Hard guardrails: no push to the default branch, no force-push, no merge.
+Commit with the repo's commit convention, push the planned branch, and open a draft PR against the planned base. Write the body with the `pr` skill, with Step 10's evidence under Evidence. Preserve pushed history; merging belongs to Babysit after the user asks.
 
 ## Step 13. Deliver green CI
 
-Use [Deliver Green CI](DELIVER-GREEN-CI.md) to wait for checks, repair failures, and verify the latest PR commit before marking it ready. Finish only when its applicable CI checks pass. Report the PR URL, verified head commit, local and CI results with evidence links, and anything from the plan left undone. If blocked, report the failing or missing checks and the concrete blocker as incomplete delivery. Otherwise end the report with how to land the PR: the user runs [Babysit](../babysit/SKILL.md) on it, which clears later review threads and merges only when they ask.
+Use [Deliver Green CI](DELIVER-GREEN-CI.md) to wait for checks, repair failures, and verify the latest PR commit before marking it ready. Finish only when its applicable CI checks pass. Lead the report with the delivery result, then the PR URL, verified head commit, local and CI results with evidence links, and anything from the plan left undone. If blocked, name the failing or missing checks and concrete blocker as incomplete delivery. Otherwise end with how to land the PR: run [Babysit](../babysit/SKILL.md), which clears later review threads and owns merge authorization.

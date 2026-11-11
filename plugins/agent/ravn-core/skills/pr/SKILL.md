@@ -6,6 +6,8 @@ metadata:
   proof: subjective
 ---
 
+Read the diff and trace the affected consumers before writing the body. Describe the behavior they observe, including mirrored implementations or stored-data effects. In Evidence, distinguish execution from inspection: say "not run" for checks not performed, rather than inventing before/after output. Give a concrete rollback under Merge Danger.
+
 Use this template for writing the PR body:
 
 ```markdown
@@ -31,7 +33,7 @@ Use this template for writing the PR body:
 
 ## Sections
 
-Skip all preambles and keep prose brief. Use the user's domain language from `GLOSSARY.md`.
+Lead Summary with the resulting behavior, understandable without tool history. Use the user's domain language from `GLOSSARY.md` when present.
 
 ### Summary
 
