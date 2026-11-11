@@ -23,7 +23,7 @@ Work on a new branch, never the default branch. If the working tree has changes 
 
 Drive the bug on the surface where it was reported: the UI, CLI, or service, through the project's `verify-<app>` skill when it has one, and otherwise with the tools the repo already uses to run it. When the surface lacked a verification skill, offer [Create Verification Skill](../create-verification-skill/SKILL.md) in your reply and create it only when asked. For library code, a script or test that calls the public interface is the surface.
 
-If the bug will not reproduce directly, synthesize the trigger, tighten the conditions, or add instrumentation until it fires. Ask the user to reproduce only after you have driven the surface as far as it goes, and name the specific thing it cannot reach.
+Start with the reported inputs and timing; keep that case in the red/green proof even when additional cases help diagnosis. If the bug will not reproduce directly, synthesize the trigger, tighten the conditions, or add instrumentation until it fires. Ask the user to reproduce only after you have driven the surface as far as it goes, and name the specific thing it cannot reach.
 
 Done when you hold a repro that is _red_: a command or recipe that calls the affected code and shows the wrong behavior every time you run it. A copied formula or a calculation of what the code should return is not a repro. Make that command print the input, observed result, and expected result so a successful rerun preserves the corrected state, not just a test count. Keep this evidence record verbatim.
 

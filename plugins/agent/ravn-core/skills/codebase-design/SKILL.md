@@ -55,4 +55,4 @@ Trace an actual caller before proposing a seam. State what it supplies, what it 
 
 ## Recommendation
 
-Give a concrete caller example: the input shape and the result each execution path returns. Name the module that hides the rules, the source paths to change, and the test that guards the contract, or the missing check to add. Explain what callers no longer need to know. When execution paths cannot share an implementation, state what each still implements and how the parity check detects divergence; shared constants alone prove only shared values.
+The recommendation is complete when the reply shows a concrete caller example: the input shape and the result each execution path returns. Name the module that hides the rules, the source paths to change, and the test that guards the contract, or the missing check to add. Explain what callers no longer need to know. For parallel execution paths, show which exported values each consumes, which formulas each implements, and how the parity check detects divergence. Shared constants prove shared values, not formula equivalence. Preserve an existing seam unless its callers demonstrate a reason to move it.
