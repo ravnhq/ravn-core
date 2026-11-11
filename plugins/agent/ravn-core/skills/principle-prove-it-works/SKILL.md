@@ -17,6 +17,8 @@ Verify every task output against the real thing before declaring it done; a prox
 - Read the actual value, not a cached or derived representation.
 - When verification fails, suspect the observation method before the system.
 
+Pin the behavior the user wants verified, separating the artifact's functional contract from downstream business impact. When the full environment is unavailable, inspect the changed implementation and its existing checks, run the narrower applicable checks, and name the remaining prerequisite. Report what each check establishes and what it leaves unobserved; missing production data does not end artifact verification.
+
 For executable code and features, use the applicable steps:
 1. Build it when needed to exercise the artifact (necessary but not sufficient)
 2. Run it and exercise the actual changed feature path
