@@ -9,6 +9,13 @@ metadata:
 Use this template for writing the PR body:
 
 ```markdown
+<opener>
+
+<optional: screenshot or short output>
+
+<details>
+<summary><model name and effort level></summary>
+
 ## Summary
 
 <diagram, diff-sketch, or tree>
@@ -27,11 +34,25 @@ Use this template for writing the PR body:
 **Blast Radius:** <one-word description>
 
 <optional: potential ramifications of merge>
+
+</details>
 ```
+
+Keep the blank lines around `<summary>` and before `</details>`: GitHub renders Markdown inside `<details>` only with them.
 
 ## Sections
 
 Skip all preambles and keep prose brief. Use the user's domain language from `GLOSSARY.md`.
+
+### Opener
+
+The shortest text that tells a reviewer what the PR is for and whether it deserves more of their attention: one to three sentences in plain words, naming the problem and the outcome. A visual change gets one screenshot below it; a new command can get its `--help` output. Everything else goes in the collapsed details.
+
+Write it last, from the sections below. Also show it to the user in your reply, apart from the body, so they can rewrite it: it stands for their judgement of what is worth a reviewer's time.
+
+### Details summary
+
+Your model name and effort level, as in `Claude Opus 5.5 Medium`, so the reader knows an agent wrote what it hides. Drop the effort level when you cannot find it.
 
 ### Summary
 
