@@ -48,7 +48,7 @@ Skip all preambles and keep prose brief. Use the user's domain language from `GL
 
 The shortest text that tells a reviewer what the PR is for and whether it deserves more of their attention: one to three sentences in plain words, naming the problem and the outcome. A visual change gets one screenshot below it; a new command can get its `--help` output. Everything else goes in the collapsed details.
 
-Write it last, from the sections below. Quote it in your reply to the user so they can rewrite it: it stands for their judgement of what is worth a reviewer's time.
+Write it last, from the sections below. Also show it to the user in your reply, apart from the body, so they can rewrite it: it stands for their judgement of what is worth a reviewer's time.
 
 ### Details summary
 
