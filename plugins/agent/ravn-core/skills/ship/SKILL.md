@@ -20,7 +20,7 @@ If the user brings only an idea or a problem, lay out two or three ways to appro
 
 ## Step 2. Gather the facts
 
-Read the code the change touches with [How](../how/SKILL.md), and [Why](../why/SKILL.md) when existing behavior looks deliberate or odd. For a library, API, or tool the change builds on, use the `research` skill. For reading that spans many files or large outputs, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
+Trace the code the change touches until you can explain how it works, and use [Why](../why/SKILL.md) when existing behavior looks deliberate or odd. For a library, API, or tool the change builds on, use the `research` skill. For reading that spans many files or large outputs, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
 
 For a bug you find mid-change, run [Bug Fix](../bug-fix/SKILL.md)'s Steps 1 to 3 before choosing a fix. For a measured performance or eval claim, use [Explain the Number](../principle-explain-the-number/SKILL.md) to vet the baseline before planning from it.
 

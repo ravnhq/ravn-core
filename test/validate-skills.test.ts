@@ -10,13 +10,18 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
-import { validateSkills } from "../scripts/validate-skills.ts";
+import {
+  skillBytesBudget,
+  validateSkills,
+} from "../scripts/validate-skills.ts";
 
 const repoDir = join(import.meta.dirname, "..");
 
 const copyDir = mkdtempSync(join(tmpdir(), "validate-skills-"));
 
 const repoProbe = ".agents/skills/probe-fixture";
+
+const shippedProbe = "plugins/agent/ravn-core/skills/probe-fixture";
 
 before(() => {
   for (const dir of [
@@ -47,7 +52,14 @@ const errorsWithProbe = (dir: string, skill: string) => {
   }
 };
 
-const skill = (frontmatter: string) => `---\n${frontmatter}\n---\n\n# Probe\n`;
+const skill = (frontmatter: string, body = "# Probe\n") =>
+  `---\n${frontmatter}\n---\n\n${body}`;
+
+const probeMeta =
+  "name: probe-fixture\ndescription: A throwaway validator probe.";
+
+// Two bytes per character: under the budget in characters, over it in bytes.
+const oversizedBody = "é".repeat(skillBytesBudget / 2);
 
 test("the repository's skills pass validation", () => {
   assert.deepEqual(validateSkills(repoDir), []);
@@ -58,6 +70,26 @@ const accepted: [string, string, string][] = [
     "a repo-local skill with a single-line description",
     repoProbe,
     skill("name: probe-fixture\ndescription: A throwaway validator probe."),
+  ],
+  [
+    "a shipped skill with every allowed frontmatter field",
+    shippedProbe,
+    skill(
+      `${probeMeta}\nlicense: See LICENSE.txt\ncompatibility: Requires git\ndisable-model-invocation: true\nmetadata:\n  proof: subjective`,
+    ),
+  ],
+  [
+    "a repo-local skill with a harness-specific field",
+    repoProbe,
+    skill(`${probeMeta}\nargument-hint: "[version]"`),
+  ],
+  [
+    "a skill exactly at the size budget",
+    shippedProbe,
+    skill(
+      probeMeta,
+      "x".repeat(skillBytesBudget - skill(probeMeta, "").length),
+    ),
   ],
 ];
 
@@ -91,6 +123,42 @@ const rejected: [string, string, string, string][] = [
     repoProbe,
     "# Probe\n",
     "missing YAML frontmatter",
+  ],
+  [
+    "a shipped skill with a field outside the allowlist",
+    shippedProbe,
+    skill(`${probeMeta}\nargument-hint: "[version]"`),
+    "frontmatter field `argument-hint` is not allowed",
+  ],
+  [
+    "a shipped skill with the experimental allowed-tools field",
+    shippedProbe,
+    skill(`${probeMeta}\nallowed-tools: Read`),
+    "frontmatter field `allowed-tools` is not allowed",
+  ],
+  [
+    "a shipped skill with an unknown metadata key",
+    shippedProbe,
+    skill(`${probeMeta}\nmetadata:\n  owner: someone`),
+    "frontmatter field `metadata.owner` is not allowed",
+  ],
+  [
+    "a shipped skill whose frontmatter is not valid YAML",
+    shippedProbe,
+    skill(`${probeMeta}\nlicense: [unclosed`),
+    "frontmatter must be valid YAML",
+  ],
+  [
+    "a shipped skill over the size budget in bytes",
+    shippedProbe,
+    skill(probeMeta, oversizedBody),
+    `SKILL.md is ${Buffer.byteLength(skill(probeMeta, oversizedBody))} bytes, over the ${skillBytesBudget}-byte budget`,
+  ],
+  [
+    "a repo-local skill over the size budget",
+    repoProbe,
+    skill(probeMeta, "x".repeat(skillBytesBudget)),
+    `SKILL.md is ${skillBytesBudget + skill(probeMeta, "").length} bytes, over the ${skillBytesBudget}-byte budget`,
   ],
 ];
 
