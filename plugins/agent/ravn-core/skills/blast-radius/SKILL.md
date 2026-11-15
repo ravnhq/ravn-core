@@ -4,7 +4,6 @@ description: >-
   Find what a change could break outside its diff, and prove the fact it is
   safe because of by running real code. Use for "blast radius of X", "what
   could this break", or a small diff you don't trust yet.
-disable-model-invocation: true
 license: See LICENSE.txt
 metadata:
   proof: subjective

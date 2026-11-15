@@ -1,7 +1,8 @@
 ---
 name: ask-ravn
-description: Find the ravn-core skill or flow that fits your work.
-disable-model-invocation: true
+description: >-
+  Map a request to the ravn-core skill or flow that fits. Use when the user asks
+  which skill to use, what ravn-core can do, or where to start a piece of work.
 metadata:
   proof: subjective
 ---

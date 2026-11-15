@@ -1,11 +1,10 @@
 ---
 name: learn-from-sessions
 description: >-
-  Turn past coding-agent sessions into structural fixes, project checks, or
-  project and global instructions. Use when asked to mine transcripts for
-  recurring corrections, extract reusable expectations, apply approved session
-  lessons, or keep lessons from being lost between sessions. Use session-pickup
-  to resume unfinished work.
+  Mine past coding-agent sessions for recurring corrections and turn them into
+  structural fixes, project checks, or instructions. Use for "learn from my
+  sessions", "what do I keep correcting", or applying approved session lessons.
+  Use session-pickup to resume work.
 license: See LICENSE.txt
 ---
 
