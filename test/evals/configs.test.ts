@@ -98,6 +98,73 @@ test("invocation policy follows YAML boolean semantics", () => {
   );
 });
 
+type EvalTest = z.infer<typeof evalModuleSchema>["default"]["tests"][number];
+
+// Skills a case asserts stay unused: `not-skill-used`, or on Codex a traced
+// SKILL.md read capped at zero.
+function unusedSkills(testCase: EvalTest) {
+  return testCase.assert.flatMap((assertion) => {
+    if (assertion.type === "not-skill-used") {
+      return z.union([z.string(), z.array(z.string())]).parse(assertion.value);
+    }
+
+    if (assertion.type !== "trajectory:step-count") {
+      return [];
+    }
+
+    const trace = z
+      .object({ pattern: z.string(), max: z.number().optional() })
+      .parse(assertion.value);
+
+    const skill = trace.pattern.match(/^\*(.+)\/SKILL\.md\*$/)?.[1];
+
+    return trace.max === 0 && skill !== undefined ? [skill] : [];
+  });
+}
+
+function staysOutOfItself(skill: string, tests: EvalTest[]) {
+  return tests.some(
+    (testCase) =>
+      testCase.metadata.kind === "stay-out" &&
+      unusedSkills(testCase).includes(skill),
+  );
+}
+
+test("a stay-out case must assert the skill under test stays unused", () => {
+  const stayOut = (assertion: EvalTest["assert"][number]): EvalTest => ({
+    metadata: { kind: "stay-out", fixture: "repo-a" },
+    vars: { request: "list the recent commits" },
+    assert: [assertion],
+  });
+
+  assert.ok(
+    staysOutOfItself("why", [
+      stayOut({ type: "not-skill-used", value: ["why", "how"] }),
+    ]),
+  );
+  assert.ok(
+    staysOutOfItself("why", [
+      stayOut({
+        type: "trajectory:step-count",
+        value: { type: "command", pattern: "*why/SKILL.md*", max: 0 },
+      }),
+    ]),
+  );
+  assert.ok(
+    !staysOutOfItself("why", [
+      stayOut({ type: "not-skill-used", value: ["how"] }),
+    ]),
+  );
+  assert.ok(
+    !staysOutOfItself("why", [
+      stayOut({
+        type: "trajectory:step-count",
+        value: { type: "command", pattern: "*why/SKILL.md*", min: 1 },
+      }),
+    ]),
+  );
+});
+
 async function loadTests(configPath: string) {
   return evalModuleSchema.parse(await import(configPath)).default.tests;
 }
@@ -124,6 +191,11 @@ for (const { name, configPath } of skills) {
         `${name} lacks a ${kind} case`,
       );
     }
+
+    assert.ok(
+      staysOutOfItself(name.split("/")[1] ?? "", tests),
+      `${name} needs a stay-out case that asserts it stays unused`,
+    );
 
     for (const route of tests.filter(
       (testCase) => testCase.metadata.kind === "route",

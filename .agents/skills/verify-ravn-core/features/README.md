@@ -51,7 +51,7 @@ Claude Code mods:
 - [Harness skill loading](./harness-skill-loading.md) covers Claude Code, Codex, and Pi loading a skill.
 - [Plugin skill evals](./skill-evals.md) covers one `ravn-core` skill's promptfoo cases.
 - [review-and-simplify](./review-and-simplify.md) covers the tier, the specialist fan-out in each harness, the seeded findings, and the applied simplification.
-- [why anchor script](./why-anchor-script.md) covers the `why` skill's anchor script.
+- [why and how](./why-and-how.md) covers `why` citing the commit that records a rationale and `how` walking a call path read-only, in all three harnesses.
 - [Repo check](./repo-check.md) covers `pnpm check`.
 - [Repo gates without private evals](./repo-gates.md) covers the eval-config skip reason, `evals/run.ts` stopping before it spends tokens, and the `validate` skill's eval fetch step.
 - [Dependency overrides](./dependency-overrides.md) covers the frozen install, the resolved versions of the overridden packages, and each open Dependabot alert's first patched version.
@@ -63,6 +63,7 @@ Claude Code mods:
 - [Learn from sessions](./learn-from-sessions.md) covers evidence-backed prevention proposals, structure-first destination choices, approval boundaries, approved application, and routing across all three harnesses.
 - [TypeScript best practices](./typescript-best-practices.md) covers loading the skill unprompted for a TypeScript change, applying its rules, and staying out of other languages.
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
+- [Attack the Premise and Build the Lever](./principles-premise-lever.md) covers naming and testing the premise two failed fixes shared, reverting the refuted fixes, and doing a 30-file caller migration with a rerunnable codemod.
 
 ## Not covered
 

@@ -33,7 +33,7 @@ Rung 4 is usually one small script that imports the same library the app ships a
 
 ## Steps
 
-1. **Read the change.** The diff, the symbols it adds, changes, and deletes, and what it now does differently, including the part the diff doesn't spell out. Run the anchor script from the [`why` skill](../why/SKILL.md)'s Step 2 on the changed files to pull their commits and PRs.
+1. **Read the change.** The diff, the symbols it adds, changes, and deletes, and what it now does differently, including the part the diff doesn't spell out. Pull the PR and its commits.
 2. **Find the one fact it's safe because of.** Most risky-looking changes are safe because of a single fact, like "this call only drops cache entries that are already dead". If it holds, most risky cases clear at once. Spend your time here, not on a long list of maybes.
 3. **Look where search stops.** Read the source of the library you call, and check its pinned version and any local patch. Work out when things run: microtasks, unmount and teardown, the framework's render and effect order. Follow what a symbol search misses: the JSON an API returns, a DB column, a wire format, another language reading the same bytes, a feature flag, code three hops downstream.
 4. **Rate each risk honestly.** Give it a real chance of happening and a real cost if it does. Keep the confirmed risks; list the ones you checked and cleared separately. Count a search that finds nothing as an answer, and name only callers and APIs you saw.
