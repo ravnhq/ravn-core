@@ -1,4 +1,6 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { basename, join, relative, sep } from "node:path";
 import { z } from "zod";
 import { pluginDirs } from "./plugins.ts";
@@ -67,6 +69,25 @@ const syncVersions = (check: boolean) => {
   if (marketplaceChanged) writeFileSync(marketplacePath, json(marketplace));
 
   for (const write of writes) writeFileSync(write.path, json(write.body));
+
+  // JSON.stringify expands every array onto its own lines; the repo's
+  // formatter puts the written files back in the layout `pnpm check` expects,
+  // so a sync changes only the version lines.
+  const written = [
+    ...(marketplaceChanged ? [marketplacePath] : []),
+    ...writes.map((write) => write.path),
+  ];
+
+  if (written.length > 0) {
+    const biome = createRequire(import.meta.url).resolve(
+      "@biomejs/biome/bin/biome",
+    );
+
+    execFileSync(process.execPath, [biome, "format", "--write", ...written], {
+      cwd: repoDir,
+      stdio: "ignore",
+    });
+  }
 };
 
 if (import.meta.main) {

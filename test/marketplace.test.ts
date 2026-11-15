@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, join, relative } from "node:path";
 import { test } from "node:test";
 import { pluginDirs, tiers } from "../scripts/plugins.ts";
@@ -123,6 +133,73 @@ test("sync-versions --check accepts the current tree", () => {
   );
 
   assert.equal(result.status, 0);
+});
+
+test("sync-versions changes only the version lines it syncs", () => {
+  const dir = mkdtempSync(join(tmpdir(), "sync-versions-"));
+
+  try {
+    for (const path of [
+      "scripts",
+      "plugins",
+      ".claude-plugin",
+      "biome.json",
+      ".gitignore",
+    ]) {
+      cpSync(join(repoDir, path), join(dir, path), { recursive: true });
+    }
+
+    symlinkSync(join(repoDir, "node_modules"), join(dir, "node_modules"));
+
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: dir, encoding: "utf8" });
+
+    git("init", "-q");
+    git("add", "-A");
+    git(
+      "-c",
+      "user.name=test",
+      "-c",
+      "user.email=test@example.com",
+      "commit",
+      "-qm",
+      "base",
+    );
+
+    const manifestPath = join(
+      dir,
+      relative(repoDir, ravnCoreDir),
+      "plugin.json",
+    );
+
+    const manifest = readFileSync(manifestPath, "utf8");
+
+    const { version } = JSON.parse(manifest);
+
+    writeFileSync(
+      manifestPath,
+      manifest.replace(`"version": "${version}"`, '"version": "99.0.0"'),
+    );
+
+    const result = spawnSync(
+      process.execPath,
+      [join(dir, "scripts/sync-versions.ts")],
+      { cwd: dir, encoding: "utf8" },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const changed = git("diff", "--numstat").trim().split("\n").sort();
+
+    assert.deepEqual(changed, [
+      "1\t1\t.claude-plugin/marketplace.json",
+      "1\t1\tplugins/agent/ravn-core/.cursor-plugin/plugin.json",
+      "1\t1\tplugins/agent/ravn-core/package.json",
+      "1\t1\tplugins/agent/ravn-core/plugin.json",
+    ]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("the ravn-core Cursor manifest matches plugin.json", () => {
