@@ -7,10 +7,10 @@ Use when building a new module or a non-trivial change where coding first would 
 ## 1. Sketch
 
 1. Write the caller's usage first: two or three realistic call sites, showing what they import, what they call, and what comes back. Derive the types from that usage; when the two disagree, change the sketch to fit the usage.
-2. Sketch the types, function signatures, and module layout as stubs: bodies that throw `not implemented`, with pseudocode comments for the logic. Use one file for a small change, and a module map plus type definitions for larger work. For whole-shape alternatives, follow [Design It Twice](DESIGN-IT-TWICE.md).
+2. Write the types, function signatures, and module layout into the files as stubs: every body throws `not implemented`, with pseudocode comments for its logic. Use one file for a small change, and a module map plus type definitions for larger work. For whole-shape alternatives, follow [Design It Twice](DESIGN-IT-TWICE.md).
 3. Screen the sketch against the [red flags](#red-flags). Assume the next contributor is an agent that sees only the files it opened, copies the nearest example, and takes the shortest path that compiles. Prefer the shape where a change that looks right from one file is right for the whole repo.
 
-The sketch is done when every module and signature exists as a stub that type-checks or imports cleanly, and every red flag is revised away.
+The sketch is done when every planned module and signature exists as a stub with no logic in its body, the stubs type-check or import cleanly, and every red flag is revised away. Start step 2 only from that state, even for a small module.
 
 ## 2. Implement against the sketch
 
