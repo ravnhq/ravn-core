@@ -1,5 +1,3 @@
 interface:
   display_name: "Review and Simplify"
-  short_description: "Tiered specialist review of a branch or PR, with safe simplifications applied"
-policy:
-  allow_implicit_invocation: false
+  short_description: "Tiered specialist review of a branch or PR, simplifications on request"

@@ -1,7 +1,8 @@
 ---
 name: ask-ravn
-description: Find the ravn-core skill or flow that fits your work.
-disable-model-invocation: true
+description: >-
+  Map a request to the ravn-core skill or flow that fits. Use when the user asks
+  which skill to use, what ravn-core can do, or where to start a piece of work.
 metadata:
   proof: subjective
 ---
@@ -52,10 +53,12 @@ Use these without the whole `ship` flow:
 | Test a plan or decision by interview | [grill-me](../grill-me/SKILL.md), the user-invoked wrapper around [grilling](../grilling/SKILL.md) |
 | Gather primary-source facts | [research](../research/SKILL.md) |
 | Check what a change could break elsewhere | [blast-radius](../blast-radius/SKILL.md) |
+| Replace, rename, or remove a function, API, endpoint, or column that still has callers | [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md) |
 | Create or audit a project's user-facing verification path | [create-verification-skill](../create-verification-skill/SKILL.md) or [maintain-verification-skill](../maintain-verification-skill/SKILL.md) |
 | Prove a property that tests rarely reach, such as a race, a retry, a state machine, or a parser, or bring that proof back in line with changed code | [create-formal-verification-skill](../create-formal-verification-skill/SKILL.md) or [maintain-formal-verification-skill](../maintain-formal-verification-skill/SKILL.md) |
 | Model-check a TLA+ spec and show each broken rule as the shortest path through a statechart | [statechart](../statechart/SKILL.md) |
 | Audit and fix how well a coding agent can work in a repo | [agent-readiness](../agent-readiness/SKILL.md) |
+| QA a running web app like a user and report each bug with screenshots and repro steps | [web-qa](../web-qa/SKILL.md) |
 | Keep a reviewable trail during unattended work | [show-me-your-work](../show-me-your-work/SKILL.md) |
 | Check a PR or stack's gates and merge readiness | [babysit](../babysit/SKILL.md) in `check` mode |
 | Write a PR body | [pr](../pr/SKILL.md) |
@@ -70,13 +73,15 @@ Apply principles when their conditions occur during any route:
 | Condition | Principle |
 |---|---|
 | Debugging a symptom | [fix-root-causes](../principle-fix-root-causes/SKILL.md) |
+| Two or more fixes on one premise have failed | [attack-the-premise](../principle-attack-the-premise/SKILL.md) |
 | Designing validation, error handling, or adapters | [boundary-discipline](../principle-boundary-discipline/SKILL.md) |
 | Writing types or signatures in a typed language | [type-system-discipline](../principle-type-system-discipline/SKILL.md) |
 | Writing or reviewing TypeScript | [typescript-best-practices](../typescript-best-practices/SKILL.md) |
 | Handling retries, restarts, or interrupted mutation | [make-operations-idempotent](../principle-make-operations-idempotent/SKILL.md) |
 | Coordinating writers of shared mutable state | [separate-before-serializing-shared-state](../principle-separate-before-serializing-shared-state/SKILL.md) |
-| Trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
+| Planning a measurement, or trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
 | Checking a finished output | [prove-it-works](../principle-prove-it-works/SKILL.md) |
+| Making the same change in many places, or work a reviewer must rerun | [build-the-lever](../principle-build-the-lever/SKILL.md) |
 | Large reads or outputs are crowding the session | [guard-the-context-window](../principle-guard-the-context-window/SKILL.md) |
 
 ## Phase boundaries

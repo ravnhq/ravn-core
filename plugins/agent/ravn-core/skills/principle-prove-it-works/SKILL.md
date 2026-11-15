@@ -1,10 +1,10 @@
 ---
 name: principle-prove-it-works
 description: >-
-  Apply after completing a task, before declaring done. Verify against the
-  real artifact (run the feature, read the actual value, inspect the diff),
-  not a proxy, self-report, or "it compiles."
-disable-model-invocation: true
+  Use before saying a feature, fix, or delegated task is done, and for "does it
+  work?", "verify this", "check it against the real code". Exercise the real
+  artifact (run the feature, read the actual value, inspect the diff), not a
+  proxy or self-report.
 metadata:
   proof: subjective
 ---

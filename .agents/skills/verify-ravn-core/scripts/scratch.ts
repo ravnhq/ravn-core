@@ -456,6 +456,426 @@ ChargedAtMostOnce == charges <= 1
   git(cwd, ["commit", "-qm", "feat: checkout model"]);
 }
 
+export const webQAScenarios = ["bug", "fix"];
+
+const cartStyles = (labelColor: string) => `body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+}
+main {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+.qty button,
+.btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.btn-primary {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #1d4ed8;
+  color: ${labelColor};
+  font-size: 16px;
+  cursor: pointer;
+}
+`;
+
+// "bug" builds a one-page static cart served by `npm start`, whose
+// "Place order" button paints its label in its own background color, so the
+// label is in the DOM but invisible. "fix" commits the readable label on a new
+// branch `fix/place-order-label`, leaving `main` as the base of a visual PR.
+export function webQAScratch(cwd: string, scenario: string) {
+  if (!webQAScenarios.includes(scenario))
+    throw new Error("Unknown scenario " + scenario);
+
+  if (scenario === "fix") {
+    git(cwd, ["switch", "-qc", "fix/place-order-label"]);
+    writeFileSync(join(cwd, "public", "style.css"), cartStyles("#fff"));
+    git(cwd, ["add", "public/style.css"]);
+    git(cwd, ["commit", "-qm", "fix: show the Place order label"]);
+
+    return;
+  }
+
+  initRepo(cwd);
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify(
+      {
+        name: "cart",
+        private: true,
+        type: "module",
+        scripts: { start: "node serve.ts" },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  mkdirSync(join(cwd, "public"), { recursive: true });
+  writeFileSync(
+    join(cwd, "serve.ts"),
+    `import { readFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { extname, join } from "node:path";
+
+const types: Record<string, string> = {
+  ".html": "text/html",
+  ".css": "text/css",
+  ".js": "text/javascript",
+};
+const port = Number(process.env.PORT ?? 4173);
+
+createServer((req, res) => {
+  const path = req.url === "/" ? "/index.html" : (req.url ?? "/");
+
+  try {
+    const body = readFileSync(join(import.meta.dirname, "public", path));
+
+    res.writeHead(200, { "content-type": types[extname(path)] ?? "text/plain" });
+    res.end(body);
+  } catch {
+    res.writeHead(404).end("not found");
+  }
+}).listen(port, () => console.log("cart on http://localhost:" + port));
+`,
+  );
+  writeFileSync(
+    join(cwd, "public", "index.html"),
+    `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Your cart</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Your cart</h1>
+      <ul>
+        <li data-price="18">Ceramic mug <span class="qty"><button aria-label="Fewer mugs">-</button> <output>1</output> <button aria-label="More mugs">+</button></span></li>
+        <li data-price="42">Pour-over kettle <span class="qty"><button aria-label="Fewer kettles">-</button> <output>1</output> <button aria-label="More kettles">+</button></span></li>
+      </ul>
+      <p>Total: <strong id="total">$60.00</strong></p>
+      <button class="btn-primary" id="place">Place order</button>
+      <p id="status" role="status"></p>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
+`,
+  );
+  writeFileSync(join(cwd, "public", "style.css"), cartStyles("#1d4ed8"));
+  writeFileSync(
+    join(cwd, "public", "app.js"),
+    `const total = document.getElementById("total");
+
+function update() {
+  let sum = 0;
+  for (const item of document.querySelectorAll("li")) {
+    sum += Number(item.dataset.price) * Number(item.querySelector("output").value);
+  }
+  total.textContent = "$" + sum.toFixed(2);
+}
+
+for (const item of document.querySelectorAll("li")) {
+  const [less, more] = item.querySelectorAll("button");
+  const count = item.querySelector("output");
+  less.onclick = () => {
+    count.value = Math.max(0, Number(count.value) - 1);
+    update();
+  };
+  more.onclick = () => {
+    count.value = Number(count.value) + 1;
+    update();
+  };
+}
+
+document.getElementById("place").onclick = () => {
+  document.getElementById("status").textContent =
+    "Order placed: " + total.textContent;
+};
+`,
+  );
+  writeFileSync(
+    join(cwd, "README.md"),
+    "# cart\n\nA one-page shopping cart. `npm start` serves it on `http://localhost:$PORT` (default 4173).\n",
+  );
+  writeFileSync(join(cwd, "CLAUDE.md"), "@AGENTS.md\n");
+  writeFileSync(
+    join(cwd, "AGENTS.md"),
+    "Run the app with `npm start`; set `PORT` to pick its port.\n",
+  );
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: shopping cart"]);
+}
+
+// A published money package whose deprecated formatPrice still has callers in
+// four files, beside its replacement formatMoney. The package is public, so
+// code outside the repo may call formatPrice too.
+function migrateScratch(cwd: string) {
+  initRepo(cwd);
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify(
+      {
+        name: "@acme/money",
+        version: "2.3.0",
+        type: "module",
+        exports: "./src/index.ts",
+        scripts: { test: "node --test" },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  mkdirSync(join(cwd, "src"), { recursive: true });
+  mkdirSync(join(cwd, "test"), { recursive: true });
+
+  const files = {
+    "src/money.ts": `export type Money = { cents: number; currency: string };
+
+/** @deprecated Use formatMoney. */
+export function formatPrice(cents: number): string {
+  return "$" + (cents / 100).toFixed(2);
+}
+
+export function formatMoney(money: Money): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: money.currency,
+  }).format(money.cents / 100);
+}
+`,
+    "src/index.ts": `export { formatMoney, formatPrice, type Money } from "./money.ts";
+export { cartTotal } from "./cart.ts";
+export { invoiceLine } from "./invoice.ts";
+export { receipt } from "./receipt.ts";
+`,
+    "src/cart.ts": `import { formatPrice } from "./money.ts";
+
+export function cartTotal(items: { cents: number }[]): string {
+  return formatPrice(items.reduce((sum, item) => sum + item.cents, 0));
+}
+`,
+    "src/invoice.ts": `import { formatPrice } from "./money.ts";
+
+export function invoiceLine(label: string, cents: number): string {
+  return label + ": " + formatPrice(cents);
+}
+`,
+    "src/receipt.ts": `import { formatPrice } from "./money.ts";
+
+export function receipt(paidCents: number, tipCents: number): string[] {
+  return ["Paid " + formatPrice(paidCents), "Tip " + formatPrice(tipCents)];
+}
+`,
+    "test/money.test.ts": `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { cartTotal, invoiceLine, receipt } from "../src/index.ts";
+
+test("formats dollar amounts", () => {
+  assert.equal(cartTotal([{ cents: 1250 }, { cents: 50 }]), "$13.00");
+  assert.equal(invoiceLine("Lamp", 4999), "Lamp: $49.99");
+  assert.deepEqual(receipt(2000, 300), ["Paid $20.00", "Tip $3.00"]);
+});
+`,
+    "README.md": `# @acme/money
+
+Formatting helpers for prices. Install from npm and call \`formatMoney({ cents, currency })\`.
+`,
+  };
+
+  for (const [path, contents] of Object.entries(files))
+    writeFileSync(join(cwd, path), contents);
+
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: money formatting"]);
+}
+
+const pricesSource = (
+  ttlMs: string,
+  clear: boolean,
+) => `import { TtlCache } from "./cache.ts";
+
+const store = new Map<string, number>([["widget", 10], ["gadget", 25]]);
+const cache = new TtlCache<number>(${ttlMs});
+
+// Readers get a copy, so no caller can change the store by accident.
+function loadPrices(): Map<string, number> {
+  return new Map(store);
+}
+
+export function getPrice(sku: string): number | undefined {
+  const hit = cache.get(sku);
+
+  if (hit !== undefined) return hit;
+  const price = loadPrices().get(sku);
+
+  if (price !== undefined) cache.set(sku, price);
+
+  return price;
+}
+
+export function setPrice(sku: string, price: number): void {
+  const prices = loadPrices();
+
+  prices.set(sku, price);${clear ? "\n  cache.clear();" : ""}
+}
+`;
+
+// One handler's body, varied so a plain text replace misses some calls.
+function handlerSource(n: number): string {
+  const name = "handler" + String(n).padStart(2, "0");
+
+  const call =
+    n % 3 === 0
+      ? `  logEvent("${name}.start", { id });`
+      : n % 3 === 1
+        ? `  logEvent(\n    "${name}.done",\n    {\n      id,\n      total: id * ${n},\n    },\n  );`
+        : `  logEvent(\`${name}.\${kind(id)}\`, pick({ id, n: ${n} }, "id"));`;
+
+  return `import { logEvent } from "../log.ts";
+
+const kind = (id: number) => (id % 2 === 0 ? "even" : "odd");
+const pick = <T extends object>(value: T, key: keyof T) => ({ [key]: value[key] });
+
+export function ${name}(id: number): void {
+${call}
+}
+`;
+}
+
+export const principleScenarios = ["premise", "lever"];
+
+// "premise" builds a price module whose setPrice writes to a copy of the
+// store, with two later commits that each fix the read cache on the belief
+// that a stale cache serves the old price; its test still fails. "lever"
+// builds 30 handlers that call logEvent(name, payload) in three shapes, for a
+// migration to recordEvent({ name, payload }).
+export function principleScratch(cwd: string, scenario: string) {
+  if (!principleScenarios.includes(scenario))
+    throw new Error("Unknown scenario " + scenario);
+
+  initRepo(cwd);
+  mkdirSync(join(cwd, "src"), { recursive: true });
+  mkdirSync(join(cwd, "test"), { recursive: true });
+
+  if (scenario === "lever") {
+    mkdirSync(join(cwd, "src", "handlers"), { recursive: true });
+    writeFileSync(
+      join(cwd, "src", "log.ts"),
+      `export const events: { name: string; payload: object }[] = [];
+
+export function logEvent(name: string, payload: object): void {
+  events.push({ name, payload });
+}
+`,
+    );
+
+    const names: string[] = [];
+
+    for (let n = 1; n <= 30; n += 1) {
+      const name = "handler" + String(n).padStart(2, "0");
+
+      names.push(name);
+      writeFileSync(
+        join(cwd, "src", "handlers", name + ".ts"),
+        handlerSource(n),
+      );
+    }
+
+    writeFileSync(
+      join(cwd, "test", "handlers.test.ts"),
+      `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { events } from "../src/log.ts";
+${names.map((name) => `import { ${name} } from "../src/handlers/${name}.ts";`).join("\n")}
+
+test("every handler records one event", () => {
+  const handlers = [${names.join(", ")}];
+
+  for (const handle of handlers) handle(4);
+  assert.equal(events.length, ${names.length});
+  assert.ok(events.every((event) => event.name.startsWith("handler")));
+});
+`,
+    );
+    git(cwd, ["add", "."]);
+    git(cwd, ["commit", "-qm", "feat: event handlers"]);
+
+    return;
+  }
+
+  writeFileSync(
+    join(cwd, "src", "cache.ts"),
+    `export class TtlCache<T> {
+  private readonly entries = new Map<string, { value: T; expiresAt: number }>();
+
+  private readonly ttlMs: number;
+
+  constructor(ttlMs: number) {
+    this.ttlMs = ttlMs;
+  }
+
+  get(key: string): T | undefined {
+    const entry = this.entries.get(key);
+
+    if (entry === undefined || entry.expiresAt <= Date.now()) return undefined;
+
+    return entry.value;
+  }
+
+  set(key: string, value: T): void {
+    this.entries.set(key, { value, expiresAt: Date.now() + this.ttlMs });
+  }
+
+  clear(): void {
+    this.entries.clear();
+  }
+}
+`,
+  );
+  writeFileSync(join(cwd, "src", "prices.ts"), pricesSource("60_000", false));
+  writeFileSync(
+    join(cwd, "test", "prices.test.ts"),
+    `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { getPrice, setPrice } from "../src/prices.ts";
+
+test("a new price is what the next read returns", () => {
+  assert.equal(getPrice("widget"), 10);
+  setPrice("widget", 12);
+  assert.equal(getPrice("widget"), 12);
+});
+`,
+  );
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: prices with a read cache"]);
+  writeFileSync(join(cwd, "src", "prices.ts"), pricesSource("1_000", false));
+  git(cwd, ["commit", "-qam", "fix: shorten the price cache TTL to 1s"]);
+  writeFileSync(join(cwd, "src", "prices.ts"), pricesSource("1_000", true));
+  git(cwd, ["commit", "-qam", "fix: clear the price cache in setPrice"]);
+}
+
 const [kind, dir, scenario] = process.argv.slice(2);
 
 if (import.meta.main) {
@@ -466,6 +886,12 @@ if (import.meta.main) {
     reviewScratch(resolve(dir));
   else if (kind === "formal-verification" && dir !== undefined)
     formalScratch(resolve(dir), scenario ?? "race");
+  else if (kind === "principles" && dir !== undefined)
+    principleScratch(resolve(dir), scenario ?? "premise");
+  else if (kind === "deprecate-and-migrate" && dir !== undefined)
+    migrateScratch(resolve(dir));
+  else if (kind === "web-qa" && dir !== undefined)
+    webQAScratch(resolve(dir), scenario ?? "bug");
   else if (kind === "statechart" && dir !== undefined)
     statechartScratch(resolve(dir));
   else {
@@ -474,6 +900,10 @@ if (import.meta.main) {
         babysitScenarios.join("|") +
         "] | bug-fix <dir> | review-and-simplify <dir> | formal-verification <dir> [" +
         formalScenarios.join("|") +
+        "] | principles <dir> [" +
+        principleScenarios.join("|") +
+        "] | deprecate-and-migrate <dir> | web-qa <dir> [" +
+        webQAScenarios.join("|") +
         "] | statechart <dir>",
     );
     process.exit(64);

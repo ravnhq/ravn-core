@@ -54,7 +54,7 @@ The repo-root `package.json` points Pi at the `ravn-core` skills. From a checkou
 | Codex | `$ask-ravn` | `$ship` |
 | Pi | `/skill:ask-ravn` | `/skill:ship` |
 
-Most `ravn-core` skills, including `ask-ravn`, `ship`, `why`, and the principles, set `disable-model-invocation: true`. They run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
+Read-only and advisory skills, such as `why`, `how`, `review-and-simplify`, and most principles, start on their own when a request fits them. Skills that push, open or merge PRs, or write a new skill into your project, such as `ship`, `bug-fix`, and `babysit`, set `disable-model-invocation: true` and run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
 
 Evals prove `ravn-core` in Claude Code, Codex, and Pi. Cursor installs the same package but isn't in the eval matrix yet.
 
