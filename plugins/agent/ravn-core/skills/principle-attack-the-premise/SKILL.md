@@ -4,7 +4,6 @@ description: >-
   Apply when two or more fixes that share one premise have failed the same
   gate. Write the premise down and test it directly before you write another
   fix that assumes it.
-disable-model-invocation: true
 license: See LICENSE.txt
 metadata:
   proof: subjective
