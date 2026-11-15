@@ -2,7 +2,7 @@
 
 Screenshots in a PR are QA evidence. Each one shows what the real product renders at one location, framed so a reviewer who has never opened the page can tell what changed.
 
-Capture with the agent-browser CLI. Check it with `agent-browser --version`; if the command is missing, stop and tell the user to install it with `npm install -g agent-browser` and then `agent-browser install`, or with `brew install agent-browser`. Read `agent-browser skills get core` once for the commands of the installed version. When the repo has a `verify-<app>` skill, launch, seed, and sign in through it.
+Capture with the agent-browser CLI. Check it with `agent-browser --version`; if the command is missing, stop and tell the user to install it with `npm install -g agent-browser` and then `agent-browser install`, or with `brew install agent-browser`. Installing it, an `npx -y agent-browser` download included, is the user's call. Read `agent-browser skills get core` once for the commands of the installed version. When the repo has a `verify-<app>` skill, launch, seed, and sign in through it.
 
 ## 1. List the locations
 
@@ -20,6 +20,8 @@ Give every surface its own row: "`DataTable`, as in Orders, Invoices, and Report
 | Identical framing | Capture the same region at the same dimensions for both shots of a pair, even when one state is taller: fix the viewport with `agent-browser set viewport <w> <h>` and capture one element with `agent-browser screenshot <selector> <path>`. |
 | Context | Keep the heading or label that names the thing, nearby rows or controls, and a little padding on every side. For a hover, focus, or open-menu state, keep the trigger and the overlay in one frame. When the bug only makes sense in its page, show more of the page. |
 | No empty bands | Crop out browser chrome, app navigation, and regions the change does not touch. For full-width layouts, shrink the viewport instead of leaving wide blank space beside short content. |
+
+When every pair is captured and compared (step 4), close the browser session, stop the servers you started, and remove the base worktree.
 
 ## 3. Redact and audit
 

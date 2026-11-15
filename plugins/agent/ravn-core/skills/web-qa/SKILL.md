@@ -14,7 +14,7 @@ Only the target is required: a URL, or the app in this repo. Unless the user say
 
 ## 1. Set up
 
-1. Check the driver with `agent-browser --version`. If the command is missing, stop and tell the user: "web-qa drives the browser with the agent-browser CLI. Install it with `npm install -g agent-browser` and then `agent-browser install`, or with `brew install agent-browser`." Then read `agent-browser skills get core` once: it documents the commands of the installed version.
+1. Check the driver with `agent-browser --version`. If the command is missing, end the run at this step with this reply, because installing software, an `npx -y agent-browser` download included, is the user's call: "web-qa drives the browser with the agent-browser CLI. Install it with `npm install -g agent-browser` and then `agent-browser install`, or with `brew install agent-browser`." Then read `agent-browser skills get core` once: it documents the commands of the installed version.
 2. Reach the app. When the repo has a `verify-<app>` skill, launch, seed, and sign in through it, and take the feature list from its map. Otherwise use the repo's documented start command. Sign in only with credentials the user gave or the repo seeds; ask the user for a one-time code.
 3. Create `<out>/screenshots` and `<out>/videos`, write a `.gitignore` holding `*` in `<out>` so git leaves the evidence out, copy [the report template](assets/report-template.md) to `<out>/report.md`, fill in its header, and run `agent-browser --session <session> open <url>`.
 
