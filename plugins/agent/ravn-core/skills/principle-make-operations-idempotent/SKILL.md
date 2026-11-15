@@ -1,9 +1,10 @@
 ---
 name: principle-make-operations-idempotent
 description: >-
-  Apply when writing a command, migration, job, or setup script that must
-  survive crashes, restarts, and retries, or for "what if this runs twice".
-  Converge to the same end state whatever a prior run left behind.
+  Use when writing or reviewing a command, migration, job, or setup script that
+  may crash, restart, retry, or run twice ("is this retry-safe", "what if this
+  runs twice"). Make it converge to the same end state whatever a prior run
+  left.
 license: See LICENSE.txt
 metadata:
   proof: subjective

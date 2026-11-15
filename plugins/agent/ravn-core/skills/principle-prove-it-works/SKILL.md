@@ -1,10 +1,10 @@
 ---
 name: principle-prove-it-works
 description: >-
-  Apply before declaring a feature, fix, or delegated task done, or for "does it
-  work?", "verify this", "test it end to end". Exercise the real artifact (run
-  the feature, read the actual value, inspect the diff) instead of a proxy or
-  self-report.
+  Use before saying a feature, fix, or delegated task is done, and for "does it
+  work?", "verify this", "check it against the real code". Exercise the real
+  artifact (run the feature, read the actual value, inspect the diff), not a
+  proxy or self-report.
 metadata:
   proof: subjective
 ---

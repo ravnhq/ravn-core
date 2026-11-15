@@ -1,10 +1,10 @@
 ---
 name: review-and-simplify
 description: >-
-  Review a branch, diff, or GitHub PR for bugs and risks: "review this", "review
-  my branch", "look over my changes", "check this PR". Risk-tiered specialist
-  subagents, judged findings, one verdict; applies safe simplifications only
-  when asked to fix or simplify.
+  Code review for a branch, diff, or GitHub PR. Use for every review request:
+  "review this", "review my branch", "look over my changes", "check this PR".
+  Risk-tiered specialist subagents, judged findings, one verdict; applies safe
+  simplifications only when asked to fix or simplify.
 metadata:
   proof: subjective
 ---

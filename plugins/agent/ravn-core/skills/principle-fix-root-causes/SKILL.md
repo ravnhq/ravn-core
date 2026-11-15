@@ -1,7 +1,7 @@
 ---
 name: principle-fix-root-causes
 description: >-
-  Apply when debugging: an error, crash, failing or flaky test, or wrong output
+  Use when debugging an error, crash, failing or flaky test, or wrong output
   ("debug this", "fix this error", "it broke after..."), and before adding a
   guard, retry, or catch around a symptom. Trace to the first wrong step and fix
   it there.
