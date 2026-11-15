@@ -271,17 +271,152 @@ export function openSession(user: string, token: string): Session {
   git(cwd, ["commit", "-qm", "feat: page slices and sessions"]);
 }
 
-const [kind, dir, scenario = "thread"] = process.argv.slice(2);
+const leaseTypes = `export type Lease = { worker: string; expiresAt: number };
+
+export const LEASE_MS = 30_000;
+`;
+
+const leaseSource = (fixed: boolean) =>
+  leaseTypes +
+  (fixed
+    ? `
+export interface LeaseStore {
+  // Writes lease when job has no lease unexpired at now, as one atomic step,
+  // and returns whether it wrote.
+  claim(job: string, lease: Lease, now: number): Promise<boolean>;
+}
+
+export class MemoryLeaseStore implements LeaseStore {
+  private readonly leases = new Map<string, Lease>();
+
+  async claim(job: string, lease: Lease, now: number): Promise<boolean> {
+    const held = this.leases.get(job);
+
+    if (held !== undefined && held.expiresAt > now) return false;
+    this.leases.set(job, lease);
+
+    return true;
+  }
+}
+
+// Claims job for worker until now + LEASE_MS. At most one worker holds a job's
+// unexpired lease at a time, so a job never runs twice at once.
+export async function acquire(
+  store: LeaseStore,
+  job: string,
+  worker: string,
+  now: number,
+): Promise<boolean> {
+  return store.claim(job, { worker, expiresAt: now + LEASE_MS }, now);
+}
+`
+    : `
+export interface LeaseStore {
+  get(job: string): Promise<Lease | undefined>;
+  put(job: string, lease: Lease): Promise<void>;
+}
+
+export class MemoryLeaseStore implements LeaseStore {
+  private readonly leases = new Map<string, Lease>();
+
+  async get(job: string): Promise<Lease | undefined> {
+    return this.leases.get(job);
+  }
+
+  async put(job: string, lease: Lease): Promise<void> {
+    this.leases.set(job, lease);
+  }
+}
+
+// Claims job for worker until now + LEASE_MS. At most one worker holds a job's
+// unexpired lease at a time, so a job never runs twice at once.
+export async function acquire(
+  store: LeaseStore,
+  job: string,
+  worker: string,
+  now: number,
+): Promise<boolean> {
+  const held = await store.get(job);
+
+  if (held !== undefined && held.expiresAt > now) return false;
+  await store.put(job, { worker, expiresAt: now + LEASE_MS });
+
+  return true;
+}
+`);
+
+export const formalScenarios = ["race", "fix"];
+
+// "race" builds a job-lease repo whose acquire reads the lease and writes it
+// in two store calls, so two workers can both claim one job; its tests acquire
+// in sequence and pass on the bug. "fix" commits a one-call claim on top of an
+// existing "race" repo, without touching whatever verifies it.
+export function formalScratch(cwd: string, scenario: string) {
+  if (!formalScenarios.includes(scenario))
+    throw new Error("Unknown scenario " + scenario);
+
+  if (scenario === "fix") {
+    writeFileSync(join(cwd, "src", "lease.ts"), leaseSource(true));
+    git(cwd, ["add", "src/lease.ts"]);
+    git(cwd, ["commit", "-qm", "fix: claim the lease in one store operation"]);
+
+    return;
+  }
+
+  initRepo(cwd);
+  mkdirSync(join(cwd, "src"), { recursive: true });
+  mkdirSync(join(cwd, "test"), { recursive: true });
+  writeFileSync(join(cwd, "src", "lease.ts"), leaseSource(false));
+  writeFileSync(
+    join(cwd, "test", "lease.test.ts"),
+    `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { acquire, LEASE_MS, MemoryLeaseStore } from "../src/lease.ts";
+
+test("a held lease refuses a second worker until it expires", async () => {
+  const store = new MemoryLeaseStore();
+
+  assert.equal(await acquire(store, "nightly-export", "worker-a", 0), true);
+  assert.equal(await acquire(store, "nightly-export", "worker-b", 1), false);
+  assert.equal(
+    await acquire(store, "nightly-export", "worker-b", LEASE_MS),
+    true,
+  );
+});
+`,
+  );
+  writeFileSync(
+    join(cwd, "README.md"),
+    "# jobs\n\nWorkers call `acquire` in `src/lease.ts` before they run a scheduled job, and run it only when `acquire` returns true.\n",
+  );
+  // One home for project skills that every harness may write to; a headless
+  // Claude Code run is refused writes under .claude/.
+  writeFileSync(
+    join(cwd, "AGENTS.md"),
+    "Project skills live in `.agents/skills/<name>/SKILL.md`.\n",
+  );
+  writeFileSync(join(cwd, "CLAUDE.md"), "@AGENTS.md\n");
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: job leases"]);
+}
+
+const [kind, dir, scenario] = process.argv.slice(2);
 
 if (import.meta.main) {
   if (kind === "babysit" && dir !== undefined)
-    babysitScratch(resolve(dir), scenario);
+    babysitScratch(resolve(dir), scenario ?? "thread");
   else if (kind === "bug-fix" && dir !== undefined) bugFixScratch(resolve(dir));
   else if (kind === "review-and-simplify" && dir !== undefined)
     reviewScratch(resolve(dir));
+  else if (kind === "formal-verification" && dir !== undefined)
+    formalScratch(resolve(dir), scenario ?? "race");
   else {
     console.error(
-      "usage: scratch.ts babysit <dir> [thread|approved|late] | bug-fix <dir> | review-and-simplify <dir>",
+      "usage: scratch.ts babysit <dir> [" +
+        babysitScenarios.join("|") +
+        "] | bug-fix <dir> | review-and-simplify <dir> | formal-verification <dir> [" +
+        formalScenarios.join("|") +
+        "]",
     );
     process.exit(64);
   }
