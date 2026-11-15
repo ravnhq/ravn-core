@@ -711,6 +711,138 @@ Formatting helpers for prices. Install from npm and call \`formatMoney({ cents, 
   git(cwd, ["commit", "-qm", "feat: money formatting"]);
 }
 
+// Three packages, each with its own hand-rolled config loader. They disagree
+// on shared variables: DEBUG is truthy, "true", or "1"; TIMEOUT_MS="30s" reads
+// as 30 in api and cli but 5000 in worker; a missing DATABASE_URL defaults to
+// a local URL in api and to "" in worker. No package validates anything.
+function figureScratch(cwd: string) {
+  initRepo(cwd);
+
+  const files = {
+    "packages/api/src/config.ts": `export type ApiConfig = {
+  port: number;
+  timeoutMs: number;
+  debug: boolean;
+  databaseUrl: string;
+};
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
+  return {
+    port: parseInt(env.API_PORT || "8080"),
+    timeoutMs: parseInt(env.TIMEOUT_MS || "5000"),
+    debug: !!env.DEBUG,
+    databaseUrl: env.DATABASE_URL || "postgres://localhost:5432/app",
+  };
+}
+`,
+    "packages/api/src/server.ts": `import { loadConfig } from "./config.ts";
+
+export function describeServer(env: NodeJS.ProcessEnv = process.env): string {
+  const config = loadConfig(env);
+
+  return "api on :" + config.port + " (timeout " + config.timeoutMs + "ms)";
+}
+`,
+    "packages/api/test/config.test.ts": `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { describeServer } from "../src/server.ts";
+
+test("api uses its defaults", () => {
+  assert.equal(describeServer({}), "api on :8080 (timeout 5000ms)");
+});
+
+test("api reads its port and timeout", () => {
+  assert.equal(
+    describeServer({ API_PORT: "9090", TIMEOUT_MS: "250" }),
+    "api on :9090 (timeout 250ms)",
+  );
+});
+`,
+    "packages/worker/src/config.ts": `export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
+  const concurrency = Number(env.WORKER_CONCURRENCY ?? 4);
+
+  return {
+    concurrency,
+    timeoutMs: Number(env.TIMEOUT_MS) || 5000,
+    debug: env.DEBUG === "true",
+    databaseUrl: env.DATABASE_URL ?? "",
+  };
+}
+`,
+    "packages/worker/src/pool.ts": `import { loadConfig } from "./config.ts";
+
+export function slots(env: NodeJS.ProcessEnv = process.env): number[] {
+  const { concurrency } = loadConfig(env);
+
+  return Array.from({ length: concurrency }, (_, index) => index);
+}
+`,
+    "packages/worker/test/config.test.ts": `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { loadConfig } from "../src/config.ts";
+import { slots } from "../src/pool.ts";
+
+test("worker defaults to four slots", () => {
+  assert.equal(slots({}).length, 4);
+});
+
+test("worker reads its concurrency", () => {
+  assert.equal(loadConfig({ WORKER_CONCURRENCY: "8" }).concurrency, 8);
+});
+`,
+    "packages/cli/src/config.ts": `import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+export function loadConfig(
+  env: NodeJS.ProcessEnv = process.env,
+  cwd: string = process.cwd(),
+) {
+  const path = join(cwd, ".clirc.json");
+  const file = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
+
+  return {
+    apiUrl: env.API_URL || file.apiUrl || "http://localhost:8080",
+    timeoutMs: parseInt(env.TIMEOUT_MS || file.timeoutMs || "5000"),
+    debug: env.DEBUG === "1" || file.debug === true,
+  };
+}
+`,
+    "packages/cli/test/config.test.ts": `import assert from "node:assert/strict";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { test } from "node:test";
+import { loadConfig } from "../src/config.ts";
+
+test("cli reads .clirc.json under the environment", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clirc-"));
+
+  writeFileSync(
+    join(dir, ".clirc.json"),
+    JSON.stringify({ apiUrl: "https://api.example.com", timeoutMs: 900 }),
+  );
+  assert.deepEqual(loadConfig({ TIMEOUT_MS: "1200" }, dir), {
+    apiUrl: "https://api.example.com",
+    timeoutMs: 1200,
+    debug: false,
+  });
+});
+`,
+    "README.md": `# scratch monorepo
+
+Three packages: \`api\`, \`worker\`, and \`cli\`. Each reads its settings from the environment; \`cli\` also reads \`.clirc.json\`. Run \`npm test\` from the root.
+`,
+  };
+
+  for (const [path, contents] of Object.entries(files)) {
+    mkdirSync(dirname(join(cwd, path)), { recursive: true });
+    writeFileSync(join(cwd, path), contents);
+  }
+
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: api, worker, and cli packages"]);
+}
+
 const pricesSource = (
   ttlMs: string,
   clear: boolean,
@@ -894,6 +1026,8 @@ if (import.meta.main) {
     webQAScratch(resolve(dir), scenario ?? "bug");
   else if (kind === "statechart" && dir !== undefined)
     statechartScratch(resolve(dir));
+  else if (kind === "figure-it-out" && dir !== undefined)
+    figureScratch(resolve(dir));
   else {
     console.error(
       "usage: scratch.ts babysit <dir> [" +
@@ -904,7 +1038,7 @@ if (import.meta.main) {
         principleScenarios.join("|") +
         "] | deprecate-and-migrate <dir> | web-qa <dir> [" +
         webQAScenarios.join("|") +
-        "] | statechart <dir>",
+        "] | statechart <dir> | figure-it-out <dir>",
     );
     process.exit(64);
   }
