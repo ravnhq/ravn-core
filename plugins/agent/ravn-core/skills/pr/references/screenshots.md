@@ -2,7 +2,7 @@
 
 Screenshots in a PR are QA evidence. Each one shows what the real product renders at one location, framed so a reviewer who has never opened the page can tell what changed.
 
-Capture with the agent-browser CLI. Check it with `agent-browser --version`; if the command is missing, stop and tell the user to install it with `npm install -g agent-browser` and then `agent-browser install`, or with `brew install agent-browser`. Installing it, an `npx -y agent-browser` download included, is the user's call. Read `agent-browser skills get core` once for the commands of the installed version. When the repo has a `verify-<app>` skill, launch, seed, and sign in through it.
+Capture with the agent-browser CLI. Check it with `agent-browser --version`; if the command is missing, stop and tell the user to install it with `npm install -g agent-browser` and then `agent-browser install`, or with `brew install agent-browser`. Installing it, a one-off package download included, is the user's call. Read `agent-browser skills get core` once for the commands of the installed version. When the repo has a `verify-<app>` skill, launch, seed, and sign in through it.
 
 ## 1. List the locations
 
