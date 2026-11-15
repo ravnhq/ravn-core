@@ -1,10 +1,10 @@
 ---
 name: principle-separate-before-serializing-shared-state
 description: >-
-  Apply when concurrent actors might write to the same file, branch, key, or
-  state object. Eliminate the sharing first; serialize structurally only when
-  one shared writer is a real invariant.
-disable-model-invocation: true
+  Use when designing state that parallel agents, workers, jobs, or processes
+  write ("overlapping jobs", "race condition", "do we need a lock"). Give each
+  writer its own file, key, or branch first; serialize only a real single-writer
+  invariant.
 license: See LICENSE.txt
 metadata:
   proof: subjective

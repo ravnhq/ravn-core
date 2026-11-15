@@ -1,5 +1,3 @@
 interface:
   display_name: "Ask Ravn"
   short_description: "Find the right ravn-core skill or flow"
-policy:
-  allow_implicit_invocation: false

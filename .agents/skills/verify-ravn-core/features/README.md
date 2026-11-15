@@ -51,7 +51,7 @@ Claude Code mods:
 - [Harness skill loading](./harness-skill-loading.md) covers Claude Code, Codex, and Pi loading a skill.
 - [Plugin skill evals](./skill-evals.md) covers one `ravn-core` skill's promptfoo cases.
 - [review-and-simplify](./review-and-simplify.md) covers the tier, the specialist fan-out in each harness, the seeded findings, and the applied simplification.
-- [why anchor script](./why-anchor-script.md) covers the `why` skill's anchor script.
+- [why and how](./why-and-how.md) covers `why` citing the commit that records a rationale and `how` walking a call path read-only, in all three harnesses.
 - [Repo check](./repo-check.md) covers `pnpm check`.
 - [Repo gates without private evals](./repo-gates.md) covers the eval-config skip reason, `evals/run.ts` stopping before it spends tokens, and the `validate` skill's eval fetch step.
 - [Dependency overrides](./dependency-overrides.md) covers the frozen install, the resolved versions of the overridden packages, and each open Dependabot alert's first patched version.
@@ -60,10 +60,12 @@ Claude Code mods:
 - [babysit merge-readiness workflow](./babysit.md) covers gate discovery, thread triage, merge-ready reporting, proof before merging, merging on request, merge-queue drops, and background watching, against a simulated GitHub.
 - [bug-fix workflow](./bug-fix.md) covers the repro, the root cause, red-then-green history on a new branch, and isolating a dirty tree in a worktree.
 - [Formal verification skills](./formal-verification.md) covers `create-formal-verification-skill` reporting a seeded race with a failing test and a rerunnable verify skill, and `maintain-formal-verification-skill` updating that verification after the code is fixed without it.
+- [Deprecate and migrate](./deprecate-and-migrate.md) covers inventorying a deprecated function's callers with the bundled script, moving them to the replacement, keeping the public old export, and planning expand, migrate, contract.
 - [Web QA and PR screenshots](./web-qa.md) covers `web-qa` reporting a seeded invisible button label with a screenshot and repro steps, and `pr` laying out before/after screenshots of its fix.
 - [Learn from sessions](./learn-from-sessions.md) covers evidence-backed prevention proposals, structure-first destination choices, approval boundaries, approved application, and routing across all three harnesses.
 - [TypeScript best practices](./typescript-best-practices.md) covers loading the skill unprompted for a TypeScript change, applying its rules, and staying out of other languages.
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
+- [Attack the Premise and Build the Lever](./principles-premise-lever.md) covers naming and testing the premise two failed fixes shared, reverting the refuted fixes, and doing a 30-file caller migration with a rerunnable codemod.
 
 ## Not covered
 

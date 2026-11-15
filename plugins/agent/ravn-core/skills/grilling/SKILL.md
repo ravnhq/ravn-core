@@ -1,6 +1,9 @@
 ---
 name: grilling
-description: Grill the user relentlessly about a plan, decision, or idea. Use to stress-test their thinking or on any 'grill' phrase.
+description: >-
+  Grill the user relentlessly about a plan, design, or decision, one round of
+  questions at a time. Use for "grill me", "poke holes in this", or "stress-test
+  my plan".
 license: See LICENSE.txt
 metadata:
   proof: subjective

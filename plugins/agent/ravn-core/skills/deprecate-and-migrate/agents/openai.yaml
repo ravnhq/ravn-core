@@ -1,0 +1,3 @@
+interface:
+  display_name: "Deprecate and Migrate"
+  short_description: "Move every caller before removing an old API"

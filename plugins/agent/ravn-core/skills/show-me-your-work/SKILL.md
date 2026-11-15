@@ -1,9 +1,10 @@
 ---
 name: show-me-your-work
 description: >-
-  Keep a reviewable decision trail for unattended or multi-phase work: a TSV
-  log with one row per decision (what, why, evidence, result).
-disable-model-invocation: true
+  Keep a decision log for unattended or multi-phase work: a TSV with one row per
+  decision (what, why, evidence, result) and an independent review of it. Use
+  for "show your work", "log your decisions", or a long run the user will review
+  later.
 license: See LICENSE.txt
 metadata:
   proof: subjective

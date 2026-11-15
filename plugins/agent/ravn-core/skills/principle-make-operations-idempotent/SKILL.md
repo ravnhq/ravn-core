@@ -1,10 +1,10 @@
 ---
 name: principle-make-operations-idempotent
 description: >-
-  Apply when designing commands, lifecycle steps, or processing loops that run
-  amid crashes, restarts, and retries. Converge to the same end state
-  regardless of partial prior runs.
-disable-model-invocation: true
+  Use when writing or reviewing a command, migration, job, or setup script that
+  may crash, restart, retry, or run twice ("is this retry-safe", "what if this
+  runs twice"). Make it converge to the same end state whatever a prior run
+  left.
 license: See LICENSE.txt
 metadata:
   proof: subjective

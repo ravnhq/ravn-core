@@ -1,6 +1,10 @@
 ---
 name: codebase-design
-description: Shared vocabulary for designing deep modules. Use when designing or improving a module interface, placing a seam, or making code testable or AI-navigable, and when another skill needs the deep-module vocabulary.
+description: >-
+  Deep-module design vocabulary: interfaces, seams, depth, locality. Use when
+  designing or reshaping one module's interface, deciding where a seam goes, or
+  making code testable or AI-navigable, and when another skill needs the
+  vocabulary.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -45,6 +49,7 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 ## Going deeper
 
 - **Deepening a cluster given its dependencies**: [DEEPENING.md](DEEPENING.md), dependency categories, seam discipline, and replace-don't-layer testing.
+- **Building a new module, or a design that keeps needing the same workaround**: [Sketch First](SKETCH-FIRST.md), stub the types and signatures before code, implement against the sketch, and scrap it when the workaround recurs.
 - **Exploring alternative interfaces**: [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md), parallel sub-agents each design the interface a radically different way; compare on depth, locality, and seam placement.
 - **Code that is hard to trace, or a proposed new layer or mutable state**: [Minimize Reader Load](MINIMIZE-READER-LOAD.md).
 - **Replacing an internal API** when old callers remain, no external users need compatibility, and coordinated breaking changes are permitted: [Migrate Callers Then Delete Legacy APIs](MIGRATE-CALLERS.md).
