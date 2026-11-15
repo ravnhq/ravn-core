@@ -25,6 +25,7 @@ type Pr = {
   reviewDecision?: string;
   head?: string;
   base?: string;
+  fork?: boolean;
   checks?: { name: string; bucket: string }[];
   threads?: { resolved: boolean; replies?: number }[];
   changesRequestedBy?: string[];
@@ -65,6 +66,7 @@ function fakeGh(...prs: Pr[]): Run {
           headRefOid: pr.head ?? "a".repeat(40),
           headRefName: "branch-" + number,
           baseRefName: pr.base ?? "main",
+          isCrossRepository: pr.fork ?? false,
         }),
       );
 
@@ -487,6 +489,18 @@ test("a PR whose base is not the branch below it breaks the stack", () => {
   assert.equal(result.verdict, "GATE");
   assert.equal(result.frontier?.number, 2);
   assert.match(result.reason, /branch-1/);
+});
+
+test("a fork PR's branch never parents the PR above it, even when the names match", () => {
+  const run = fakeGh(
+    { number: 1, fork: true },
+    { number: 2, base: "branch-1" },
+  );
+
+  const result = inspect(["1", "2"], defaults, run);
+
+  assert.equal(result.verdict, "GATE");
+  assert.equal(result.frontier?.number, 2);
 });
 
 test("the state key covers the options, and stale state reads as none", () => {

@@ -1,9 +1,10 @@
 ---
 name: domain-modeling
 description: >-
-  Build and sharpen a project's domain model. Use when discussing codebase
-  terminology, writing a GLOSSARY.md or ADR, or choosing structures for stateful
-  logic, scattered branches, or repeated shape assumptions.
+  Settle domain terms and representations. Use for "what should we call this", a
+  term the user and code name differently, writing GLOSSARY.md or an ADR, or
+  choosing structures for stateful logic, scattered branches, or repeated shape
+  assumptions.
 license: See LICENSE.txt
 metadata:
   proof: subjective

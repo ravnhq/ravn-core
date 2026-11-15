@@ -1,8 +1,9 @@
 ---
 name: explain-change
 description: >-
-  Teach a code change with text diagrams and a quiz. Use when asked to
-  explain, walk through, or teach a diff, branch, commit, or PR.
+  Teach a code change with text diagrams and a quiz. Use for "explain this PR",
+  "walk me through this diff", or learning a branch or commit well enough to
+  review it. Use review-and-simplify to find its bugs.
 license: See LICENSE.txt
 metadata:
   proof: subjective

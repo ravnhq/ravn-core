@@ -6,7 +6,7 @@ Apply the simplify findings you kept, then prove the repo's checks still pass. C
 
 All of these hold, or every simplify finding stays a reported `suggestion`:
 
-- The user did not ask for a report only.
+- The user asked for simplifications, as SKILL.md's Scope defines, and not for a report only.
 - The change is the user's own: a local branch, or a pull request whose author is the `gh` user (`gh api user --jq .login`) and whose head is checked out in the repo root with no uncommitted changes.
 - The finding's file is absent from Step 1's `git status --porcelain` output, so it holds no uncommitted work of the user's. Run `git status --porcelain` once more just before you edit, and skip any file that appears in it now.
 

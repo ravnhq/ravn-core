@@ -1,5 +1,3 @@
 interface:
   display_name: "Fix Root Causes"
   short_description: "Trace a bug to its cause"
-policy:
-  allow_implicit_invocation: false

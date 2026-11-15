@@ -1,10 +1,10 @@
 ---
 name: principle-fix-root-causes
 description: >-
-  Apply when choosing where to fix a bug. Trace each symptom back to the first
-  place the system went wrong and fix it there. A guard is a fix only when the
-  state it handles is legitimate.
-disable-model-invocation: true
+  Use when debugging an error, crash, failing or flaky test, or wrong output
+  ("debug this", "fix this error", "it broke after..."), and before adding a
+  guard, retry, or catch around a symptom. Trace to the first wrong step and fix
+  it there.
 license: See LICENSE.txt
 metadata:
   proof: subjective

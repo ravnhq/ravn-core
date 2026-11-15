@@ -1,7 +1,10 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
-disable-model-invocation: true
+description: >-
+  Survey a codebase for refactors that deepen shallow modules, as an HTML
+  report, then grill the pick. Use for "improve the architecture", "what should
+  we refactor", "where is this code hard to change". For one module's interface,
+  use codebase-design.
 license: See LICENSE.txt
 metadata:
   proof: subjective
