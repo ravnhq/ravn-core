@@ -53,6 +53,7 @@ Use these without the whole `ship` flow:
 | Test a plan or decision by interview | [grill-me](../grill-me/SKILL.md), the user-invoked wrapper around [grilling](../grilling/SKILL.md) |
 | Gather primary-source facts | [research](../research/SKILL.md) |
 | Check what a change could break elsewhere | [blast-radius](../blast-radius/SKILL.md) |
+| Replace, rename, or remove a function, API, endpoint, or column that still has callers | [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md) |
 | Create or audit a project's user-facing verification path | [create-verification-skill](../create-verification-skill/SKILL.md) or [maintain-verification-skill](../maintain-verification-skill/SKILL.md) |
 | Prove a property that tests rarely reach, such as a race, a retry, a state machine, or a parser, or bring that proof back in line with changed code | [create-formal-verification-skill](../create-formal-verification-skill/SKILL.md) or [maintain-formal-verification-skill](../maintain-formal-verification-skill/SKILL.md) |
 | Audit and fix how well a coding agent can work in a repo | [agent-readiness](../agent-readiness/SKILL.md) |

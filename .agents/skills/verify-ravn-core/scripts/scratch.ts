@@ -400,6 +400,89 @@ test("a held lease refuses a second worker until it expires", async () => {
   git(cwd, ["commit", "-qm", "feat: job leases"]);
 }
 
+// A published money package whose deprecated formatPrice still has callers in
+// four files, beside its replacement formatMoney. The package is public, so
+// code outside the repo may call formatPrice too.
+function migrateScratch(cwd: string) {
+  initRepo(cwd);
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify(
+      {
+        name: "@acme/money",
+        version: "2.3.0",
+        type: "module",
+        exports: "./src/index.ts",
+        scripts: { test: "node --test" },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  mkdirSync(join(cwd, "src"), { recursive: true });
+  mkdirSync(join(cwd, "test"), { recursive: true });
+
+  const files = {
+    "src/money.ts": `export type Money = { cents: number; currency: string };
+
+/** @deprecated Use formatMoney. */
+export function formatPrice(cents: number): string {
+  return "$" + (cents / 100).toFixed(2);
+}
+
+export function formatMoney(money: Money): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: money.currency,
+  }).format(money.cents / 100);
+}
+`,
+    "src/index.ts": `export { formatMoney, formatPrice, type Money } from "./money.ts";
+export { cartTotal } from "./cart.ts";
+export { invoiceLine } from "./invoice.ts";
+export { receipt } from "./receipt.ts";
+`,
+    "src/cart.ts": `import { formatPrice } from "./money.ts";
+
+export function cartTotal(items: { cents: number }[]): string {
+  return formatPrice(items.reduce((sum, item) => sum + item.cents, 0));
+}
+`,
+    "src/invoice.ts": `import { formatPrice } from "./money.ts";
+
+export function invoiceLine(label: string, cents: number): string {
+  return label + ": " + formatPrice(cents);
+}
+`,
+    "src/receipt.ts": `import { formatPrice } from "./money.ts";
+
+export function receipt(paidCents: number, tipCents: number): string[] {
+  return ["Paid " + formatPrice(paidCents), "Tip " + formatPrice(tipCents)];
+}
+`,
+    "test/money.test.ts": `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { cartTotal, invoiceLine, receipt } from "../src/index.ts";
+
+test("formats dollar amounts", () => {
+  assert.equal(cartTotal([{ cents: 1250 }, { cents: 50 }]), "$13.00");
+  assert.equal(invoiceLine("Lamp", 4999), "Lamp: $49.99");
+  assert.deepEqual(receipt(2000, 300), ["Paid $20.00", "Tip $3.00"]);
+});
+`,
+    "README.md": `# @acme/money
+
+Formatting helpers for prices. Install from npm and call \`formatMoney({ cents, currency })\`.
+`,
+  };
+
+  for (const [path, contents] of Object.entries(files))
+    writeFileSync(join(cwd, path), contents);
+
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: money formatting"]);
+}
+
 const pricesSource = (
   ttlMs: string,
   clear: boolean,
@@ -577,6 +660,8 @@ if (import.meta.main) {
     formalScratch(resolve(dir), scenario ?? "race");
   else if (kind === "principles" && dir !== undefined)
     principleScratch(resolve(dir), scenario ?? "premise");
+  else if (kind === "deprecate-and-migrate" && dir !== undefined)
+    migrateScratch(resolve(dir));
   else {
     console.error(
       "usage: scratch.ts babysit <dir> [" +
@@ -585,7 +670,7 @@ if (import.meta.main) {
         formalScenarios.join("|") +
         "] | principles <dir> [" +
         principleScenarios.join("|") +
-        "]",
+        "] | deprecate-and-migrate <dir>",
     );
     process.exit(64);
   }
