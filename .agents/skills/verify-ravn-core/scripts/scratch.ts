@@ -400,6 +400,62 @@ test("a held lease refuses a second worker until it expires", async () => {
   git(cwd, ["commit", "-qm", "feat: job leases"]);
 }
 
+// A checkout model whose retry after a timeout lets the first charge land
+// too, so ChargedAtMostOnce breaks. TLC reaches 12 states, and the shortest
+// violation has 5 steps: pay, time out, the first charge lands, pay again,
+// and the second charge lands.
+export function statechartScratch(cwd: string) {
+  initRepo(cwd);
+  mkdirSync(join(cwd, "spec"), { recursive: true });
+  writeFileSync(
+    join(cwd, "spec", "Checkout.tla"),
+    `---- MODULE Checkout ----
+EXTENDS Naturals
+
+VARIABLES phase, attempts, charges, inflight
+
+vars == <<phase, attempts, charges, inflight>>
+
+Init == phase = "cart" /\\ attempts = 0 /\\ charges = 0 /\\ inflight = 0
+
+\\* The customer presses Pay, from the cart or after a failed attempt. The
+\\* page allows two attempts.
+Pay == phase \\in {"cart", "failed"} /\\ attempts < 2
+       /\\ phase' = "paying" /\\ attempts' = attempts + 1
+       /\\ inflight' = inflight + 1 /\\ UNCHANGED charges
+
+\\* The payment provider charges the card for one request in flight.
+ChargeLands == inflight > 0
+       /\\ inflight' = inflight - 1 /\\ charges' = charges + 1
+       /\\ UNCHANGED attempts
+       /\\ phase' = IF phase = "paying" THEN "paid" ELSE phase
+
+\\* The page gives up waiting and shows the payment as failed.
+Timeout == phase = "paying" /\\ phase' = "failed"
+       /\\ UNCHANGED <<attempts, charges, inflight>>
+
+\\* The checkout has ended: paid, or failed with no request in flight.
+Done == phase \\in {"paid", "failed"} /\\ inflight = 0 /\\ UNCHANGED vars
+
+Next == Pay \\/ ChargeLands \\/ Timeout \\/ Done
+
+\\* A customer is charged at most once per checkout.
+ChargedAtMostOnce == charges <= 1
+====
+`,
+  );
+  writeFileSync(
+    join(cwd, "spec", "Checkout.cfg"),
+    "INIT Init\nNEXT Next\nINVARIANT ChargedAtMostOnce\n",
+  );
+  writeFileSync(
+    join(cwd, "README.md"),
+    "# checkout\n\n`spec/Checkout.tla` models the checkout page: the customer pays, the page can time out and let them retry, and the provider charges the card once per request.\n",
+  );
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: checkout model"]);
+}
+
 const [kind, dir, scenario] = process.argv.slice(2);
 
 if (import.meta.main) {
@@ -410,13 +466,15 @@ if (import.meta.main) {
     reviewScratch(resolve(dir));
   else if (kind === "formal-verification" && dir !== undefined)
     formalScratch(resolve(dir), scenario ?? "race");
+  else if (kind === "statechart" && dir !== undefined)
+    statechartScratch(resolve(dir));
   else {
     console.error(
       "usage: scratch.ts babysit <dir> [" +
         babysitScenarios.join("|") +
         "] | bug-fix <dir> | review-and-simplify <dir> | formal-verification <dir> [" +
         formalScenarios.join("|") +
-        "]",
+        "] | statechart <dir>",
     );
     process.exit(64);
   }

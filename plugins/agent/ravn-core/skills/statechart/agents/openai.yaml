@@ -1,0 +1,3 @@
+interface:
+  display_name: "Statechart"
+  short_description: "Model-check a TLA+ spec and draw its statechart"
