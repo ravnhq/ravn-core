@@ -1,6 +1,6 @@
 # Encode Lessons in Structure
 
-Adapted from the [pstack](https://github.com/cursor/plugins/tree/88d47514b82e7c44f00f2b2a72ff6dd12158038c/pstack) `principle-encode-lessons-in-structure` skill, MIT License, Copyright (c) 2026 Lauren Tan.
+Adapted from the [pstack](https://github.com/cursor/plugins/tree/bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7/pstack) `principle-encode-lessons-in-structure` skill, MIT License, Copyright (c) 2026 Lauren Tan.
 
 Encode recurring fixes in mechanisms (tools, code, metadata, automation) instead of textual instructions.
 
