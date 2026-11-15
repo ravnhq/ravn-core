@@ -39,6 +39,7 @@ Read `ship` before choosing an entry point within that sequence; its phases are 
 - **Something is broken:** [bug-fix](../bug-fix/SKILL.md) reproduces the bug, finds its cause with runtime evidence, and delivers the fix as a PR whose history shows the failure before the fix. It applies [fix-root-causes](../principle-fix-root-causes/SKILL.md) throughout.
 - **PR or stack is open and needs to land:** [babysit](../babysit/SKILL.md) brings it to merge-ready or an evidenced blocker: it discovers the repository gates and clears conflicts, review threads, and failing CI. It merges only when the user asks it to, and only after an independent verifier passes the PR.
 - **Architecture is causing friction:** [improve-codebase-architecture](../improve-codebase-architecture/SKILL.md) surveys deepening opportunities. A chosen change can enter `ship` at goal shaping; [codebase-design](../codebase-design/SKILL.md) supplies its design vocabulary.
+- **Ambitious work no playbook fits:** [figure-it-out](../figure-it-out/SKILL.md) designs a phase plan with a falsifiable done predicate before any code, runs each unit as an experiment it keeps or reverts, and commits the decision trail. Use it for a multi-part change across packages or a long unattended run, after checking that `ship`, `bug-fix`, and `deprecate-and-migrate` do not fit.
 - **Work already started:** [session-pickup](../session-pickup/SKILL.md) finds the resume point from a handoff or prior trail, then continues the unfinished work through the fitting skill or flow.
 
 ## Standalone work
