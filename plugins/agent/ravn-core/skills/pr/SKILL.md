@@ -1,6 +1,6 @@
 ---
 name: pr
-description: "Write a pull request body, for pushed work or an existing PR."
+description: "Write a pull request body, for pushed work or an existing PR, with before/after screenshots when the change is visual."
 license: See LICENSE.txt
 metadata:
   proof: subjective
