@@ -5,8 +5,30 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
+  statSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
+import { parse } from "yaml";
+
+// After a compaction, Claude Code re-attaches each invoked skill cut short:
+// its docs give 5,000 tokens, and current releases cut at 20,000 characters.
+// Text past the cut is gone for the session. Bytes never undercount
+// characters, and the 10% margin absorbs a tighter cut or added header text.
+export const skillBytesBudget = 18_000;
+
+// Fields of the Agent Skills spec (agentskills.io/specification) that behave
+// the same in every harness, plus the ones ravn-core uses deliberately.
+// `allowed-tools` is in the spec but experimental, and harnesses differ on it.
+const shippedFields = new Set([
+  "name",
+  "description",
+  "license",
+  "compatibility",
+  "metadata",
+  "disable-model-invocation",
+]);
+
+const shippedMetadataFields = new Set(["proof"]);
 
 const read = (root: string, relative: string) =>
   readFileSync(join(root, relative), "utf8");
@@ -83,10 +105,75 @@ const repoSkillErrors = (root: string, errors: string[]) => {
   }
 };
 
+export const shippedSkills = (root: string) =>
+  sortedGlob(root, "plugins/agent/*/skills/*/SKILL.md");
+
+const fieldErrors = (relative: string, meta: string, errors: string[]) => {
+  let fields: unknown;
+
+  try {
+    fields = parse(meta);
+  } catch {
+    errors.push(`${relative}: frontmatter must be valid YAML`);
+
+    return;
+  }
+
+  const entries = Object.entries(fields ?? {});
+
+  for (const [field, value] of entries) {
+    if (!shippedFields.has(field)) {
+      errors.push(`${relative}: frontmatter field \`${field}\` is not allowed`);
+    } else if (field === "metadata") {
+      for (const key of Object.keys(value ?? {})) {
+        if (!shippedMetadataFields.has(key)) {
+          errors.push(
+            `${relative}: frontmatter field \`metadata.${key}\` is not allowed`,
+          );
+        }
+      }
+    }
+  }
+};
+
+const shippedSkillErrors = (root: string, errors: string[]) => {
+  for (const relative of shippedSkills(root)) {
+    const meta = frontmatter(read(root, relative));
+
+    if (meta !== undefined) {
+      fieldErrors(relative, meta, errors);
+    }
+  }
+};
+
+const sizeErrors = (root: string, errors: string[]) => {
+  const seen = new Set<string>();
+
+  for (const relative of [...shippedSkills(root), ...repoSkills(root)]) {
+    const real = realpathSync(join(root, relative));
+
+    if (seen.has(real)) {
+      continue;
+    }
+
+    seen.add(real);
+
+    const bytes = statSync(real).size;
+
+    if (bytes > skillBytesBudget) {
+      errors.push(
+        `${relative}: SKILL.md is ${bytes} bytes, over the ${skillBytesBudget}-byte budget`,
+      );
+    }
+  }
+};
+
 export const validateSkills = (root: string) => {
   const errors: string[] = [];
 
   repoSkillErrors(root, errors);
+  shippedSkillErrors(root, errors);
+  sizeErrors(root, errors);
 
   return errors;
 };

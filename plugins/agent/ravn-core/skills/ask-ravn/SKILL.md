@@ -75,7 +75,7 @@ Apply principles when their conditions occur during any route:
 | Writing or reviewing TypeScript | [typescript-best-practices](../typescript-best-practices/SKILL.md) |
 | Handling retries, restarts, or interrupted mutation | [make-operations-idempotent](../principle-make-operations-idempotent/SKILL.md) |
 | Coordinating writers of shared mutable state | [separate-before-serializing-shared-state](../principle-separate-before-serializing-shared-state/SKILL.md) |
-| Trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
+| Planning a measurement, or trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
 | Checking a finished output | [prove-it-works](../principle-prove-it-works/SKILL.md) |
 | Making the same change in many places, or work a reviewer must rerun | [build-the-lever](../principle-build-the-lever/SKILL.md) |
 | Large reads or outputs are crowding the session | [guard-the-context-window](../principle-guard-the-context-window/SKILL.md) |

@@ -94,6 +94,7 @@ if (args[0] === "pr" && args[1] === "view") {
       headRefOid: head,
       headRefName: "feat/retry",
       baseRefName: "main",
+      isCrossRepository: false,
     }),
   );
 } else if (args[0] === "pr" && args[1] === "checks") {

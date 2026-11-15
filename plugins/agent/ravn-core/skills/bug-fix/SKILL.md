@@ -25,7 +25,7 @@ Done when you hold a repro that is _red_: a command or recipe that shows the wro
 
 ## Step 2. Binary-search the cause
 
-List candidate hypotheses. Seed them with [How](../how/SKILL.md) over the affected subsystem, and with [Why](../why/SKILL.md) when the bug looks like a regression or the code looks deliberate. Each pass, pick the check that rules out the most remaining hypotheses, run it, and eliminate. When program state is unclear, add logging or instrumentation and read it as the code runs. When large logs or traces crowd the session, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
+List candidate hypotheses. Seed them with a trace of the affected subsystem, and with [Why](../why/SKILL.md) when the bug looks like a regression or the code looks deliberate. Each pass, pick the check that rules out the most remaining hypotheses, run it, and eliminate. When program state is unclear, add logging or instrumentation and read it as the code runs. When large logs or traces crowd the session, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
 
 When two or more fixes that share one premise have failed, use [Attack the Premise](../principle-attack-the-premise/SKILL.md) before you try another.
 
