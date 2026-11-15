@@ -5,7 +5,6 @@ description: >-
   placement / ownership / layering questions ("where should this live",
   "which package owns this", "is this the right layer"). Use why for
   motivation.
-disable-model-invocation: true
 license: See LICENSE.txt
 ---
 

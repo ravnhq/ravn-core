@@ -5,7 +5,6 @@ description: >-
   regressions, postmortems, or data-backed thresholds. Queries every
   available evidence MCP in parallel and returns a cited read on decisions
   and tradeoffs. Use how for runtime behavior.
-disable-model-invocation: true
 license: See LICENSE.txt
 ---
 

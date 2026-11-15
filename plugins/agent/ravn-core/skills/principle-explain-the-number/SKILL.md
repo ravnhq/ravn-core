@@ -4,7 +4,6 @@ description: >-
   Apply before you trust, report, or act on a measured number (speedup,
   regression, throughput, latency, eval result). Find what limits it, and rule
   out that it measured something other than the work you think.
-disable-model-invocation: true
 license: See LICENSE.txt
 metadata:
   proof: subjective

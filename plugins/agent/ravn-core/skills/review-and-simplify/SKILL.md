@@ -1,7 +1,10 @@
 ---
 name: review-and-simplify
-description: Review the current branch or a GitHub PR with risk-tiered specialist subagents, judge their findings, apply safe simplifications to your own branch, and post to the PR on request.
-disable-model-invocation: true
+description: >-
+  Review a branch, diff, or GitHub PR for bugs and risks: "review this", "review
+  my branch", "look over my changes", "check this PR". Risk-tiered specialist
+  subagents, judged findings, one verdict; applies safe simplifications only
+  when asked to fix or simplify.
 metadata:
   proof: subjective
 ---
@@ -14,7 +17,7 @@ You are the **coordinator**. A script picks the change's risk tier. Specialists 
 
 Resolve `<skill>` to this installed skill's directory. Run every command from the repo root.
 
-**Scope.** With no argument, review the current branch: everything from its merge base to the working tree, uncommitted and untracked files included. With a PR number or URL, review that PR on the engineer's existing `gh` login. "Report only" or `--no-fix` keeps every finding report-only. `--tier <trivial|lite|full>` forces a tier; `--full` forces a full first review instead of a re-review; `--max-findings <n|all>` changes the report's cap of 20 open findings.
+**Scope.** With no argument, review the current branch: everything from its merge base to the working tree, uncommitted and untracked files included. With a PR number or URL, review that PR on the engineer's existing `gh` login. Simplifications are applied only when the user asked for them: they typed this skill's command, asked you to fix or simplify, or passed `--fix`. A plain review request, "report only", or `--no-fix` keeps every finding report-only. `--tier <trivial|lite|full>` forces a tier; `--full` forces a full first review instead of a re-review; `--max-findings <n|all>` changes the report's cap of 20 open findings.
 
 **When a script command fails**, it prints `{"ok": false, "code", "message", "hint"}`. Correct the cause the code and hint name and run it again. After two failed corrections, do that step by hand under the same contract and name it as done by hand in your report.
 
