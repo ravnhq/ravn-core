@@ -4,6 +4,8 @@ Adapted from pstack `principle-migrate-callers-then-delete-legacy-apis`, MIT Lic
 
 When a new API replaces an old one, migrate every caller and delete the old API in the same refactor.
 
+When the callers are more than a few, migrate them with a codemod or script per [Build the Lever](../principle-build-the-lever/SKILL.md).
+
 - Update tests to assert the new contract, and delete tests that only protect pre-refactor implementation details
 
 **When this applies:**

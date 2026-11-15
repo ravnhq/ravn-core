@@ -27,6 +27,8 @@ Done when you hold a repro that is _red_: a command or recipe that shows the wro
 
 List candidate hypotheses. Seed them with a trace of the affected subsystem, and with [Why](../why/SKILL.md) when the bug looks like a regression or the code looks deliberate. Each pass, pick the check that rules out the most remaining hypotheses, run it, and eliminate. When program state is unclear, add logging or instrumentation and read it as the code runs. When large logs or traces crowd the session, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
 
+When two or more fixes that share one premise have failed, use [Attack the Premise](../principle-attack-the-premise/SKILL.md) before you try another.
+
 Done when one mechanism survives and you have runtime evidence for it: a log line, a value read at the faulty step, or a reverted change that makes the bug disappear. A plausible reading of the source is not evidence.
 
 ## Step 3. Lock the failure in a test
