@@ -1,6 +1,6 @@
 # Deprecate and migrate
 
-`deprecate-and-migrate` loads when an engineer asks to remove or replace an API that still has callers. It inventories the callers with its bundled script, moves them to the replacement, and keeps the old API until the callers it cannot see are measured at zero, with an expand, migrate, contract plan for the rest.
+`deprecate-and-migrate` takes a request to remove or replace an API that still has callers. It inventories the callers with its bundled script, moves them to the replacement, and keeps the old API until the callers it cannot see are measured at zero, with an expand, migrate, contract plan for the rest.
 
 ## Sub-features
 
@@ -11,12 +11,12 @@
 
 ## How to get to it (user POV)
 
-An engineer in a repo with a deprecated function asks, in their own words, to get off it and remove it. They do not name the skill.
+An engineer in a repo with a deprecated function types the skill's invocation form and asks, in their own words, to get off it and remove it. The skill is model-invocable, so the same request without the invocation may load it too.
 
 ## Driving it with scripts/scratch.ts
 
 - Build one scratch repo per harness: `node scripts/scratch.ts deprecate-and-migrate /tmp/ravn-verify/$RUN_ID/migrate-<harness>/work`. It is the public `@acme/money` package: `formatPrice` is deprecated in favor of `formatMoney` and called from three source files.
-- Load the working-tree skills as the README's Harness runs say, and send one turn: `formatPrice is deprecated, move everything to formatMoney and get rid of it. Don't ask me questions.`
+- Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> formatPrice is deprecated, move everything to formatMoney and get rid of it. Don't ask me questions.`
 - Check `migrate.inventory` and `migrate.plan` from the transcript's commands and the final message, quoting both.
 - Check `migrate.callers` and `migrate.kept`: quote `git grep -nw formatPrice`, `git diff --stat`, and `npm test`.
 
@@ -24,4 +24,4 @@ An engineer in a repo with a deprecated function asks, in their own words, to ge
 
 - `formatMoney` takes `{ cents, currency }`, so each caller needs `currency: "USD"`; the test pins the output strings, which match for positive amounts.
 - A reply that deletes `formatPrice` fails `migrate.kept` even when every in-repo caller moved: the package's `exports` reach code outside the repo. Removing it after a measured zero in a later major version is the pass.
-- In Claude Code the skill loads through the `Skill` tool; in Codex and Pi, through a read of its `SKILL.md`. Confirm the load in the transcript before judging the behavior.
+- Without the invocation form, Claude Code and Pi loaded the skill on this request but Codex did not, and all three deleted `formatPrice` because the request said to. The invocation form makes the skill the user's chosen workflow, so its contract gate holds against "get rid of it".
