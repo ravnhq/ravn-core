@@ -1,5 +1,11 @@
 # Re-run prepare so existing checkouts install and refresh the push guard.
 optimisticRepeatInstall: false
+# One virtual store per machine: each checkout's node_modules holds only
+# symlinks into it, so a git worktree's install costs about 1 MB.
+virtualStoreType: global
+# Existing checkouts switch to that layout on their next pnpm command; the
+# default confirmation prompt aborts where there is no TTY.
+confirmModulesPurge: false
 allowBuilds:
   '@playwright/browser-chromium': false
   '@swc/core': false
