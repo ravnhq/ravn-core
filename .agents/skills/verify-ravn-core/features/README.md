@@ -60,6 +60,7 @@ Claude Code mods:
 - [babysit merge-readiness workflow](./babysit.md) covers gate discovery, thread triage, merge-ready reporting, proof before merging, merging on request, merge-queue drops, and background watching, against a simulated GitHub.
 - [bug-fix workflow](./bug-fix.md) covers the repro, the root cause, red-then-green history on a new branch, and isolating a dirty tree in a worktree.
 - [Formal verification skills](./formal-verification.md) covers `create-formal-verification-skill` reporting a seeded race with a failing test and a rerunnable verify skill, and `maintain-formal-verification-skill` updating that verification after the code is fixed without it.
+- [Web QA and PR screenshots](./web-qa.md) covers `web-qa` reporting a seeded invisible button label with a screenshot and repro steps, and `pr` laying out before/after screenshots of its fix.
 - [Learn from sessions](./learn-from-sessions.md) covers evidence-backed prevention proposals, structure-first destination choices, approval boundaries, approved application, and routing across all three harnesses.
 - [TypeScript best practices](./typescript-best-practices.md) covers loading the skill unprompted for a TypeScript change, applying its rules, and staying out of other languages.
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
