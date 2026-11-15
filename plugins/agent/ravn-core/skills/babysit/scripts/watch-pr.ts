@@ -30,6 +30,7 @@ type PullRequest = {
   headRefOid: string;
   headRefName: string;
   baseRefName: string;
+  isCrossRepository: boolean;
 };
 
 type Check = { name: string; state: string; bucket: string; link: string };
@@ -139,6 +140,7 @@ const prFields = [
   "headRefOid",
   "headRefName",
   "baseRefName",
+  "isCrossRepository",
 ];
 
 const reviewQuery = `
@@ -532,7 +534,8 @@ export function assess(
   return { kind: "READY", reason: "merge-ready" };
 }
 
-// A stack PR's base must be the branch of the open PR below it.
+// A stack PR's base must be the branch of the open PR below it. A base names
+// a branch in this repository, so a fork's head of the same name is not it.
 function stackOrder(rows: Snapshot[], index: number): Assessment | null {
   const below = rows[index - 1];
   const row = rows[index];
@@ -541,7 +544,8 @@ function stackOrder(rows: Snapshot[], index: number): Assessment | null {
 
   if (below.pr.state !== "OPEN" || row.pr.state !== "OPEN") return null;
 
-  return row.pr.baseRefName === below.pr.headRefName
+  return !below.pr.isCrossRepository &&
+    row.pr.baseRefName === below.pr.headRefName
     ? null
     : {
         kind: "GATE",
