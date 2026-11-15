@@ -1,0 +1,5 @@
+interface:
+  display_name: "Attack the Premise"
+  short_description: "Test the belief failed fixes shared"
+policy:
+  allow_implicit_invocation: false

@@ -63,6 +63,7 @@ Claude Code mods:
 - [Learn from sessions](./learn-from-sessions.md) covers evidence-backed prevention proposals, structure-first destination choices, approval boundaries, approved application, and routing across all three harnesses.
 - [TypeScript best practices](./typescript-best-practices.md) covers loading the skill unprompted for a TypeScript change, applying its rules, and staying out of other languages.
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
+- [Attack the Premise and Build the Lever](./principles-premise-lever.md) covers naming and testing the premise two failed fixes shared, reverting the refuted fixes, and doing a 30-file caller migration with a rerunnable codemod.
 
 ## Not covered
 

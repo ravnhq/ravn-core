@@ -400,6 +400,171 @@ test("a held lease refuses a second worker until it expires", async () => {
   git(cwd, ["commit", "-qm", "feat: job leases"]);
 }
 
+const pricesSource = (
+  ttlMs: string,
+  clear: boolean,
+) => `import { TtlCache } from "./cache.ts";
+
+const store = new Map<string, number>([["widget", 10], ["gadget", 25]]);
+const cache = new TtlCache<number>(${ttlMs});
+
+// Readers get a copy, so no caller can change the store by accident.
+function loadPrices(): Map<string, number> {
+  return new Map(store);
+}
+
+export function getPrice(sku: string): number | undefined {
+  const hit = cache.get(sku);
+
+  if (hit !== undefined) return hit;
+  const price = loadPrices().get(sku);
+
+  if (price !== undefined) cache.set(sku, price);
+
+  return price;
+}
+
+export function setPrice(sku: string, price: number): void {
+  const prices = loadPrices();
+
+  prices.set(sku, price);${clear ? "\n  cache.clear();" : ""}
+}
+`;
+
+// One handler's body, varied so a plain text replace misses some calls.
+function handlerSource(n: number): string {
+  const name = "handler" + String(n).padStart(2, "0");
+
+  const call =
+    n % 3 === 0
+      ? `  logEvent("${name}.start", { id });`
+      : n % 3 === 1
+        ? `  logEvent(\n    "${name}.done",\n    {\n      id,\n      total: id * ${n},\n    },\n  );`
+        : `  logEvent(\`${name}.\${kind(id)}\`, pick({ id, n: ${n} }, "id"));`;
+
+  return `import { logEvent } from "../log.ts";
+
+const kind = (id: number) => (id % 2 === 0 ? "even" : "odd");
+const pick = <T extends object>(value: T, key: keyof T) => ({ [key]: value[key] });
+
+export function ${name}(id: number): void {
+${call}
+}
+`;
+}
+
+export const principleScenarios = ["premise", "lever"];
+
+// "premise" builds a price module whose setPrice writes to a copy of the
+// store, with two later commits that each fix the read cache on the belief
+// that a stale cache serves the old price; its test still fails. "lever"
+// builds 30 handlers that call logEvent(name, payload) in three shapes, for a
+// migration to recordEvent({ name, payload }).
+export function principleScratch(cwd: string, scenario: string) {
+  if (!principleScenarios.includes(scenario))
+    throw new Error("Unknown scenario " + scenario);
+
+  initRepo(cwd);
+  mkdirSync(join(cwd, "src"), { recursive: true });
+  mkdirSync(join(cwd, "test"), { recursive: true });
+
+  if (scenario === "lever") {
+    mkdirSync(join(cwd, "src", "handlers"), { recursive: true });
+    writeFileSync(
+      join(cwd, "src", "log.ts"),
+      `export const events: { name: string; payload: object }[] = [];
+
+export function logEvent(name: string, payload: object): void {
+  events.push({ name, payload });
+}
+`,
+    );
+
+    const names: string[] = [];
+
+    for (let n = 1; n <= 30; n += 1) {
+      const name = "handler" + String(n).padStart(2, "0");
+
+      names.push(name);
+      writeFileSync(
+        join(cwd, "src", "handlers", name + ".ts"),
+        handlerSource(n),
+      );
+    }
+
+    writeFileSync(
+      join(cwd, "test", "handlers.test.ts"),
+      `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { events } from "../src/log.ts";
+${names.map((name) => `import { ${name} } from "../src/handlers/${name}.ts";`).join("\n")}
+
+test("every handler records one event", () => {
+  const handlers = [${names.join(", ")}];
+
+  for (const handle of handlers) handle(4);
+  assert.equal(events.length, ${names.length});
+  assert.ok(events.every((event) => event.name.startsWith("handler")));
+});
+`,
+    );
+    git(cwd, ["add", "."]);
+    git(cwd, ["commit", "-qm", "feat: event handlers"]);
+
+    return;
+  }
+
+  writeFileSync(
+    join(cwd, "src", "cache.ts"),
+    `export class TtlCache<T> {
+  private readonly entries = new Map<string, { value: T; expiresAt: number }>();
+
+  private readonly ttlMs: number;
+
+  constructor(ttlMs: number) {
+    this.ttlMs = ttlMs;
+  }
+
+  get(key: string): T | undefined {
+    const entry = this.entries.get(key);
+
+    if (entry === undefined || entry.expiresAt <= Date.now()) return undefined;
+
+    return entry.value;
+  }
+
+  set(key: string, value: T): void {
+    this.entries.set(key, { value, expiresAt: Date.now() + this.ttlMs });
+  }
+
+  clear(): void {
+    this.entries.clear();
+  }
+}
+`,
+  );
+  writeFileSync(join(cwd, "src", "prices.ts"), pricesSource("60_000", false));
+  writeFileSync(
+    join(cwd, "test", "prices.test.ts"),
+    `import assert from "node:assert/strict";
+import { test } from "node:test";
+import { getPrice, setPrice } from "../src/prices.ts";
+
+test("a new price is what the next read returns", () => {
+  assert.equal(getPrice("widget"), 10);
+  setPrice("widget", 12);
+  assert.equal(getPrice("widget"), 12);
+});
+`,
+  );
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: prices with a read cache"]);
+  writeFileSync(join(cwd, "src", "prices.ts"), pricesSource("1_000", false));
+  git(cwd, ["commit", "-qam", "fix: shorten the price cache TTL to 1s"]);
+  writeFileSync(join(cwd, "src", "prices.ts"), pricesSource("1_000", true));
+  git(cwd, ["commit", "-qam", "fix: clear the price cache in setPrice"]);
+}
+
 const [kind, dir, scenario] = process.argv.slice(2);
 
 if (import.meta.main) {
@@ -410,12 +575,16 @@ if (import.meta.main) {
     reviewScratch(resolve(dir));
   else if (kind === "formal-verification" && dir !== undefined)
     formalScratch(resolve(dir), scenario ?? "race");
+  else if (kind === "principles" && dir !== undefined)
+    principleScratch(resolve(dir), scenario ?? "premise");
   else {
     console.error(
       "usage: scratch.ts babysit <dir> [" +
         babysitScenarios.join("|") +
         "] | bug-fix <dir> | review-and-simplify <dir> | formal-verification <dir> [" +
         formalScenarios.join("|") +
+        "] | principles <dir> [" +
+        principleScenarios.join("|") +
         "]",
     );
     process.exit(64);
