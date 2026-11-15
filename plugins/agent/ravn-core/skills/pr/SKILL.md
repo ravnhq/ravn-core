@@ -46,7 +46,7 @@ Skip all preambles and keep prose brief. Use the user's domain language from `GL
 
 ### Opener
 
-The shortest text that tells a reviewer what the PR is for and whether it deserves more of their attention: one to three sentences in plain words, naming the problem and the outcome. A visual change gets one screenshot below it; a new command can get its `--help` output. Everything else goes in the collapsed details.
+The shortest text that tells a reviewer what the PR is for and whether it deserves more of their attention: one to three sentences in plain words, naming the problem and the outcome. A visual change gets one "after" screenshot below it, taken by [references/screenshots.md](references/screenshots.md); a new command can get its `--help` output. Everything else goes in the collapsed details.
 
 Write it last, from the sections below. Also show it to the user in your reply, apart from the body, so they can rewrite it: it stands for their judgement of what is worth a reviewer's time.
 
@@ -151,7 +151,7 @@ Place each visual next to the short text it supports. Keep only the calls, files
 
 Concrete before and after evidence that the change works.
 
-- S-tier: screenshots, when the environment supports them and the change is visual.
+- S-tier: screenshots of the real build, when the change is visual (a user would see a difference). Before writing the body, read [references/screenshots.md](references/screenshots.md): it covers capture, redaction, the before/after tables, and upload.
 - A-tier: execution output, test results, console output. Show the exact test that failed and now passes, as pseudocode.
 
 ### Merge Danger

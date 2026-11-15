@@ -400,6 +400,178 @@ test("a held lease refuses a second worker until it expires", async () => {
   git(cwd, ["commit", "-qm", "feat: job leases"]);
 }
 
+export const webQAScenarios = ["bug", "fix"];
+
+const cartStyles = (labelColor: string) => `body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+}
+main {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+.qty button,
+.btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.btn-primary {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #1d4ed8;
+  color: ${labelColor};
+  font-size: 16px;
+  cursor: pointer;
+}
+`;
+
+// "bug" builds a one-page static cart served by `npm start`, whose
+// "Place order" button paints its label in its own background color, so the
+// label is in the DOM but invisible. "fix" commits the readable label on a new
+// branch `fix/place-order-label`, leaving `main` as the base of a visual PR.
+export function webQAScratch(cwd: string, scenario: string) {
+  if (!webQAScenarios.includes(scenario))
+    throw new Error("Unknown scenario " + scenario);
+
+  if (scenario === "fix") {
+    git(cwd, ["switch", "-qc", "fix/place-order-label"]);
+    writeFileSync(join(cwd, "public", "style.css"), cartStyles("#fff"));
+    git(cwd, ["add", "public/style.css"]);
+    git(cwd, ["commit", "-qm", "fix: show the Place order label"]);
+
+    return;
+  }
+
+  initRepo(cwd);
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify(
+      {
+        name: "cart",
+        private: true,
+        type: "module",
+        scripts: { start: "node serve.ts" },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  mkdirSync(join(cwd, "public"), { recursive: true });
+  writeFileSync(
+    join(cwd, "serve.ts"),
+    `import { readFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { extname, join } from "node:path";
+
+const types: Record<string, string> = {
+  ".html": "text/html",
+  ".css": "text/css",
+  ".js": "text/javascript",
+};
+const port = Number(process.env.PORT ?? 4173);
+
+createServer((req, res) => {
+  const path = req.url === "/" ? "/index.html" : (req.url ?? "/");
+
+  try {
+    const body = readFileSync(join(import.meta.dirname, "public", path));
+
+    res.writeHead(200, { "content-type": types[extname(path)] ?? "text/plain" });
+    res.end(body);
+  } catch {
+    res.writeHead(404).end("not found");
+  }
+}).listen(port, () => console.log("cart on http://localhost:" + port));
+`,
+  );
+  writeFileSync(
+    join(cwd, "public", "index.html"),
+    `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Your cart</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Your cart</h1>
+      <ul>
+        <li data-price="18">Ceramic mug <span class="qty"><button aria-label="Fewer mugs">-</button> <output>1</output> <button aria-label="More mugs">+</button></span></li>
+        <li data-price="42">Pour-over kettle <span class="qty"><button aria-label="Fewer kettles">-</button> <output>1</output> <button aria-label="More kettles">+</button></span></li>
+      </ul>
+      <p>Total: <strong id="total">$60.00</strong></p>
+      <button class="btn-primary" id="place">Place order</button>
+      <p id="status" role="status"></p>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
+`,
+  );
+  writeFileSync(join(cwd, "public", "style.css"), cartStyles("#1d4ed8"));
+  writeFileSync(
+    join(cwd, "public", "app.js"),
+    `const total = document.getElementById("total");
+
+function update() {
+  let sum = 0;
+  for (const item of document.querySelectorAll("li")) {
+    sum += Number(item.dataset.price) * Number(item.querySelector("output").value);
+  }
+  total.textContent = "$" + sum.toFixed(2);
+}
+
+for (const item of document.querySelectorAll("li")) {
+  const [less, more] = item.querySelectorAll("button");
+  const count = item.querySelector("output");
+  less.onclick = () => {
+    count.value = Math.max(0, Number(count.value) - 1);
+    update();
+  };
+  more.onclick = () => {
+    count.value = Number(count.value) + 1;
+    update();
+  };
+}
+
+document.getElementById("place").onclick = () => {
+  document.getElementById("status").textContent =
+    "Order placed: " + total.textContent;
+};
+`,
+  );
+  writeFileSync(
+    join(cwd, "README.md"),
+    "# cart\n\nA one-page shopping cart. `npm start` serves it on `http://localhost:$PORT` (default 4173).\n",
+  );
+  writeFileSync(join(cwd, "CLAUDE.md"), "@AGENTS.md\n");
+  writeFileSync(
+    join(cwd, "AGENTS.md"),
+    "Run the app with `npm start`; set `PORT` to pick its port.\n",
+  );
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-qm", "feat: shopping cart"]);
+}
+
 // A published money package whose deprecated formatPrice still has callers in
 // four files, beside its replacement formatMoney. The package is public, so
 // code outside the repo may call formatPrice too.
@@ -662,6 +834,8 @@ if (import.meta.main) {
     principleScratch(resolve(dir), scenario ?? "premise");
   else if (kind === "deprecate-and-migrate" && dir !== undefined)
     migrateScratch(resolve(dir));
+  else if (kind === "web-qa" && dir !== undefined)
+    webQAScratch(resolve(dir), scenario ?? "bug");
   else {
     console.error(
       "usage: scratch.ts babysit <dir> [" +
@@ -670,7 +844,9 @@ if (import.meta.main) {
         formalScenarios.join("|") +
         "] | principles <dir> [" +
         principleScenarios.join("|") +
-        "] | deprecate-and-migrate <dir>",
+        "] | deprecate-and-migrate <dir> | web-qa <dir> [" +
+        webQAScenarios.join("|") +
+        "]",
     );
     process.exit(64);
   }

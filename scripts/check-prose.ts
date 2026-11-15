@@ -82,9 +82,10 @@ if (import.meta.main) {
 
     // .vale.ini decides which of these files take the house style. Vale exits
     // nonzero only on errors, so any printed alert, warnings included, fails.
+    // --no-global keeps a user's own Vale config out of the house check.
     const result = spawnSync(
       "vale",
-      ["--output=line", "README.md", "plugins"],
+      ["--no-global", "--output=line", "README.md", "plugins"],
       { cwd: repoDir, encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] },
     );
 

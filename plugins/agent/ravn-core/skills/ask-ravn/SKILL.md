@@ -57,6 +57,7 @@ Use these without the whole `ship` flow:
 | Create or audit a project's user-facing verification path | [create-verification-skill](../create-verification-skill/SKILL.md) or [maintain-verification-skill](../maintain-verification-skill/SKILL.md) |
 | Prove a property that tests rarely reach, such as a race, a retry, a state machine, or a parser, or bring that proof back in line with changed code | [create-formal-verification-skill](../create-formal-verification-skill/SKILL.md) or [maintain-formal-verification-skill](../maintain-formal-verification-skill/SKILL.md) |
 | Audit and fix how well a coding agent can work in a repo | [agent-readiness](../agent-readiness/SKILL.md) |
+| QA a running web app like a user and report each bug with screenshots and repro steps | [web-qa](../web-qa/SKILL.md) |
 | Keep a reviewable trail during unattended work | [show-me-your-work](../show-me-your-work/SKILL.md) |
 | Check a PR or stack's gates and merge readiness | [babysit](../babysit/SKILL.md) in `check` mode |
 | Write a PR body | [pr](../pr/SKILL.md) |

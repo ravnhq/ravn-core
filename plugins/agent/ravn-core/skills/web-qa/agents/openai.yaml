@@ -1,0 +1,3 @@
+interface:
+  display_name: "Web QA"
+  short_description: "Find bugs in a web app with screenshots and repro steps"
