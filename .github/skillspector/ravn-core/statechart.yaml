@@ -1,0 +1,14 @@
+# SkillSpector baseline — findings listed here are suppressed on future scans.
+# Edit 'reason' fields and add glob 'rules' as needed. See docs/SUPPRESSION.md.
+version: 2
+scanner_version: 2.12.0
+rules: []
+fingerprints:
+- hash: sha256:14ccb38fefc046c3d8f67b38c76099f162bc4813bdde205ee42558c9fc561e1e
+  rule_id: P6
+  file: scripts/ir.ts
+  reason: The flagged statement returns the TLA+ invariants that a spec checks, which are the model checker's rules, not a system prompt
+- hash: sha256:230632ae6b39fa25b961b86ad34c8af1933938a2630d3d269b929c262f870904
+  rule_id: LP3
+  file: SKILL.md
+  reason: agent-plugins.org frontmatter has no allowed-tools field; the bundled script runs java on the spec the user wrote and fetches one pinned, SHA-256-checked jar

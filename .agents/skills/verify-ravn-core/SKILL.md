@@ -67,6 +67,6 @@ It deletes `/tmp/ravn-verify/$RUN_ID` and keeps `.verify/$RUN_ID`. It refuses pa
 
 ## Scratch repos
 
-`scripts/scratch.ts` builds a scratch repo in a known state: `babysit <dir> [thread|approved|late|queue|no-skill|uncovered]` (a simulated PR, with `github-sim.ts` as `gh`), `bug-fix <dir>`, `review-and-simplify <dir>`, `formal-verification <dir> [race|fix]`, or `deprecate-and-migrate <dir>`.
+`scripts/scratch.ts` builds a scratch repo in a known state: `babysit <dir> [thread|approved|late|queue|no-skill|uncovered]` (a simulated PR, with `github-sim.ts` as `gh`), `bug-fix <dir>`, `review-and-simplify <dir>`, `formal-verification <dir> [race|fix]`, `principles <dir> [premise|lever]`, `deprecate-and-migrate <dir>`, `web-qa <dir> [bug|fix]`, or `statechart <dir>`.
 
 Keep the map current with the `maintain-verification-skill` skill when skills or features change.
