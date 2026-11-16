@@ -6,7 +6,6 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
-  rmSync,
   writeFileSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
@@ -49,74 +48,6 @@ export function createWorkspaceRepo(workspaceDir: string, fixture: string) {
   );
 
   git(["remote", "remove", "origin"], workspaceDir);
-}
-
-export function removeWorkspaceWorktrees(workspaceDir: string) {
-  const worktrees = git(["worktree", "list", "--porcelain", "-z"], workspaceDir)
-    .split("\0")
-    .filter((record) => record.startsWith("worktree "))
-    .map((record) => record.slice("worktree ".length));
-
-  for (const worktree of worktrees) {
-    if (worktree !== workspaceDir) {
-      git(["worktree", "remove", "--force", "--force", worktree], workspaceDir);
-    }
-  }
-}
-
-export function resetWorkspaceRepo(workspaceDir: string, fixture: string) {
-  removeWorkspaceWorktrees(workspaceDir);
-
-  git(
-    ["fetch", "-q", join(fixturesDir, `${fixture}.git`), "main"],
-    workspaceDir,
-  );
-
-  git(["checkout", "-q", "-f", "-B", "main", "FETCH_HEAD"], workspaceDir);
-
-  const otherRefs = git(["for-each-ref", "--format=%(refname)"], workspaceDir)
-    .split("\n")
-    .filter((ref) => ref !== "" && ref !== "refs/heads/main");
-
-  for (const ref of otherRefs) {
-    git(["update-ref", "-d", ref], workspaceDir);
-  }
-
-  git(["reflog", "expire", "--expire=now", "--all"], workspaceDir);
-
-  git(["gc", "-q", "--prune=now"], workspaceDir);
-
-  const installedAgentsDir = join(
-    workspaceDir,
-    ".git",
-    "ravn-installed-agents",
-  );
-
-  if (existsSync(installedAgentsDir)) {
-    rmSync(join(workspaceDir, ".claude", "agents"), {
-      recursive: true,
-      force: true,
-    });
-    cpSync(installedAgentsDir, join(workspaceDir, ".claude", "agents"), {
-      recursive: true,
-    });
-  }
-
-  git(
-    [
-      "clean",
-      "-q",
-      "-f",
-      "-d",
-      "-e",
-      "/.claude/skills/",
-      "-e",
-      "/.agents/skills/",
-      "-e",
-      "/.claude/agents/",
-    ],
-    workspaceDir,
-  );
 }
 
 export function applyEdits(
@@ -177,9 +108,6 @@ export function installSkills(workspaceDir: string, skillDirs: string[]) {
       }
 
       cpSync(agentsDir, join(workspaceDir, ".claude", "agents"), {
-        recursive: true,
-      });
-      cpSync(agentsDir, join(workspaceDir, ".git", "ravn-installed-agents"), {
         recursive: true,
       });
 

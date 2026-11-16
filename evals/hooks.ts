@@ -1,13 +1,9 @@
-import { readdirSync, rmSync } from "node:fs";
+import { cpSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { TestCase } from "promptfoo";
 import { z } from "zod";
 import { arms } from "./skill-eval.ts";
-import {
-  applyEdits,
-  fixtureNames,
-  resetWorkspaceRepo,
-} from "./workspace-repo.ts";
+import { applyEdits } from "./workspace-repo.ts";
 
 const setupSchema = z.object({
   fixture: z.string(),
@@ -16,27 +12,29 @@ const setupSchema = z.object({
   ),
 });
 
+// Agents work in promptfoo's per-step copies (`copy_working_dir`), so only a
+// test's own setup ever writes to the workspaces they are copied from. Each
+// step starts them over from the pristine set run.ts made, then applies the
+// test's edits, so no setup carries into the next test.
 export function extensionHook(hookName: string, context: { test?: TestCase }) {
   const workspacesDir = process.env.RAVN_EVALS_WORKSPACES;
 
-  if (hookName !== "beforeEach" || workspacesDir === undefined) {
+  const pristineDir = process.env.RAVN_EVALS_PRISTINE;
+
+  if (
+    hookName !== "beforeEach" ||
+    workspacesDir === undefined ||
+    pristineDir === undefined
+  ) {
     return;
   }
 
-  for (const fixture of fixtureNames) {
-    for (const arm of arms) {
-      resetWorkspaceRepo(join(workspacesDir, fixture, arm), fixture);
-    }
+  rmSync(workspacesDir, { recursive: true, force: true });
 
-    for (const entry of readdirSync(join(workspacesDir, fixture))) {
-      if (!arms.some((arm) => arm === entry)) {
-        rmSync(join(workspacesDir, fixture, entry), {
-          recursive: true,
-          force: true,
-        });
-      }
-    }
-  }
+  cpSync(pristineDir, workspacesDir, {
+    recursive: true,
+    verbatimSymlinks: true,
+  });
 
   const setup = setupSchema.safeParse(context.test?.metadata);
 

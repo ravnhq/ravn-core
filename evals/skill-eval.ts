@@ -72,6 +72,10 @@ function claudeCodeEnv(openRouter: boolean) {
   };
 }
 
+// Every step runs in promptfoo's fresh copy of the arm's workspace, so no
+// case sees another's changes. "copy", not true: true clones a workspace with
+// no untracked files, as the without-skill arm's usually is, onto a detached
+// HEAD, while arms with installed skills are copied on main.
 export function provider(fixture: string, arm: string, runner: Runner) {
   const label = `${fixture}/${arm}/${runnerName(runner)}`;
 
@@ -88,6 +92,7 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           model: openRouter ? undefined : runner.model,
           apiKeyRequired: false,
           working_dir: workingDir,
+          copy_working_dir: "copy",
           setting_sources: ["project"],
           skills: "all",
           append_allowed_tools: ["Bash", "Agent"],
@@ -131,6 +136,7 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           config: {
             model: modelWithoutRoute(runner),
             working_dir: workingDir,
+            copy_working_dir: "copy",
             skip_git_repo_check: true,
             sandbox_mode: "danger-full-access",
             enable_streaming: true,
@@ -146,6 +152,7 @@ export function provider(fixture: string, arm: string, runner: Runner) {
         config: {
           model: runner.model,
           working_dir: workingDir,
+          copy_working_dir: "copy",
           skip_git_repo_check: true,
           sandbox_mode: "danger-full-access",
           enable_streaming: true,
@@ -159,7 +166,11 @@ export function provider(fixture: string, arm: string, runner: Runner) {
       return {
         id: piProvider,
         label,
-        config: { model: runner.model, working_dir: workingDir },
+        config: {
+          model: runner.model,
+          working_dir: workingDir,
+          copy_working_dir: "copy",
+        },
       };
   }
 }
@@ -327,6 +338,8 @@ export function skillEval(skill: string, cases: Case[]): UnifiedConfig {
     extensions: [
       `file://${join(import.meta.dirname, "hooks.ts")}:extensionHook`,
     ],
+    // Before each step, the hooks rebuild the workspaces every step is copied
+    // from, so two steps at once would race on them.
     evaluateOptions: { maxConcurrency: 1 },
     tracing: {
       enabled: true,
