@@ -29,7 +29,7 @@ Each skill carries these case kinds; `skillEval` turns each into its promptfoo t
 1. `quality`: every arm answers it; `skill-eval.ts` selects skill-use and outcome assertions.
 2. `trigger`: the current arm must use the skill, or accept its explicit command for a user-only skill.
 3. `route`: a near-miss that belongs to a model-invocable sibling skill, which must be used instead.
-4. `stay-out`: a plain task where no listed skill should fire.
+4. `stay-out`: a plain task where no listed skill should fire. At least one lists the skill under test.
 
 A case that needs work in progress sets `edits`: find-and-replace edits applied to the fixture before the run and left uncommitted.
 

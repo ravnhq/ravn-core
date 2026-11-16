@@ -26,7 +26,7 @@ This map points to skills; it does not run them. Its descriptions are orientatio
 
 Start with [ship](../ship/SKILL.md) when an idea or requested change should become a ready pull request with verified results and passing CI. `ship` owns the sequence and the conditions for skipping a step:
 
-1. Shape the goal, then inspect the code with [how](../how/SKILL.md) for behavior and [why](../why/SKILL.md) for rationale. Use [research](../research/SKILL.md) when external documentation or API facts matter.
+1. Shape the goal, then trace the code the change touches, with [why](../why/SKILL.md) for rationale. Use [research](../research/SKILL.md) when external documentation or API facts matter.
 2. Settle assumptions through [grilling](../grilling/SKILL.md). Use [domain-modeling](../domain-modeling/SKILL.md) when terms or state representations need work, and [codebase-design](../codebase-design/SKILL.md) when a module or interface needs shaping.
 3. Write and confirm the plan, build in verifiable steps, and use [show-me-your-work](../show-me-your-work/SKILL.md) when an unattended build needs a decision trail.
 4. Check the real result with [prove-it-works](../principle-prove-it-works/SKILL.md). [Create a verification skill](../create-verification-skill/SKILL.md) when a user-facing project has no such path; [maintain it](../maintain-verification-skill/SKILL.md) when its existing path has drifted. Use [blast-radius](../blast-radius/SKILL.md) when a change may affect behavior beyond its diff.

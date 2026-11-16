@@ -15,7 +15,7 @@ Each harness discovers an installed skill and follows it. The smoke skill `greet
 ## Driving it with evals/run.ts
 
 - Run smoke on one model per harness: `node scripts/collect.ts harness-skill-loading pnpm eval:smoke --runners claude-code/claude-sonnet-5-5,codex/gpt-6-luna,pi/gpt-6-luna`. Expect exit 0.
-- Check results: `results/smoke-*.json` has one file per runner, each with `"successes": 1`.
+- Check results: `results/smoke-*.json` has one file per runner, each with `"successes": 3` and `"failures": 0`, one success per case in `evals/smoke/promptfooconfig.ts`.
 
 ## Gotchas
 

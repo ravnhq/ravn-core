@@ -2,7 +2,7 @@
 
 This repo exists so that every Ravn engineer, in whatever harness they use, walks the same high-quality golden path for engineering work.
 It serves Ravn engineers and the agents they run, and it turns proven engineering workflows into skills backed by scripts.
-It owns exactly one thing: the set of Ravn agent plugins - their skills, scripts, MCP configuration, and manifests. Today that set is `ravn-core`; the apps and mods plugins that share this repo follow their own tier's `AGENTS.md` instead.
+It owns exactly one thing: the set of Ravn agent plugins - their skills, scripts, MCP configuration, and manifests. Today that set is `ravn-core`; the mods plugins that share this repo follow their own tier's `AGENTS.md` instead.
 
 ## Every supported harness is first class
 
