@@ -20,7 +20,7 @@ Use these invocation forms, replacing `<skill>` with the recommended skill's fro
 | Codex | `$<skill>` | `$ask-ravn` |
 | Pi | `/skill:<skill>` | `/skill:ask-ravn` |
 
-This map points to skills; it does not run them. Its descriptions are orientation only: before explaining what a skill does or suggesting that a step can be skipped, read its linked `SKILL.md`. Classify invocation from each recommended skill's own frontmatter, one skill at a time, including skills grouped in the same flow or section: `disable-model-invocation: true` requires human invocation; an absent or false flag means model-invocable and may start when the request matches it, even without the user naming it ("pause for now" can trigger `pause-safely`).
+This map points to skills; it does not run them. End the turn with the map: start none of the recommended skills, model-invocable ones included, so the user picks what runs. Its descriptions are orientation only: before explaining what a skill does or suggesting that a step can be skipped, read its linked `SKILL.md`. Classify invocation from each recommended skill's own frontmatter, one skill at a time, including skills grouped in the same flow or section: `disable-model-invocation: true` requires human invocation; an absent or false flag means model-invocable and may start when the request matches it, even without the user naming it ("pause for now" can trigger `pause-safely`). Tell the user, for each skill you recommend, whether it starts on its own or they invoke it, and give the invocation form for the ones they invoke.
 
 ## Main flow: idea to ready PR
 
@@ -50,6 +50,7 @@ Use these without the whole `ship` flow:
 |---|---|
 | Understand current code, ownership, or runtime flow | [how](../how/SKILL.md) |
 | Investigate why code has its current shape | [why](../why/SKILL.md) |
+| Review a branch, diff, or PR and get one verdict, with safe simplifications applied only when asked | [review-and-simplify](../review-and-simplify/SKILL.md) |
 | Learn a diff, branch, or PR well enough to review it | [explain-change](../explain-change/SKILL.md) |
 | Test a plan or decision by interview | [grill-me](../grill-me/SKILL.md), the user-invoked wrapper around [grilling](../grilling/SKILL.md) |
 | Gather primary-source facts | [research](../research/SKILL.md) |
@@ -64,6 +65,7 @@ Use these without the whole `ship` flow:
 | Check a PR or stack's gates and merge readiness | [babysit](../babysit/SKILL.md) in `check` mode |
 | Write a PR body | [pr](../pr/SKILL.md) |
 | Write a skill or agent-facing document | [writing-for-agents](../writing-for-agents/SKILL.md) |
+| Turn corrections that recur across past sessions into structural fixes, checks, or instructions | [learn-from-sessions](../learn-from-sessions/SKILL.md) |
 
 ## Vocabulary and principles underneath
 
