@@ -1,10 +1,10 @@
 ---
 name: how
 description: >-
-  Use for "how does X work", code walkthroughs before changing something, and
-  placement / ownership / layering questions ("where should this live",
-  "which package owns this", "is this the right layer"). Use why for
-  motivation.
+  Use for how existing code works: "how does X work", "how would I add another
+  Y" following the current pattern, walkthroughs before a change, and where
+  something lives or which package or layer owns it today. To decide a new
+  interface, seam, or split, use codebase-design; for motivation, use why.
 license: See LICENSE.txt
 ---
 
