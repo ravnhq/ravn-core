@@ -24,7 +24,6 @@ import {
   privateDir,
   installSkills,
   pluginSkillDirs,
-  removeWorkspaceWorktrees,
 } from "./workspace-repo.ts";
 
 const evalsDir = import.meta.dirname;
@@ -225,8 +224,9 @@ try {
     ["without-skill", []],
   ]);
 
-  // Each job clones its own workspaces. Its hook resets them before every
-  // test, so jobs never share or race on a copy.
+  // Each job clones its own pristine workspaces. Its hook copies them into
+  // the job's workspaces before every test, and promptfoo copies those for
+  // each step (copy_working_dir), so jobs never share or race on a copy.
   function createWorkspaces(dir: string) {
     if (missingFixtures) {
       throw new Error(missingFixtures);
@@ -276,13 +276,14 @@ try {
   ): Promise<number> {
     const jobDir = join(runDir, "jobs", String(index));
 
-    const jobWorkspacesDir = join(jobDir, "workspaces");
+    const jobPristineDir = join(jobDir, "pristine");
 
-    createWorkspaces(jobWorkspacesDir);
+    createWorkspaces(jobPristineDir);
 
     const env: NodeJS.ProcessEnv = {
       ...process.env,
-      RAVN_EVALS_WORKSPACES: jobWorkspacesDir,
+      RAVN_EVALS_PRISTINE: jobPristineDir,
+      RAVN_EVALS_WORKSPACES: join(jobDir, "workspaces"),
       RAVN_EVALS_HOME: isolatedHomeDir,
       RAVN_EVALS_RUNNER: runner,
       RAVN_EVALS_OTLP_PORT: String(await freePort()),
@@ -334,12 +335,6 @@ try {
         resolve(status ?? promptfooErrorStatus);
       });
     });
-
-    for (const fixture of fixtureNames) {
-      for (const arm of allArms) {
-        removeWorkspaceWorktrees(join(jobWorkspacesDir, fixture, arm));
-      }
-    }
 
     rmSync(jobDir, { recursive: true, force: true });
 

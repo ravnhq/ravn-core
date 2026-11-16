@@ -1,7 +1,12 @@
 import { spawn } from "node:child_process";
 import { readdirSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
-import type { ApiProvider, ProviderOptions, ProviderResponse } from "promptfoo";
+import type {
+  ApiProvider,
+  CallApiContextParams,
+  ProviderOptions,
+  ProviderResponse,
+} from "promptfoo";
 import { z } from "zod";
 
 const piMessageSchema = z.object({
@@ -137,12 +142,16 @@ function runPi(args: string[], cwd: string): Promise<PiRun> {
 
 export default class PiProvider implements ApiProvider {
   label?: string;
+  // promptfoo reads copy_working_dir and working_dir from here to create each
+  // eval step's workspace, as it does for its own agent providers.
+  readonly config: ProviderOptions["config"];
   private readonly providerId: string;
   private readonly provider: string;
   private readonly model: string;
   private readonly workingDir: string;
 
   constructor(options: ProviderOptions) {
+    this.config = options.config;
     this.providerId = options.id ?? "pi";
     const model = String(options.config?.model);
     const separator = model.indexOf("/");
@@ -163,8 +172,29 @@ export default class PiProvider implements ApiProvider {
     return this.providerId;
   }
 
-  async callApi(prompt: string): Promise<ProviderResponse> {
-    const skillsDir = join(this.workingDir, ".agents", "skills");
+  // With copy_working_dir, promptfoo passes the step's workspace as the
+  // prompt config's working_dir, which overrides ours as it does in its own
+  // agent providers. Like them, refuse a call that would run in working_dir
+  // itself, which only a call outside an eval step makes.
+  async callApi(
+    prompt: string,
+    context?: CallApiContextParams,
+  ): Promise<ProviderResponse> {
+    const config = { ...this.config, ...context?.prompt?.config };
+
+    const workingDir = resolve(
+      String(config.basePath ?? process.cwd()),
+      String(config.working_dir),
+    );
+
+    if (config.copy_working_dir && workingDir === this.workingDir) {
+      return {
+        error:
+          "copy_working_dir runs each eval step in a fresh copy of working_dir; this call was not made by an eval step.",
+      };
+    }
+
+    const skillsDir = join(workingDir, ".agents", "skills");
 
     const skillArgs = readdirSync(skillsDir).flatMap((skill) => [
       "--skill",
@@ -187,7 +217,7 @@ export default class PiProvider implements ApiProvider {
         ...skillArgs,
         prompt,
       ],
-      this.workingDir,
+      workingDir,
     );
 
     if (run.exitCode !== 0) {
