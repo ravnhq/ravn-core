@@ -15,7 +15,7 @@ An engineer in a repo with a deprecated function types the skill's invocation fo
 
 ## Driving it with scripts/scratch.ts
 
-- Build one scratch repo per harness: `node scripts/scratch.ts deprecate-and-migrate /tmp/ravn-verify/$RUN_ID/migrate-<harness>/work`. It is the public `@acme/money` package: `formatPrice` is deprecated in favor of `formatMoney` and called from three source files.
+- Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts deprecate-and-migrate /tmp/ravn-verify/$RUN_ID/migrate-<harness>/work`. It is the public `@acme/money` package: `formatPrice` is deprecated in favor of `formatMoney` and called from three source files.
 - Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> formatPrice is deprecated, move everything to formatMoney and get rid of it. Don't ask me questions.`
 - Check `migrate.inventory` and `migrate.plan` from the transcript's commands and the final message, quoting both.
 - Check `migrate.callers` and `migrate.kept`: quote `git grep -nw formatPrice`, `git diff --stat`, and `npm test`.

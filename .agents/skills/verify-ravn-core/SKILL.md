@@ -8,7 +8,7 @@ Drive each plugin the way a user does, then keep proof of what it did. `validate
 
 Feature recipes live in `features/`. Read `features/README.md`, then the file for each feature in scope. With no argument, verify the features whose plugin differs from `origin/main`, counting uncommitted changes. `all` runs every feature.
 
-Paths in feature files are relative to this skill's directory. Run every command from the repo root after `pnpm install`.
+Run every command from the repo root after `pnpm install`. Commands in feature files spell paths from the repo root, as `node .agents/skills/verify-ravn-core/scripts/collect.ts`; a bare `scripts/<name>.ts` in a sentence names a script bundled with the skill under test. Links between files are relative to the file.
 
 ## Launch
 

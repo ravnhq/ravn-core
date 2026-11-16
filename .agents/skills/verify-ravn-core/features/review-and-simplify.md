@@ -16,7 +16,7 @@
 
 ## Driving it with scripts/scratch.ts
 
-- Build one scratch repo per harness: `node scripts/scratch.ts review-and-simplify /tmp/ravn-verify/$RUN_ID/review-<harness>/work`. It is on `feature/page-slices`, one commit ahead of `main`, with four seeded findings; its test passes on them.
+- Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts review-and-simplify /tmp/ravn-verify/$RUN_ID/review-<harness>/work`. It is on `feature/page-slices`, one commit ahead of `main`, with four seeded findings; its test passes on them.
 - Load the working-tree skills as the README's Harness runs say. For Claude Code, also copy `plugins/agent/ravn-core/agents/review-specialist.md` into the clone's `.claude/agents/`.
 - Send one turn: `<invocation> Review this branch (feature/page-slices) against main and apply the simplifications that are safe. Do not post anything to GitHub and do not ask me questions; use the defaults.`
 - Keep the transcript, the final message, `git status --short`, `git diff`, `git log --oneline`, and `npm test` output under `.verify/$RUN_ID/review-and-simplify-<harness>/`.

@@ -15,8 +15,8 @@ A plugin skill's promptfoo cases run against the harnesses in a temp workspace b
 
 Preconditions: `pnpm eval:fetch` succeeded; skill has `evals/private/ravn-core/<skill>/promptfooconfig.ts`.
 
-- Run one skill, current arm: `node scripts/collect.ts skill-evals pnpm eval --skills <skill> --runners claude-code/claude-sonnet-5-5,codex/gpt-6-luna,pi/gpt-6-luna`. Expect exit 0.
-- Check results: `results/ravn-core-<skill>-*.json`.
+- Run one skill, current arm: `node .agents/skills/verify-ravn-core/scripts/collect.ts skill-evals pnpm eval --skills <skill> --runners claude-code/claude-sonnet-5-5,codex/gpt-6-luna,pi/gpt-6-luna`. Expect exit 0.
+- Check results: `.verify/$RUN_ID/skill-evals/results/ravn-core-<skill>-*.json`, the collector's copy of `evals/results/`.
 
 ## Gotchas
 

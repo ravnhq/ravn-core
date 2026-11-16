@@ -16,7 +16,7 @@ An engineer types the skill's invocation form and describes a change that spans 
 
 ## Driving it with scripts/scratch.ts
 
-- Build one scratch repo per harness: `node scripts/scratch.ts figure-it-out /tmp/ravn-verify/$RUN_ID/figure-<harness>/work`. It holds `packages/api`, `packages/worker`, and `packages/cli`, each with a hand-rolled config loader; `npm test` passes.
+- Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts figure-it-out /tmp/ravn-verify/$RUN_ID/figure-<harness>/work`. It holds `packages/api`, `packages/worker`, and `packages/cli`, each with a hand-rolled config loader; `npm test` passes.
 - Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> Replace the hand-rolled config loaders in packages/api, packages/worker and packages/cli with one shared, validated loader that fails fast on bad values. Keep every valid setup working. Commit when done. Do not ask me questions.`
 - Check `figure.plan` with `git log --stat --reverse`: quote the plan commit and the predicate and phase list in it. Check `figure.baseline` from the transcript, giving its order against the first `packages/*/src` edit.
 - Check `figure.trail`: quote `git log --oneline` and the trail's rows.
