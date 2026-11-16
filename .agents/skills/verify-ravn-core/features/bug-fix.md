@@ -15,7 +15,7 @@
 
 ## Driving it with scripts/scratch.ts
 
-- Build a scratch repo per harness: `node scripts/scratch.ts bug-fix /tmp/ravn-verify/$RUN_ID/bug-fix-<harness>/work`. Its latest commit, `refactor: inline staleness age math`, makes `isStale` read hours as days; its two tests pass on the bug.
+- Build a scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts bug-fix /tmp/ravn-verify/$RUN_ID/bug-fix-<harness>/work`. Its latest commit, `refactor: inline staleness age math`, makes `isStale` read hours as days; its two tests pass on the bug.
 - For `bug-fix.dirty`, build a second repo and leave changes in it: append a comment line to `src/cache.ts` and add an untracked `NOTES.md`.
 - Load the working-tree skills as the README's Harness runs say, and send one turn: `entries we fetched yesterday get refetched as if they were stale. fix it, but don't push anything`.
 - Check:

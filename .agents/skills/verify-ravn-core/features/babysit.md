@@ -22,7 +22,7 @@
 
 No real GitHub access is used.
 
-- Build one scratch repo per scenario and harness: `node scripts/scratch.ts babysit /tmp/ravn-verify/$RUN_ID/babysit-<scenario>-<harness>/work <thread|approved|late|queue|no-skill|uncovered>`. Every scenario but `no-skill` commits a `verify-retry` verification skill to `main`, whose driver appends each run, with its head commit, to `.git/verify-retry-runs.jsonl`. It opens simulated PR #42 on a local bare remote, puts a `gh` wrapper at `.babysit-eval/bin/gh`, and keeps the simulator and its state in the sibling `github-sim/`, out of the agent's reach.
+- Build one scratch repo per scenario and harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts babysit /tmp/ravn-verify/$RUN_ID/babysit-<scenario>-<harness>/work <thread|approved|late|queue|no-skill|uncovered>`. Every scenario but `no-skill` commits a `verify-retry` verification skill to `main`, whose driver appends each run, with its head commit, to `.git/verify-retry-runs.jsonl`. It opens simulated PR #42 on a local bare remote, puts a `gh` wrapper at `.babysit-eval/bin/gh`, and keeps the simulator and its state in the sibling `github-sim/`, out of the agent's reach.
 - Load the working-tree skills as the README's Harness runs say; for Claude Code also copy `plugins/agent/ravn-core/agents/` to the scratch repo's `.claude/agents/`.
 - Send each harness one turn, with this suffix on every request: ` This repo simulates GitHub: prefix every gh or script command with PATH="$PWD/.babysit-eval/bin:$PATH". Preserve .babysit-eval, work only in this repo, and use no real network services.`
   - `thread`: `get PR 42 ready to merge.`

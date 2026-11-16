@@ -4,7 +4,7 @@ This map is the maintained source for verifying what each plugin does for a user
 
 ## Baseline preconditions
 
-- Run from the repo root after `pnpm install`. `scripts/doctor.ts` exits 0.
+- Run from the repo root after `pnpm install`. `node .agents/skills/verify-ravn-core/scripts/doctor.ts` exits 0.
 - `claude` is logged in. Runs spend real API budget.
 - A feature driven in Codex, Pi, or against GitHub needs doctor's `ok codex login`, `ok pi login`, or `ok gh auth`; feature files list only extra preconditions.
 

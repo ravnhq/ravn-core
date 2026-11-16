@@ -14,7 +14,7 @@
 
 Preconditions: `pnpm install` done.
 
-- Run: `node scripts/collect.ts repo-check pnpm check`. Expect exit 0 in `run.json`.
+- Run: `node .agents/skills/verify-ravn-core/scripts/collect.ts repo-check pnpm check`. Expect exit 0 in `run.json`.
 
 ## Gotchas
 

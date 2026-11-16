@@ -16,10 +16,10 @@
 
 ## Driving it with scripts/scratch.ts
 
-- Build one scratch repo per harness: `node scripts/scratch.ts formal-verification /tmp/ravn-verify/$RUN_ID/formal-<harness>/work`. Its `acquire` reads a job's lease and writes it in two store calls; its one test acquires in sequence and passes on the race.
+- Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts formal-verification /tmp/ravn-verify/$RUN_ID/formal-<harness>/work`. Its `acquire` reads a job's lease and writes it in two store calls; its one test acquires in sequence and passes on the race.
 - Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> Verify the job lease in src/lease.ts. Do not ask me questions; use the defaults.`
 - Check `formal.finding`, `formal.test`, and `formal.skill`: quote the final message, `git diff HEAD -- src test` (empty), `git status --short`, and `npm test`; then commit the skill, clone the repo, and run the skill's command in the clone yourself and quote the violation.
-- Commit what the first turn left, then drift the code: `node scripts/scratch.ts formal-verification <same dir> fix`. It makes `acquire` one atomic `claim` call and leaves the verification as it was.
+- Commit what the first turn left, then drift the code: `node .agents/skills/verify-ravn-core/scripts/scratch.ts formal-verification <same dir> fix`. It makes `acquire` one atomic `claim` call and leaves the verification as it was.
 - Send the second turn: `<invocation> The lease code changed since the verification was written. Do not ask me questions; use the defaults.` Codex and Pi start a new session for it; pass Pi the generated skill with `--skill`.
 - Check `formal.updated`: quote the final message, the sync commit in the verify skill beside `git log --oneline`, `git diff HEAD -- src` (empty), and the output of the skill's command run by you.
 

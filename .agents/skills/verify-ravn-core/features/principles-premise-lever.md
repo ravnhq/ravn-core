@@ -15,7 +15,7 @@
 
 ## Driving it with scripts/scratch.ts
 
-- Build one scratch repo per harness and scenario: `node scripts/scratch.ts principles /tmp/ravn-verify/$RUN_ID/<scenario>-<harness>/work <premise|lever>`. `premise` holds a price module whose `setPrice` writes to a copy of the store, under two commits that fix the read cache instead; its test fails. `lever` holds 30 handlers calling `logEvent` in three shapes (one line, multi-line, template name with a computed payload); its test passes.
+- Build one scratch repo per harness and scenario: `node .agents/skills/verify-ravn-core/scripts/scratch.ts principles /tmp/ravn-verify/$RUN_ID/<scenario>-<harness>/work <premise|lever>`. `premise` holds a price module whose `setPrice` writes to a copy of the store, under two commits that fix the read cache instead; its test fails. `lever` holds 30 handlers calling `logEvent` in three shapes (one line, multi-line, template name with a computed payload); its test passes.
 - Load the working-tree skills as the README's Harness runs say, and send one turn each:
   - `premise`: `<invocation> npm test still fails: after setPrice, getPrice returns the old price. My last two commits tried to fix the price cache and neither worked. Fix it and commit. Do not ask me questions.`
   - `lever`: `<invocation> Replace logEvent(name, payload) in src/log.ts with recordEvent({ name, payload }), migrate every caller, and delete logEvent. Commit when done. Do not ask me questions.`

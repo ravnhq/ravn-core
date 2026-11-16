@@ -15,11 +15,11 @@
 
 ## Driving it with scripts/scratch.ts
 
-- Build one scratch repo per harness: `node scripts/scratch.ts web-qa /tmp/ravn-verify/$RUN_ID/web-qa-<harness>/work`. It is a one-page cart served by `npm start` on `$PORT` (default 4173); the "Place order" label is painted in the button's own background color.
+- Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts web-qa /tmp/ravn-verify/$RUN_ID/web-qa-<harness>/work`. It is a one-page cart served by `npm start` on `$PORT` (default 4173); the "Place order" label is painted in the button's own background color.
 - Give each harness its own port. Load the working-tree skills as the README's Harness runs say, with `agent-browser` on `PATH`, and send one turn: `Start the app on port <port> and QA it. Do not ask me questions; use the defaults.`
 - Check `webqa.bug`: quote the reply, the issue block from the report, and open its screenshot.
 - Check `webqa.driver` in one harness with a `PATH` that lacks `agent-browser`, using the same prompt.
-- Drift to the fix: `node scripts/scratch.ts web-qa <same dir> fix` commits the white label on `fix/place-order-label`. Send: `Write the PR body for this branch with before and after screenshots; main is the base. There is no remote, so show me the markdown instead of uploading. Do not ask me questions.`
+- Drift to the fix: `node .agents/skills/verify-ravn-core/scripts/scratch.ts web-qa <same dir> fix` commits the white label on `fix/place-order-label`. Send: `Write the PR body for this branch with before and after screenshots; main is the base. There is no remote, so show me the markdown instead of uploading. Do not ask me questions.`
 - Check `pr.screenshots`: quote the tables and the diff line, and open both images.
 
 ## Gotchas

@@ -15,7 +15,7 @@
 
 ## Driving it with scripts/scratch.ts
 
-- Build one scratch repo per harness: `node scripts/scratch.ts statechart /tmp/ravn-verify/$RUN_ID/statechart-<harness>/work`. Its `spec/Checkout.tla` lets a retry after a timeout charge the card twice; TLC reaches 12 states.
+- Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts statechart /tmp/ravn-verify/$RUN_ID/statechart-<harness>/work`. Its `spec/Checkout.tla` lets a retry after a timeout charge the card twice; TLC reaches 12 states.
 - Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> Check spec/Checkout.tla and show me how checkout moves between states. Do not ask me questions.`
 - Check each sub-feature: quote the command line from the transcript, `ls` of the `--out` folder, the `ChargedAtMostOnce` section of `report.md`, the final message's path and `mermaid` block, and `git status --short`.
 
