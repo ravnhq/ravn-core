@@ -65,7 +65,7 @@ The audit only appends. A row whose claim or evidence is wrong, or that records 
 
 ## Independent review of the trail
 
-Before handing back, have a reviewer that did not do the work read the trail and the run's transcript: a subagent on a different model family if your harness offers one, otherwise a fresh subagent. Your own review does not count. The reviewer flags what the user should pay attention to and leaves the work as it is:
+Before handing back, have a reviewer that did not do the work read the trail and the run's transcript: a fresh subagent in your own harness and model family that has not seen the work, or, where the harness cannot spawn one, a new session of the same harness given only the trail and the transcript. Never use a model from another family or harness. Your own review does not count. The reviewer flags what the user should pay attention to and leaves the work as it is:
 
 - Decisions logged with weak or absent evidence.
 - Verification steps skipped, or claimed without proof in the transcript.
