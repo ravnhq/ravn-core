@@ -37,6 +37,6 @@ Before creating or changing a plugin, identify its tier, place it at `plugins/<t
 
 ## Code
 
-Write scripts in TypeScript that Node runs directly, with erasable syntax only. A script a plugin bundles imports only Node built-ins, because it runs from the installed plugin with no `node_modules`; npm packages are for repo tooling. Each tier's `AGENTS.md` sets the Node version its scripts target.
+Write scripts in TypeScript that Node runs directly, with erasable syntax only. A script a plugin bundles imports only Node built-ins, because it runs from the installed plugin with no `node_modules`; npm packages are for repo tooling. `plugins/agent/AGENTS.md` sets the Node version that `ravn-core`'s scripts target.
 
 Commits use conventional commits (`feat:`, `docs:`, ...).
