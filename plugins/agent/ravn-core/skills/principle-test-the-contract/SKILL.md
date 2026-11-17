@@ -1,10 +1,10 @@
 ---
 name: principle-test-the-contract
 description: >-
-  Use when writing, changing, or deleting a test, when a test and the spec
-  disagree, and before a loop of "make the tests pass". The spec decides: test
-  behavior through the interface, keep the check out of reach of the change it
-  judges, and stop after three failed rounds.
+  Mandatory for test work: invoke before investigating failing tests or
+  adding, editing, or deleting tests. Applies to "get the tests green" and
+  "add tests" requests. Read this principle before choosing a fix: the spec
+  decides whether code or tests change. Stop after three failed rounds.
 license: See LICENSE.txt
 metadata:
   proof: subjective
