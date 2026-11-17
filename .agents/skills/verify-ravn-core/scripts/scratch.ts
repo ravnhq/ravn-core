@@ -1008,6 +1008,104 @@ test("a new price is what the next read returns", () => {
   git(cwd, ["commit", "-qam", "fix: clear the price cache in setPrice"]);
 }
 
+// A Vitest package whose suite keeps flaking in CI orders: one real pricing
+// test, one change-detector test built from vi.mock, call matchers and a
+// Date.now timing assertion, no linter, and no Vitest configuration. The
+// devDependencies are installed, because the skill's survey runs the suite
+// before it changes anything.
+function badTestTerminatorScratch(cwd: string) {
+  initRepo(cwd);
+
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify(
+      {
+        name: "acme-pricing",
+        private: true,
+        scripts: { test: "vitest run" },
+        devDependencies: { vitest: "^5.1.0" },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+
+  writeFileSync(join(cwd, ".gitignore"), "node_modules/\n");
+
+  mkdirSync(join(cwd, "src"), { recursive: true });
+
+  mkdirSync(join(cwd, "test"), { recursive: true });
+
+  writeFileSync(
+    join(cwd, "src/pricing.ts"),
+    `export type Cart = { items: string[]; coupon?: string };
+
+/** Ten per item, ten percent off with the TENOFF coupon. */
+export function priceFor(cart: Cart): number {
+  const base = cart.items.length * 10;
+  return cart.coupon === "TENOFF" ? base * 0.9 : base;
+}
+`,
+  );
+
+  writeFileSync(
+    join(cwd, "test/pricing.test.ts"),
+    `import { describe, expect, it } from "vitest";
+import { priceFor } from "../src/pricing";
+
+describe("priceFor", () => {
+  it("charges ten per item and applies TENOFF", () => {
+    expect(priceFor({ items: ["mug", "poster"] })).toBe(20);
+    expect(priceFor({ items: ["mug", "poster"], coupon: "TENOFF" })).toBe(18);
+  });
+});
+`,
+  );
+
+  writeFileSync(
+    join(cwd, "test/pricing-calls.test.ts"),
+    `import { describe, expect, it, vi } from "vitest";
+
+const { priceForMock } = vi.hoisted(() => ({ priceForMock: vi.fn() }));
+
+vi.mock("../src/pricing", () => ({ priceFor: priceForMock }));
+
+describe("pricing module", () => {
+  it("prices the cart through priceFor", () => {
+    priceForMock({ items: ["mug"] });
+
+    expect(priceForMock).toHaveBeenCalledTimes(1);
+
+    expect(priceForMock).toHaveBeenCalledWith({ items: ["mug"] });
+  });
+
+  it("stays fast", () => {
+    const startedAt = Date.now();
+
+    priceForMock({ items: ["mug"] });
+
+    expect(Date.now() - startedAt).toBeLessThan(1000);
+  });
+});
+`,
+  );
+
+  const install = spawnSync("npm", ["install", "--silent"], {
+    cwd,
+    encoding: "utf8",
+  });
+
+  if (install.status !== 0) {
+    console.error(install.stderr);
+
+    process.exit(1);
+  }
+
+  git(cwd, ["add", "-A"]);
+
+  git(cwd, ["commit", "-qam", "feat: pricing cart"]);
+}
+
 const [kind, dir, scenario] = process.argv.slice(2);
 
 if (import.meta.main) {
@@ -1028,6 +1126,8 @@ if (import.meta.main) {
     statechartScratch(resolve(dir));
   else if (kind === "figure-it-out" && dir !== undefined)
     figureScratch(resolve(dir));
+  else if (kind === "bad-test-terminator" && dir !== undefined)
+    badTestTerminatorScratch(resolve(dir));
   else {
     console.error(
       "usage: scratch.ts babysit <dir> [" +
@@ -1038,7 +1138,7 @@ if (import.meta.main) {
         principleScenarios.join("|") +
         "] | deprecate-and-migrate <dir> | web-qa <dir> [" +
         webQAScenarios.join("|") +
-        "] | statechart <dir> | figure-it-out <dir>",
+        "] | statechart <dir> | figure-it-out <dir> | bad-test-terminator <dir>",
     );
     process.exit(64);
   }
