@@ -121,3 +121,4 @@ Done when every chosen fix has been applied and re-checked, with any fix that st
 27. **Guardrails**: a pre-commit hook or CI catches unformatted code and committed secrets. Name any that are missing.
 28. **Commit conventions**: the commit message convention is documented.
 29. **PR conventions**: the pull request convention is documented, or a PR template exists.
+30. **Checks out of reach**: a change cannot quietly weaken the checks that judge it: edits to tests, test configuration, or CI need an owner's review before merge, or the required checks run from the base branch.
