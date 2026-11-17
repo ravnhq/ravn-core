@@ -58,7 +58,7 @@ Flag measurable regressions the change introduces: work that grows with input si
 
 ### code_quality
 
-Find correctness defects: wrong results, broken edge cases, error paths that lose failures or report success, races and lost updates, resource lifetime mistakes, and contract drift between the changed code and its callers, callees, tests, and duplicated constants. Follow each candidate into the code around it until you can show the failing input and the observable result, or rule it out. Report a test defect only when a concrete regression in this change would pass it. Leave style to the project guidance.
+Find correctness defects: wrong results, broken edge cases, error paths that lose failures or report success, races and lost updates, resource lifetime mistakes, and contract drift between the changed code and its callers, callees, tests, and duplicated constants. Follow each candidate into the code around it until you can show the failing input and the observable result, or rule it out. Report a test defect only when a concrete regression in this change would pass it. That includes an existing test the change deletes, skips, or weakens, or whose expected value it changes, when the diff states no reason the expected behavior changed: name the test and the regression it no longer catches, as a `warning`. Leave style to the project guidance.
 
 ### documentation
 
