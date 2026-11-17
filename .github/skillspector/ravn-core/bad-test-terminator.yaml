@@ -1,0 +1,14 @@
+# SkillSpector baseline — findings listed here are suppressed on future scans.
+# Edit 'reason' fields and add glob 'rules' as needed. See docs/SUPPRESSION.md.
+version: 2
+scanner_version: 2.12.0
+rules: []
+fingerprints:
+- hash: sha256:6bb5fcc18ee0f286e445a8cb71391eaf810da97a96df04ebb3782f0afc2256a9
+  rule_id: LP3
+  file: SKILL.md
+  reason: agent-plugins.org frontmatter has no allowed-tools field, and validate-skills.ts rejects it as experimental with divergent harness behavior; the skill's scripts import only Node built-ins and run only on the engineer's explicit command
+- hash: sha256:f79f6aeb918d23c3a86e52f88d195065900066c2c1911b1d2d821c3e866f842e
+  rule_id: AS3
+  file: references/prune.md
+  reason: the flagged skills/prune-tests/SKILL.md is the URL of the external MIT-licensed skill the prune rubric was adapted from, an attribution per docs/authoring convention, not a runtime read of installed peer skills
