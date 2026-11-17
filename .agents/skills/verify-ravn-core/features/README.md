@@ -68,6 +68,7 @@ Claude Code mods:
 - [TypeScript best practices](./typescript-best-practices.md) covers loading the skill unprompted for a TypeScript change, applying its rules, and staying out of other languages.
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
 - [Attack the Premise and Build the Lever](./principles-premise-lever.md) covers naming and testing the premise two failed fixes shared, reverting the refuted fixes, and doing a 30-file caller migration with a rerunnable codemod.
+- [Bad test terminator](./bad-test-terminator.md) covers the vendored plugin with its provenance record, exact matching pins, the guards block, the seven Vitest settings with a repeat run, findings settled on the request's route, and the self-check proving the renamed rules bite, in all three harnesses.
 
 ## Not covered
 
