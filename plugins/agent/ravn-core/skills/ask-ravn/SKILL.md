@@ -84,6 +84,7 @@ Apply principles when their conditions occur during any route:
 | Coordinating writers of shared mutable state | [separate-before-serializing-shared-state](../principle-separate-before-serializing-shared-state/SKILL.md) |
 | Planning a measurement, or trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
 | Checking a finished output | [prove-it-works](../principle-prove-it-works/SKILL.md) |
+| Writing, changing, or deleting a test, or a test disagrees with the spec | [test-the-contract](../principle-test-the-contract/SKILL.md) |
 | Making the same change in many places, or work a reviewer must rerun | [build-the-lever](../principle-build-the-lever/SKILL.md) |
 | Large reads or outputs are crowding the session | [guard-the-context-window](../principle-guard-the-context-window/SKILL.md) |
 

@@ -82,7 +82,7 @@ Work the steps in order and run each step's verification before starting the nex
 
 If the user steps away while you build, keep a decision trail with [Show Me Your Work](../show-me-your-work/SKILL.md).
 
-For a new internal API with old callers, use [Migrate Callers Then Delete Legacy APIs](../codebase-design/MIGRATE-CALLERS.md) when no external users need compatibility and the project permits coordinated breaking changes; when callers outside the repo or another deploy may still use it, use [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md). For tests you write, change, or keep, use [Test Behavior, Not Implementation](../principle-prove-it-works/TEST-BEHAVIOR.md).
+For a new internal API with old callers, use [Migrate Callers Then Delete Legacy APIs](../codebase-design/MIGRATE-CALLERS.md) when no external users need compatibility and the project permits coordinated breaking changes; when callers outside the repo or another deploy may still use it, use [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md). For tests you write, change, or keep, use [Test the Contract](../principle-test-the-contract/SKILL.md).
 
 ## Step 10. Prove it works
 

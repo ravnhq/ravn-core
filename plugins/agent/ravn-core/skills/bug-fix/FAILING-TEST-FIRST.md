@@ -8,9 +8,9 @@ Make the broken behavior executable before you change production code: one focus
 
 Prefer the narrowest test the repo already uses for this code path (unit, component, integration, or regression). Write a new test only when that path is cheap.
 
-When a test would need broad harness setup, mocks of most collaborators, slow end-to-end infrastructure, production-only state, or large unrelated fixtures, use the closest executable check instead: a targeted script, a repro command, browser automation through the verification skill, a snapshot comparison, or a log assertion.
+When a test would need broad harness setup, mocks of most collaborators, slow end-to-end infrastructure, production-only state, or large unrelated fixtures, use the closest executable check instead: a targeted script, a repro command, browser automation through the verification skill, a one-off snapshot comparison of the output before and after the fix, or a log assertion. A saved snapshot counts once someone confirms the new output is right before it is updated.
 
-No new test beats a bad test: one that mostly exercises mocks, encodes the current implementation, depends on timing or unrelated global state, or would be deleted right after it proves the fix. Judge it by [Test Behavior, Not Implementation](../principle-prove-it-works/TEST-BEHAVIOR.md).
+No new test beats a bad test: one that mostly exercises mocks, encodes the current implementation, depends on timing or unrelated global state, or would be deleted right after it proves the fix. Judge it by [Test the Contract](../principle-test-the-contract/SKILL.md).
 
 ## Run it red
 
