@@ -18,5 +18,9 @@
     "scripts/**/*.ts",
     ".agents/skills/verify-ravn-core/scripts/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "plugins/agent/ravn-core/skills/bad-test-terminator/assets/config",
+    "plugins/agent/ravn-core/skills/bad-test-terminator/assets/fixtures"
+  ]
 }

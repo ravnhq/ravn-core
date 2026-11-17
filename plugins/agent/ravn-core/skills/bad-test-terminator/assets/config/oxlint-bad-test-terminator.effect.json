@@ -1,0 +1,204 @@
+{
+  "ignorePatterns": [
+    "tools/oxlint/bad-test-terminator/**"
+  ],
+  "jsPlugins": [
+    {
+      "name": "bad-test-terminator",
+      "specifier": "./tools/oxlint/bad-test-terminator/index.ts"
+    },
+    {
+      "name": "bad-test-terminator-effect",
+      "specifier": "./tools/oxlint/bad-test-terminator/effect/index.ts"
+    }
+  ],
+  "overrides": [
+    {
+      "files": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/test/**",
+        "**/tests/**",
+        "**/__tests__/**"
+      ],
+      "plugins": [
+        "vitest"
+      ],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "globals": [
+              {
+                "name": "setTimeout",
+                "message": "Real timers make a test wait on the wall clock. Advance a clock the test controls: fake timers, or the TestClock under it.effect."
+              },
+              {
+                "name": "setInterval",
+                "message": "Real timers make a test wait on the wall clock. Advance a clock the test controls: fake timers, or the TestClock under it.effect."
+              },
+              {
+                "name": "setImmediate",
+                "message": "Real timers make a test wait on the wall clock. Advance a clock the test controls: fake timers, or the TestClock under it.effect."
+              },
+              {
+                "name": "fetch",
+                "message": "A test that reaches the network fails for reasons outside the code. Call the handler in process or inject a fake client."
+              }
+            ],
+            "checkGlobalObject": true
+          }
+        ],
+        "no-restricted-properties": [
+          "error",
+          {
+            "object": "Date",
+            "property": "now",
+            "message": "The wall clock differs on every run. Use a fixed instant or a clock the test controls."
+          },
+          {
+            "object": "performance",
+            "property": "now",
+            "message": "The wall clock differs on every run. Use a fixed instant or a clock the test controls."
+          },
+          {
+            "object": "Math",
+            "property": "random",
+            "message": "Random input makes a failure unrepeatable. Use fixed values or a seeded generator."
+          },
+          {
+            "object": "it",
+            "property": "live",
+            "message": "It runs on the live clock, so sleeps, timeouts and schedules wait for real time. Use it.effect and advance the TestClock."
+          },
+          {
+            "object": "it",
+            "property": "flakyTest",
+            "message": "It retries until the effect passes, which hides the flakiness. Control the nondeterministic input instead."
+          },
+          {
+            "object": "TestClock",
+            "property": "withLive",
+            "message": "It runs on the live clock, so sleeps, timeouts and schedules wait for real time. Use it.effect and advance the TestClock."
+          }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "node:timers",
+                "message": "Real timers make a test wait on the wall clock. Advance a clock the test controls."
+              },
+              {
+                "name": "timers",
+                "message": "Real timers make a test wait on the wall clock. Advance a clock the test controls."
+              },
+              {
+                "name": "node:timers/promises",
+                "message": "Real timers make a test wait on the wall clock. Advance a clock the test controls."
+              },
+              {
+                "name": "timers/promises",
+                "message": "Real timers make a test wait on the wall clock. Advance a clock the test controls."
+              },
+              {
+                "name": "effect/http",
+                "importNames": [
+                  "FetchHttpClient"
+                ],
+                "message": "FetchHttpClient reaches the network. Provide a fake HttpClient layer."
+              },
+              {
+                "name": "@effect/platform",
+                "importNames": [
+                  "FetchHttpClient"
+                ],
+                "message": "FetchHttpClient reaches the network. Provide a fake HttpClient layer."
+              },
+              {
+                "name": "@effect/vitest",
+                "importNames": [
+                  "live",
+                  "flakyTest",
+                  "vi"
+                ],
+                "message": "`live` and `flakyTest` leave the TestClock or retry until green; `vi` from this module is invisible to the mock rules, so import it from vitest."
+              }
+            ]
+          }
+        ],
+        "vitest/no-restricted-matchers": [
+          "error",
+          {
+            "toMatchSnapshot": "A snapshot fails on any change to the output. Assert the properties the behaviour requires.",
+            "toMatchInlineSnapshot": "A snapshot fails on any change to the output. Assert the properties the behaviour requires.",
+            "toMatchFileSnapshot": "A snapshot fails on any change to the output. Assert the properties the behaviour requires.",
+            "toThrowErrorMatchingSnapshot": "A snapshot fails on any change to the output. Assert the properties the behaviour requires.",
+            "toThrowErrorMatchingInlineSnapshot": "A snapshot fails on any change to the output. Assert the properties the behaviour requires.",
+            "toHaveBeenCalled": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenCalledTimes": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenCalledOnce": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenCalledWith": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenCalledExactlyOnceWith": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenLastCalledWith": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenNthCalledWith": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenCalledBefore": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received.",
+            "toHaveBeenCalledAfter": "Asserting calls couples the test to how the code works. Assert the result, or the state of a fake that records what it received."
+          }
+        ],
+        "vitest/no-restricted-vi-methods": [
+          "error",
+          {
+            "mock": "Replace the dependency through a real seam: an injected interface, a service layer or a fake.",
+            "doMock": "Replace the dependency through a real seam: an injected interface, a service layer or a fake.",
+            "spyOn": "A spy on real code ties the test to its internals. Inject a fake and assert on what it recorded."
+          }
+        ],
+        "vitest/expect-expect": [
+          "error",
+          {
+            "assertFunctionNames": [
+              "expect",
+              "expectTypeOf",
+              "assert",
+              "assert.*"
+            ],
+            "additionalTestBlockFunctions": [
+              "it.effect",
+              "it.scoped",
+              "test.effect",
+              "test.scoped"
+            ]
+          }
+        ],
+        "vitest/valid-expect": "error",
+        "vitest/no-standalone-expect": [
+          "error",
+          {
+            "additionalTestBlockFunctions": [
+              "it.effect",
+              "it.effect.each",
+              "it.scoped",
+              "test.effect",
+              "test.effect.each",
+              "test.scoped"
+            ]
+          }
+        ],
+        "vitest/no-conditional-expect": "error",
+        "vitest/no-focused-tests": "off",
+        "vitest/no-disabled-tests": "off",
+        "bad-test-terminator/no-focused-or-skipped-tests": "error",
+        "bad-test-terminator/no-test-retries": "error",
+        "bad-test-terminator/no-current-date": "error",
+        "bad-test-terminator-effect/no-live-test-runtime": "error",
+        "vitest/warn-todo": "off",
+        "vitest/require-mock-type-parameters": "off",
+        "vitest/require-to-throw-message": "off",
+        "vitest/valid-title": "off",
+        "vitest/prefer-snapshot-hint": "off"
+      }
+    }
+  ]
+}
