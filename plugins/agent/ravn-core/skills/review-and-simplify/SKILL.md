@@ -93,7 +93,7 @@ Judge the combined findings into `<run>/judged.json`, as `{"findings": [...]}`. 
 - Set each severity from the impact the finding demonstrates, whatever its specialist chose. A `suggestion` that shows a concrete security or correctness impact, such as a token written to logs, rises to that impact.
 - Drop speculative findings, nitpicks, false positives, and findings that contradict `guidance.md`; read the code to settle a doubt.
 - Keep a `replacement` only when it is exact code for the anchored lines.
-- Keep a finding on a changed test only when no commit message between `<merge-base>` and `<head>`, nor the pull request's text, states why the expected behavior changed.
+- Keep a finding about a missing reason for a test change only when no commit message between `<merge-base>` and `<head>`, nor the pull request's text, states why the expected behavior changed.
 - On a re-review, read the code at each previous finding's anchor. Drop the ones the code now fixes. Re-emit the ones still unfixed, at their anchor in the current diff. Re-emit one whose PR thread a person resolved only when the issue has grown worse, at the higher severity.
 
 Done when every specialist finding is kept, merged, moved, or dropped for a reason you can state.
