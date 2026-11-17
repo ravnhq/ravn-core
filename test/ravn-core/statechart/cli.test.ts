@@ -470,8 +470,10 @@ for (const signal of ["SIGINT", "SIGTERM"] satisfies NodeJS.Signals[]) {
 
     const sendWhileRead = `const fs = require("node:fs");
 const [dot, pid, signal, graph] = process.argv.slice(1);
-setTimeout(() => process.exit(1), 30_000).unref();
+const deadline = setTimeout(() => process.exit(1), 30_000);
 fs.open(dot, "w", (error, fd) => {
+  if (error) throw error;
+  clearTimeout(deadline);
   process.kill(Number(pid), signal);
   fs.writeSync(fd, fs.readFileSync(graph));
   fs.closeSync(fd);
@@ -482,6 +484,10 @@ fs.open(dot, "w", (error, fd) => {
       `#!/usr/bin/env node
 import { spawn, spawnSync } from "node:child_process";
 const args = process.argv.slice(2);
+if (args[0] === "-version") {
+  process.stderr.write('openjdk version "21"\\n');
+  process.exit(0);
+}
 const dot = args[args.indexOf("-dump") + 2] + ".dot";
 spawnSync("mkfifo", [dot]);
 const command = spawnSync("ps", ["-o", "ppid=", "-p", String(process.ppid)], { encoding: "utf8" }).stdout.trim();
