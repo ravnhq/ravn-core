@@ -23,7 +23,7 @@ Code and features:
 3. Check the full chain: does data flow from input to output?
 4. For integrations, test the full communication path end-to-end
 
-When writing, changing, or keeping a test, apply [Test Behavior, Not Implementation](TEST-BEHAVIOR.md).
+When writing, changing, or keeping a test, apply [Test the Contract](../principle-test-the-contract/SKILL.md).
 
 Delegation: trust artifacts, not self-reports. Inspect the delegate's actual output (git diff, file contents, runtime behavior), not its summary.
 
