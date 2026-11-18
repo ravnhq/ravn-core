@@ -11,6 +11,7 @@
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { createRequire } from "node:module";
 
 type Manifest = {
   dependencies?: Record<string, string>;
@@ -156,23 +157,18 @@ const guardCodes = new Set(
 
 const selected = (name: string) => effect || !name.includes("effect");
 
-function findOxlint(from: string) {
-  for (let directory = from; ; directory = dirname(directory)) {
-    const candidate = join(directory, "node_modules/.bin/oxlint");
+let oxlint: string;
 
-    if (existsSync(candidate)) return candidate;
-
-    if (dirname(directory) === directory) return null;
-  }
-}
-
-const oxlint = findOxlint(process.cwd());
-
-if (oxlint === null) {
-  console.error(
-    "No node_modules/.bin/oxlint at or above the current directory. Install oxlint, then run this from the package that owns the lint configuration.",
+try {
+  const manifest = createRequire(join(process.cwd(), "package.json")).resolve(
+    "oxlint/package.json",
   );
 
+  oxlint = join(dirname(manifest), "bin/oxlint");
+} catch {
+  console.error(
+    "Oxlint does not resolve from this package. Install it before running the self-check.",
+  );
   process.exit(2);
 }
 
@@ -207,7 +203,7 @@ try {
     cpSync(join(fixtures, name), join(staging, name));
   }
 
-  const run = spawnSync(oxlint, ["-f", "json", staging], {
+  const run = spawnSync(process.execPath, [oxlint, "-f", "json", staging], {
     encoding: "utf8",
   });
 

@@ -97,6 +97,8 @@ function makePackage(name: string, options: PackageOptions = {}) {
     join(dir, "node_modules/.bin/oxlint"),
   );
 
+  symlinkSync(join(nodeModules, "oxlint"), join(dir, "node_modules/oxlint"));
+
   symlinkSync(
     join(nodeModules, "@oxlint/plugins"),
     join(dir, "node_modules/@oxlint/plugins"),
@@ -423,4 +425,11 @@ test("repeat.ts rejects empty commands and nonpositive counts", () => {
     runScript("repeat.ts", tempRoot, ["0", process.execPath]).status,
     2,
   );
+});
+
+test("verify.ts runs the package's Oxlint through Node without a shell shim", () => {
+  const dir = makePackage("verify-no-shell-shim", { runner: "bun" });
+  rmSync(join(dir, "node_modules/.bin/oxlint"));
+  const result = runScript("verify.ts", dir, ["--runner=bun"]);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
 });
