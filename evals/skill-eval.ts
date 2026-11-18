@@ -8,6 +8,7 @@ import type {
   TestCase,
   UnifiedConfig,
 } from "promptfoo";
+import { openRouterClaudeEnvironment } from "./providers/openrouter-claude.ts";
 import { fixturesDir } from "./workspace-repo.ts";
 
 export const arms = ["current", "baseline", "without-skill"] as const;
@@ -36,10 +37,12 @@ export const openRouterModels = [
 
 type Runner = (typeof runners)[number];
 
+const openRouterGrader = process.env.RAVN_EVALS_GRADER_ROUTE === "openrouter";
+
 export const grader = {
   id: "anthropic:claude-agent-sdk",
   config: {
-    model: "claude-sonnet-5-5",
+    model: openRouterGrader ? undefined : "claude-sonnet-5-5",
     apiKeyRequired: false,
     tools: [],
     skills: [],
@@ -51,9 +54,19 @@ export const grader = {
 function graderEnvironment() {
   const home = process.env.RAVN_EVALS_HOME;
 
-  return home
-    ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude-grader") }
-    : {};
+  if (!home) return {};
+
+  const isolated = {
+    HOME: home,
+    CLAUDE_CONFIG_DIR: join(home, ".claude-grader"),
+  };
+
+  return openRouterGrader
+    ? {
+        ...isolated,
+        ...openRouterClaudeEnvironment("anthropic/claude-sonnet-5.5"),
+      }
+    : isolated;
 }
 
 const piProvider = `file://${join(import.meta.dirname, "providers", "pi.ts")}`;
@@ -139,17 +152,7 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           env: openRouter
             ? {
                 ...claudeCodeEnv(true),
-                ANTHROPIC_BASE_URL: "https://openrouter.ai/api",
-                ANTHROPIC_AUTH_TOKEN: process.env.OPENROUTER_API_KEY ?? "",
-                ANTHROPIC_API_KEY: "",
-                ANTHROPIC_DEFAULT_SONNET_MODEL: modelWithoutRoute(
-                  runner,
-                ).replace("anthropic/", ""),
-                ANTHROPIC_DEFAULT_OPUS_MODEL: modelWithoutRoute(runner).replace(
-                  "anthropic/",
-                  "",
-                ),
-                ANTHROPIC_MODEL: modelWithoutRoute(runner),
+                ...openRouterClaudeEnvironment(modelWithoutRoute(runner)),
               }
             : claudeCodeEnv(false),
         },

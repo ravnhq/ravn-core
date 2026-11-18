@@ -3,7 +3,15 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+const openRouter = process.env.RAVN_EVALS_NUDGE_ROUTE === "openrouter";
+
+if (openRouter && !process.env.OPENROUTER_API_KEY) {
+  throw new Error(
+    "Set OPENROUTER_API_KEY for the isolated OpenRouter Skill Nudge runner.",
+  );
+}
+
+if (!openRouter && !process.env.CLAUDE_CODE_OAUTH_TOKEN) {
   throw new Error(
     "Set CLAUDE_CODE_OAUTH_TOKEN for the isolated Skill Nudge runner.",
   );

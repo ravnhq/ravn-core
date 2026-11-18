@@ -21,6 +21,7 @@ import type {
   Command,
   Message,
 } from "../../plugins/mods/skill-nudge/lib/nudge.ts";
+import { openRouterClaudeEnvironment } from "../providers/openrouter-claude.ts";
 import { cases } from "./cases.ts";
 
 const skillsDir = join(
@@ -124,23 +125,32 @@ const tests: TestCase[] = cases.map((one) => ({
 
 const home = process.env.RAVN_NUDGE_HOME;
 
+const openRouter = process.env.RAVN_EVALS_NUDGE_ROUTE === "openrouter";
+
+const isolated = home
+  ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude") }
+  : {};
+
 const config: UnifiedConfig = {
   description: "skill-nudge: does Haiku suggest the right ravn-core skill?",
   prompts: [{ label: "skill-nudge", raw: "skill-nudge", function: prompt }],
   providers: [
     {
       id: "anthropic:claude-agent-sdk",
-      label: "skill-nudge/haiku",
+      label: openRouter ? "skill-nudge/haiku-or" : "skill-nudge/haiku",
       config: {
-        model: "haiku",
+        model: openRouter ? undefined : "haiku",
         apiKeyRequired: false,
         custom_system_prompt: SYSTEM,
         tools: [],
         skills: [],
         persist_session: false,
-        env: home
-          ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude") }
-          : {},
+        env: openRouter
+          ? {
+              ...isolated,
+              ...openRouterClaudeEnvironment("anthropic/claude-haiku-5.5"),
+            }
+          : isolated,
         max_turns: 1,
         // `$.model.complete` sends no thinking, so the eval must not either.
         thinking: { type: "disabled" },
