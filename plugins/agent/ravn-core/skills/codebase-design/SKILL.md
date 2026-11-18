@@ -1,9 +1,9 @@
 ---
 name: codebase-design
 description: >-
-  Decide whether code should stay split or get one interface, where a new
-  seam should go, or where to parse raw inputs. Use when designing a module's
-  types or test surface. For how existing code works today, use how.
+  Recommend a module design: keep paths split or give them one interface,
+  place a new seam, or decide where raw inputs are parsed and what types and
+  tests callers use.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -11,9 +11,11 @@ metadata:
 
 # Codebase Design
 
-Design **deep modules**: much behaviour behind a small interface, placed at a clean seam, testable through that interface. Use these terms exactly, never "component," "service," "API," or "boundary": the aim is leverage for callers, locality for maintainers, testability for everyone.
+Design **deep modules**: much behaviour behind a small interface, placed at a clean seam and testable through that interface. Use the glossary to name the roles code plays.
 
-Start with the design decision the user wants. For raw inputs or adapters, read [Boundary Discipline](references/boundary-discipline.md) before choosing where validation belongs. For types or signatures, read [Type System Discipline](references/type-system-discipline.md) before proposing the representation.
+1. **Trace the decision in current code.** For each relevant path, cite where it starts, what it shares, and what it owns. If the user asks for a walkthrough, start with [How](../how/SKILL.md) and continue to design only if they asked for a recommendation too.
+2. **Resolve the design branch.** For raw inputs or adapters, read [Boundary Discipline](references/boundary-discipline.md) before placing validation. For a new type or signature, read [Type System Discipline](references/type-system-discipline.md) before deciding what callers can assume.
+3. **Deliver one recommendation.** Show the proposed interface or the reason to keep the existing split, what responsibility stays with each caller, and a check through the chosen interface. A recommendation alone leaves the code unchanged.
 
 ## Glossary
 

@@ -1,9 +1,8 @@
 ---
 name: how
 description: >-
-  Walk through existing code: where it lives today, who owns what, how a call
-  flows, or how to follow the current pattern. For a proposed design use
-  codebase-design; for historical rationale use why.
+  Trace how existing code works. Use for a walkthrough of the call path or
+  ownership today, or to show how to extend an established pattern.
 license: See LICENSE.txt
 ---
 
@@ -11,16 +10,11 @@ license: See LICENSE.txt
 
 Adapted from pstack `how`, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-Explore the codebase to answer "how does X work?" questions.
+Explain how the existing code works so the engineer can work in it confidently. Keep the working tree unchanged. If the scope is ambiguous, state the interpretation you traced.
 
-If the scope is ambiguous, state your interpretation and explore. The user can redirect.
+1. **Trace.** Read the entry point, the handoffs it makes, and the destination in source. For a request to extend a pattern, find the closest working example and trace how it is registered and exercised.
+2. **Explain.** Walk the relevant path in order, naming the files and symbols that establish each handoff. If extending the pattern, name the places the engineer would change and the checks that would prove it works.
 
-## 1. Explain
+Trace directly by default. Delegate independent paths only when you can collect the results before the final answer. A progress update or a launched agent is not the walkthrough.
 
-Spawn one read-only subagent that explores and explains in one pass. If your harness cannot spawn subagents, do this work yourself. Give it the user's question and this brief:
-
-> You are writing an architectural explanation for a senior engineer. Explore the codebase and write an explanation that a senior engineer unfamiliar with this area could read and walk away with a solid mental model. They should understand the architecture well enough to start working in it confidently. You have read-only access to the codebase.
-
-## 2. Present
-
-Present the subagent's output. Light edits for clarity or context from the conversation are fine. Do not substantially rewrite it.
+For historical rationale, use [Why](../why/SKILL.md). For a proposed interface or seam, use [Codebase Design](../codebase-design/SKILL.md).
