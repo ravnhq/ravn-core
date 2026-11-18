@@ -48,6 +48,8 @@ export function createWorkspaceRepo(workspaceDir: string, fixture: string) {
   );
 
   git(["remote", "remove", "origin"], workspaceDir);
+  git(["config", "user.name", "Ravn Eval"], workspaceDir);
+  git(["config", "user.email", "noreply@example.com"], workspaceDir);
 }
 
 export function applyEdits(

@@ -131,23 +131,25 @@ function textOf(message: PiMessage): string {
     .join("\n");
 }
 
-const piEnvNames = ["PATH", "HOME", "TMPDIR", "LANG", "PI_CODING_AGENT_DIR"];
+const piEnvNames = ["PATH", "TMPDIR", "LANG"];
 
-function piEnv(): NodeJS.ProcessEnv {
-  return Object.fromEntries(
+function piEnv(home: string): NodeJS.ProcessEnv {
+  const inherited = Object.fromEntries(
     piEnvNames.flatMap((name) => {
       const value = process.env[name];
 
       return value === undefined ? [] : [[name, value]];
     }),
   );
+
+  return { ...inherited, HOME: home, PI_CODING_AGENT_DIR: join(home, "pi") };
 }
 
-function runPi(args: string[], cwd: string): Promise<PiRun> {
+function runPi(args: string[], cwd: string, home: string): Promise<PiRun> {
   return new Promise((done, fail) => {
     const child = spawn("pi", args, {
       cwd,
-      env: piEnv(),
+      env: piEnv(home),
       stdio: ["ignore", "pipe", "pipe"],
     });
 
@@ -246,6 +248,7 @@ export default class PiProvider implements ApiProvider {
         prompt,
       ],
       workingDir,
+      z.string().parse(config.home),
     );
 
     if (run.exitCode !== 0) {

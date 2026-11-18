@@ -26,7 +26,7 @@
     "eval": "node evals/run.ts --arms current",
     "eval:compare": "node evals/run.ts --repeat 3",
     "eval:smoke": "node evals/run.ts --smoke",
-    "eval:skill-nudge": "promptfoo eval -c evals/skill-nudge/promptfooconfig.ts --repeat 3 --no-cache",
+    "eval:skill-nudge": "node evals/skill-nudge/run.ts",
     "eval:view": "promptfoo view"
   },
   "devDependencies": {

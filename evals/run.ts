@@ -247,6 +247,16 @@ try {
 
   cpSync(codexAuthFile, isolatedCodexAuthFile);
 
+  if (selectedRunners.some((runner) => runner.startsWith("pi/"))) {
+    const { seedPiHome } = await import("./pi-home.ts");
+
+    seedPiHome(
+      join(isolatedHomeDir, "pi"),
+      process.env.RAVN_VERIFY_PI_PROVIDER || "openai",
+      process.env.RAVN_VERIFY_PI_MODEL || "gpt-6-luna",
+    );
+  }
+
   rmSync(resultsDir, { recursive: true, force: true });
 
   mkdirSync(resultsDir, { recursive: true });

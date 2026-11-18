@@ -122,6 +122,8 @@ const tests: TestCase[] = cases.map((one) => ({
   ],
 }));
 
+const home = process.env.RAVN_NUDGE_HOME;
+
 const config: UnifiedConfig = {
   description: "skill-nudge: does Haiku suggest the right ravn-core skill?",
   prompts: [{ label: "skill-nudge", raw: "skill-nudge", function: prompt }],
@@ -134,6 +136,11 @@ const config: UnifiedConfig = {
         apiKeyRequired: false,
         custom_system_prompt: SYSTEM,
         tools: [],
+        skills: [],
+        persist_session: false,
+        env: home
+          ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude") }
+          : {},
         max_turns: 1,
         // `$.model.complete` sends no thinking, so the eval must not either.
         thinking: { type: "disabled" },

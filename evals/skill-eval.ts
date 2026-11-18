@@ -8,7 +8,6 @@ import type {
   TestCase,
   UnifiedConfig,
 } from "promptfoo";
-import { referenceWasRead } from "./reference-reads.ts";
 import { fixturesDir } from "./workspace-repo.ts";
 
 export const arms = ["current", "baseline", "without-skill"] as const;
@@ -39,8 +38,23 @@ type Runner = (typeof runners)[number];
 
 export const grader = {
   id: "anthropic:claude-agent-sdk",
-  config: { model: "claude-sonnet-5-5", apiKeyRequired: false },
+  config: {
+    model: "claude-sonnet-5-5",
+    apiKeyRequired: false,
+    tools: [],
+    skills: [],
+    persist_session: false,
+    env: graderEnvironment(),
+  },
 };
+
+function graderEnvironment() {
+  const home = process.env.RAVN_EVALS_HOME;
+
+  return home
+    ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude-grader") }
+    : {};
+}
 
 const piProvider = `file://${join(import.meta.dirname, "providers", "pi.ts")}`;
 
@@ -73,6 +87,7 @@ function claudeCodeEnv(openRouter: boolean) {
 
   // run.ts refuses to start a first-party Claude Code runner without it.
   return {
+    HOME: requiredEnv("RAVN_EVALS_HOME"),
     CLAUDE_CONFIG_DIR: configDir,
     CLAUDE_CODE_OAUTH_TOKEN: openRouter
       ? ""
@@ -115,6 +130,7 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           apiKeyRequired: false,
           working_dir: workingDir,
           copy_working_dir: "copy",
+          persist_session: false,
           setting_sources: ["project"],
           // An isolated config dir does not hide organization-managed plugin
           // skills. Allow only unqualified names installed in this arm.
@@ -143,7 +159,8 @@ export function provider(fixture: string, arm: string, runner: Runner) {
     case "codex": {
       const openRouter = runner.model.startsWith("openrouter/");
 
-      const cliEnv = { HOME: requiredEnv("RAVN_EVALS_HOME") };
+      const home = requiredEnv("RAVN_EVALS_HOME");
+      const cliEnv = { HOME: home, CODEX_HOME: join(home, ".codex") };
 
       if (openRouter) {
         const withCodexHome = {
@@ -194,6 +211,7 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           model: runner.model,
           working_dir: workingDir,
           copy_working_dir: "copy",
+          home: requiredEnv("RAVN_EVALS_HOME"),
         },
       };
   }
@@ -261,7 +279,12 @@ function skillRead(skill: string, count: { min: number } | { max: number }) {
 }
 
 function disclosedReference(file: string): Assertion {
-  const value: AssertionValueFunction = (_output, { providerResponse }) => {
+  const value: AssertionValueFunction = async (
+    _output,
+    { providerResponse },
+  ) => {
+    const { referenceWasRead } = await import("./reference-reads.ts");
+
     const pass =
       providerResponse !== undefined &&
       referenceWasRead(providerResponse, file);

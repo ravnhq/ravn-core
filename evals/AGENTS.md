@@ -66,7 +66,7 @@ Fixtures are frozen history, kept as bare repos at `private/fixtures/<name>.git`
 - `pnpm eval:view` opens promptfoo's side-by-side view of the last run.
 - Every run writes promptfoo's JSON results, with each assertion's pass or fail reason, to `results/<plugin>-<skill>-<harness>-<model>.json`. Read those to diagnose a failure; the CLI table truncates.
 
-Codex runs with `HOME` pointed at a temp directory holding only a copy of your Codex login; Codex reads `$HOME/.codex`, and promptfoo passes it a minimal environment. `providers/pi.ts` gives Pi a minimal environment too, so tokens such as `GH_TOKEN` never reach it; add a variable to its allowlist only when Pi needs it.
+Skill evals give every harness a temporary `HOME`. Codex uses an explicit `CODEX_HOME` containing only its login or OpenRouter provider config. Pi uses an explicit `PI_CODING_AGENT_DIR` containing only the chosen provider and model and its credential, not the host settings, extensions, or skill catalog. Pi resolves a configured API key with its CLI before staging the isolated profile; no model sees the host credential command. The Claude rubric grader has a separate config directory, no tools or skills, and does not save sessions. `pnpm eval:skill-nudge` uses its own temporary Claude and Promptfoo homes and the same `CLAUDE_CODE_OAUTH_TOKEN` login. The frozen workspaces carry a local Git identity so nothing needs the engineer's global Git configuration.
 
 Codex's `skill-used` counts a skill read only when the whole shell command succeeds, so on Codex runners `skillEval` asserts skill use with `trajectory:step-count` on traced `SKILL.md` reads instead, as the guide shows.
 
