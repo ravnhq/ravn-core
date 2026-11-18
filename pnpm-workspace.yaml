@@ -1,3 +1,6 @@
+packages:
+  - plugins/agent/ravn-core
+
 # Re-run prepare so existing checkouts install and refresh the push guard.
 optimisticRepeatInstall: false
 # One virtual store per machine: each checkout's node_modules holds only

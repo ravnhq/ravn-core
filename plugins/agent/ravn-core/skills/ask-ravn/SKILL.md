@@ -19,6 +19,7 @@ Use these invocation forms, replacing `<skill>` with the recommended skill's fro
 | Claude Code | `/ravn-core:<skill>` | `/ravn-core:ask-ravn` |
 | Codex | `$<skill>` | `$ask-ravn` |
 | Pi | `/skill:<skill>` | `/skill:ask-ravn` |
+| OpenCode v2 | `/<skill>` | `/ask-ravn` |
 
 This map points to skills; it does not run them. End the turn with the map: start none of the recommended skills, model-invocable ones included, so the user picks what runs. Its descriptions are orientation only: before explaining what a skill does or suggesting that a step can be skipped, read its linked `SKILL.md`. Classify invocation from each recommended skill's own frontmatter, one skill at a time, including skills grouped in the same flow or section: `disable-model-invocation: true` requires human invocation; an absent or false flag means model-invocable and may start when the request matches it, even without the user naming it ("pause for now" can trigger `pause-safely`). Tell the user, for each skill you recommend, whether it starts on its own or they invoke it, and give the invocation form for the ones they invoke.
 
