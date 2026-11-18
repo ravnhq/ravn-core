@@ -1,0 +1,45 @@
+diff --git a/dist/index.js b/dist/index.js
+index 062039c2610107095bd7a254bdebd6fcf7e15fc6..cd87a849451cb1b8c6743cdbe490b8fc92595b2f 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -140,7 +140,6 @@ function normalizeInput(input) {
+ import { spawn } from "child_process";
+ import { statSync } from "fs";
+ import path2 from "path";
+-import readline from "readline";
+ import { createRequire } from "module";
+ var INTERNAL_ORIGINATOR_ENV = "CODEX_INTERNAL_ORIGINATOR_OVERRIDE";
+ var TYPESCRIPT_SDK_ORIGINATOR = "codex_sdk_ts";
+@@ -289,14 +288,17 @@ var CodexExec = class {
+         });
+       }
+     );
+-    const rl = readline.createInterface({
+-      input: child.stdout,
+-      crlfDelay: Infinity
+-    });
+     try {
+-      for await (const line of rl) {
+-        yield line;
++      // JSONL uses LF, not the Unicode line and paragraph separators allowed
++      // inside JSON strings. readline splits on those separators too.
++      child.stdout.setEncoding("utf8");
++      let pending = "";
++      for await (const chunk of child.stdout) {
++        const lines = (pending + chunk).split("\n");
++        pending = lines.pop();
++        for (const line of lines) yield line;
+       }
++      if (pending.length > 0) yield pending;
+       if (spawnError) throw spawnError;
+       const { code, signal } = await exitPromise;
+       if (code !== 0 || signal) {
+@@ -305,7 +307,7 @@ var CodexExec = class {
+         throw new Error(`Codex Exec exited with ${detail}: ${stderrBuffer.toString("utf8")}`);
+       }
+     } finally {
+-      rl.close();
++      child.stdout.destroy();
+       child.removeAllListeners();
+       try {
+         if (!child.killed) child.kill();

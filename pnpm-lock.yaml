@@ -16,6 +16,9 @@ overrides:
   mongoose: ^9.11.4
   minimatch@>=7.0.0 <11.0.1: 11.0.1
 
+patchedDependencies:
+  '@openai/codex-sdk@0.156.1': c7ef2e744ce73b6606b8f20e6355bd67a7eab2b6d45e33236921e20567cebd98
+
 importers:
 
   .:
@@ -37,7 +40,7 @@ importers:
         version: 1.93.0
       promptfoo:
         specifier: 0.125.1
-        version: 0.125.1(@anthropic-ai/claude-agent-sdk@0.3.316(@anthropic-ai/sdk@0.133.0(zod@4.6.7))(@modelcontextprotocol/sdk@1.32.1(@cfworker/json-schema@4.1.1)(zod@4.6.7))(zod@4.6.7))(@aws-sdk/credential-provider-node@3.972.84)(@aws-sdk/credential-providers@3.1142.0)(@cfworker/json-schema@4.1.1)(@huggingface/transformers@4.3.0(@types/node@24.19.2))(@ibm-cloud/watsonx-ai@1.7.16)(@langfuse/client@5.11.1(@opentelemetry/api@1.9.1))(@openai/agents@0.11.8(@aws-sdk/credential-provider-node@3.972.84)(@cfworker/json-schema@4.1.1)(@smithy/hash-node@4.5.2)(@smithy/signature-v4@5.7.4)(ws@8.22.0)(zod@4.6.7))(@openai/codex-sdk@0.156.1)(@slack/web-api@8.1.1)(@smithy/hash-node@4.5.2)(@smithy/signature-v4@5.7.4)(@types/json-schema@7.0.15)(@types/node@24.19.2)(ibm-cloud-sdk-core@5.6.3)(pg@8.23.0)(playwright-extra@4.3.6(playwright-core@1.63.0)(playwright@1.63.0))(playwright@1.63.0)(puppeteer-extra-plugin-stealth@2.11.2(playwright-extra@4.3.6(playwright-core@1.63.0)(playwright@1.63.0)))(socks@2.8.10)
+        version: 0.125.1(52d0b0e9df2239c31c5f3e5fcef90b9d)
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -5964,7 +5967,7 @@ snapshots:
       - ws
     optional: true
 
-  '@openai/codex-sdk@0.156.1':
+  '@openai/codex-sdk@0.156.1(patch_hash=c7ef2e744ce73b6606b8f20e6355bd67a7eab2b6d45e33236921e20567cebd98)':
     dependencies:
       '@openai/codex': 0.159.0
     optional: true
@@ -8632,7 +8635,7 @@ snapshots:
 
   promise-limit@2.7.0: {}
 
-  promptfoo@0.125.1(@anthropic-ai/claude-agent-sdk@0.3.316(@anthropic-ai/sdk@0.133.0(zod@4.6.7))(@modelcontextprotocol/sdk@1.32.1(@cfworker/json-schema@4.1.1)(zod@4.6.7))(zod@4.6.7))(@aws-sdk/credential-provider-node@3.972.84)(@aws-sdk/credential-providers@3.1142.0)(@cfworker/json-schema@4.1.1)(@huggingface/transformers@4.3.0(@types/node@24.19.2))(@ibm-cloud/watsonx-ai@1.7.16)(@langfuse/client@5.11.1(@opentelemetry/api@1.9.1))(@openai/agents@0.11.8(@aws-sdk/credential-provider-node@3.972.84)(@cfworker/json-schema@4.1.1)(@smithy/hash-node@4.5.2)(@smithy/signature-v4@5.7.4)(ws@8.22.0)(zod@4.6.7))(@openai/codex-sdk@0.156.1)(@slack/web-api@8.1.1)(@smithy/hash-node@4.5.2)(@smithy/signature-v4@5.7.4)(@types/json-schema@7.0.15)(@types/node@24.19.2)(ibm-cloud-sdk-core@5.6.3)(pg@8.23.0)(playwright-extra@4.3.6(playwright-core@1.63.0)(playwright@1.63.0))(playwright@1.63.0)(puppeteer-extra-plugin-stealth@2.11.2(playwright-extra@4.3.6(playwright-core@1.63.0)(playwright@1.63.0)))(socks@2.8.10):
+  promptfoo@0.125.1(52d0b0e9df2239c31c5f3e5fcef90b9d):
     dependencies:
       '@anthropic-ai/sdk': 0.133.0(zod@4.6.7)
       '@apidevtools/json-schema-ref-parser': 16.0.5(@types/json-schema@7.0.15)
@@ -8730,7 +8733,7 @@ snapshots:
       '@modelcontextprotocol/sdk': 1.32.1(@cfworker/json-schema@4.1.1)(zod@4.6.7)
       '@modelcontextprotocol/server-filesystem': 2026.8.31(@cfworker/json-schema@4.1.1)(zod@4.6.7)
       '@openai/agents': 0.11.8(@aws-sdk/credential-provider-node@3.972.84)(@cfworker/json-schema@4.1.1)(@smithy/hash-node@4.5.2)(@smithy/signature-v4@5.7.4)(ws@8.22.0)(zod@4.6.7)
-      '@openai/codex-sdk': 0.156.1
+      '@openai/codex-sdk': 0.156.1(patch_hash=c7ef2e744ce73b6606b8f20e6355bd67a7eab2b6d45e33236921e20567cebd98)
       '@opencode-ai/sdk': 1.19.5
       '@slack/web-api': 8.1.1
       '@smithy/node-http-handler': 4.12.1
