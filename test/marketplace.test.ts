@@ -13,6 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, join, relative } from "node:path";
 import { test } from "node:test";
+import { z } from "zod";
 import { pluginDirs, tiers } from "../scripts/plugins.ts";
 
 const repoDir = join(import.meta.dirname, "..");
@@ -123,6 +124,46 @@ test("a Pi install of the repo root loads only the ravn-core skills", () => {
   assert.deepEqual(rootPackage.pi, {
     skills: [`./${relative(repoDir, join(ravnCoreDir, "skills"))}`],
   });
+});
+
+test("an OpenCode package install includes the server, skills, and their assets", () => {
+  const manifest = z
+    .object({ exports: z.object({ ".": z.string().startsWith("./") }) })
+    .parse(readJson(join(ravnCoreDir, "package.json")));
+
+  const output = execFileSync(
+    "npm",
+    ["pack", "--dry-run", "--json", "--ignore-scripts"],
+    {
+      cwd: ravnCoreDir,
+      encoding: "utf8",
+      shell: process.platform === "win32",
+    },
+  );
+
+  const [pack] = z
+    .tuple([z.object({ files: z.array(z.object({ path: z.string() })) })])
+    .parse(JSON.parse(output));
+
+  const paths = new Set(pack.files.map((file) => file.path));
+
+  assert.ok(paths.has(manifest.exports["."].slice(2)), "server entry point");
+
+  const skillsDir = join(ravnCoreDir, "skills");
+
+  for (const skill of readdirSync(skillsDir, { withFileTypes: true })) {
+    if (skill.isDirectory()) {
+      assert.ok(paths.has(`skills/${skill.name}/SKILL.md`), skill.name);
+    }
+  }
+
+  for (const file of [
+    "assets/config/oxlint-bad-test-terminator.json",
+    "references/prune.md",
+    "scripts/install.ts",
+  ]) {
+    assert.ok(paths.has(`skills/bad-test-terminator/${file}`), file);
+  }
 });
 
 test("sync-versions --check accepts the current tree", () => {

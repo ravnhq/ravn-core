@@ -45,6 +45,16 @@ pi install git:github.com/ravnhq/ravn-core
 
 The repo-root `package.json` points Pi at the `ravn-core` skills. From a checkout, `pi install ./plugins/agent/ravn-core` installs the same skills from disk.
 
+### OpenCode v2 (preview)
+
+```
+opencode plugin add 'github:ravnhq/ravn-core#main::path:plugins/agent/ravn-core'
+```
+
+Start an OpenCode session in your project and prompt it with `Use @bad-test-terminator to find tests that guard no behavior. Report findings only.` The plugin loads the `ravn-core` skills with their scripts and references. OpenCode is not in the skill eval matrix yet.
+
+Run `opencode plugin update` to pick up changes.
+
 ## Use `ravn-core`
 
 | Harness | Find a skill | Ship a change |
