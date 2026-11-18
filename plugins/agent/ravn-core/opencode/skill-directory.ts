@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { cp, mkdtemp, realpath, rename, rm } from "node:fs/promises";
+import { cp, mkdtemp, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { join, sep } from "node:path";
 
 export async function runtimeSkillsDirectory(
@@ -23,6 +23,7 @@ export async function runtimeSkillsDirectory(
 
   try {
     await cp(source, stage, { recursive: true });
+    await writeFile(join(stage, "package.json"), '{"type":"module"}\n');
 
     try {
       await rename(stage, target);

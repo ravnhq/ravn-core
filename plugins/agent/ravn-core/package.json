@@ -2,7 +2,8 @@
   "name": "ravn-core",
   "private": true,
   "type": "module",
-  "version": "0.24.0",
+  "version": "0.24.1",
+  "license": "MIT",
   "exports": {
     ".": "./opencode/index.ts"
   },

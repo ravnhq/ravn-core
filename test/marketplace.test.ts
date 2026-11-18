@@ -149,6 +149,7 @@ test("an OpenCode package install includes the server, skills, and their assets"
   const paths = new Set(pack.files.map((file) => file.path));
 
   assert.ok(paths.has(manifest.exports["."].slice(2)), "server entry point");
+  assert.ok(paths.has("LICENSE"), "MIT license");
 
   const skillsDir = join(ravnCoreDir, "skills");
 
@@ -188,7 +189,10 @@ test("Node can run a skill helper from an installed OpenCode package", async () 
 
     execFileSync(
       process.execPath,
-      [join(first, skill, "scripts", "install.ts")],
+      [
+        "--no-experimental-detect-module",
+        join(first, skill, "scripts", "install.ts"),
+      ],
       {
         cwd: dir,
       },
