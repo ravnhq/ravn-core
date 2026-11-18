@@ -32,10 +32,12 @@ codex plugin add ravn-core@ravn
 On Teams and Enterprise, import this repo from Dashboard → Plugins & MCPs → Team Marketplaces → Add Marketplace → Import from Repo. Without a team marketplace, add it as a personal marketplace from the Cursor CLI:
 
 ```
-cursor-agent plugin marketplace add https://github.com/ravnhq/ravn-core
+agent plugin marketplace add https://github.com/ravnhq/ravn-core
 ```
 
-Then run `/plugins` in an interactive `cursor-agent` session, open the Marketplace tab, and install `ravn-core (ravn)`. To try a local checkout for one session instead, run `cursor-agent --plugin-dir plugins/agent/ravn-core`.
+Then start the Cursor CLI with `agent`, run `/plugins`, and install `ravn-core (ravn)` from the Marketplace tab. To try a local checkout for one session instead, run `agent --plugin-dir plugins/agent/ravn-core`.
+
+If `agent` opens another tool, check `agent --version` and put the Cursor CLI ahead of that tool on your `PATH`.
 
 ### Pi
 
