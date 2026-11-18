@@ -10,7 +10,7 @@ const [runner, ...options] = process.argv.slice(2);
 let failures = 0;
 
 function check(label: string, ok: boolean) {
-  console.log(`${ok ? "ok  " : "FAIL"} ${label}`);
+  console.log(ok ? "ok  " : "FAIL", label);
 
   if (!ok) failures += 1;
 }
@@ -38,7 +38,7 @@ check(
   !options.some(
     (option) =>
       filters.some(
-        (filter) => option === filter || option.startsWith(`${filter}=`),
+        (filter) => option === filter || option.startsWith(filter + "="),
       ) && option !== "--retry=0",
   ),
 );
@@ -119,17 +119,20 @@ if (runner === "jest") {
 
   if (help.stdout.includes(randomize)) {
     check(
-      `${runner} command enables ${randomize}`,
+      runner + " command enables " + randomize,
       options.includes(randomize) &&
         !options.some(
           (option) =>
             option === randomize.replace("--", "--no-") ||
-            option === `${randomize}=false`,
+            option === randomize + "=false",
         ),
     );
   } else {
     console.log(
-      `${runner}: this version has no ${randomize}; repeats run in fresh processes with declaration order.`,
+      runner +
+        ": this version has no " +
+        randomize +
+        "; repeats run in fresh processes with declaration order.",
     );
   }
 
@@ -153,7 +156,10 @@ if (runner === "jest") {
   }
 
   console.log(
-    `Checked options: ${executable} ${runner === "bun" ? "test" : "--test"} ${options.join(" ")}`,
+    "Checked options:",
+    executable,
+    runner === "bun" ? "test" : "--test",
+    options.join(" "),
   );
 } else {
   console.error("Usage: check-runner.ts jest|bun|node [runner options]");

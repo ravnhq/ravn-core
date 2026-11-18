@@ -8,7 +8,7 @@ import {
 
 type Callback = ESTree.ArrowFunctionExpression | ESTree.Function;
 
-/** Check assertions through each runner's imported APIs. */
+/** Check assertions using the imported runner APIs. */
 export const testAssertionsRule = defineRule({
   meta: {
     type: "problem",
