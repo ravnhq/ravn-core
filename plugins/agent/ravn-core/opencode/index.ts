@@ -58,5 +58,27 @@ export default Plugin.define({
         if (!editor.get(skill.id)) editor.add(skill);
       }
     });
+
+    await ctx.command.transform((editor) => {
+      for (const skill of skills) {
+        editor.add({
+          name: skill.id,
+          description: skill.description,
+          async execute({ sessionID, prompt, delivery }) {
+            const attached = prompt.skills ?? [];
+
+            await ctx.session.prompt({
+              ...prompt,
+              sessionID,
+              delivery,
+              text: prompt.text || `Use the ${skill.id} skill.`,
+              skills: attached.some(({ id }) => id === skill.id)
+                ? attached
+                : [...attached, { id: skill.id }],
+            });
+          },
+        });
+      }
+    });
   },
 });
