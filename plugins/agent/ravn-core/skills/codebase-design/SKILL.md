@@ -13,7 +13,7 @@ metadata:
 
 Design **deep modules**: much behaviour behind a small interface, placed at a clean seam and testable through that interface. Use the glossary to name the roles code plays.
 
-1. **Trace the decision in current code.** For each relevant path, cite where it starts, what it shares, and what it owns. If the user asks for a walkthrough, start with [How](../how/SKILL.md) and continue to design only if they asked for a recommendation too.
+1. **Trace the decision in current code.** For each relevant path, cite where it starts, what it shares, and what it owns. If two paths implement the same behavior, find the existing check that keeps them in sync. If the user asks for a walkthrough, start with [How](../how/SKILL.md) and continue to design only if they asked for a recommendation too.
 2. **Resolve the design branch.** For raw inputs or adapters, read [Boundary Discipline](references/boundary-discipline.md) before placing validation. For a new type or signature, read [Type System Discipline](references/type-system-discipline.md) before deciding what callers can assume.
 3. **Deliver one recommendation.** Show the proposed interface or the reason to keep the existing split and what stays with each caller. Give one concrete test through the chosen interface: what goes in and what observable result must come out. A recommendation alone leaves the code unchanged.
 

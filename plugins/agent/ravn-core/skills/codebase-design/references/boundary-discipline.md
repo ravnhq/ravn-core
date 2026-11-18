@@ -9,6 +9,8 @@ Place validation, type narrowing, and error handling at system boundaries and tr
 - **Across the boundary:** expose domain concepts, not the boundary's private representation (transport, storage, framework, and wire types stay out of the public surface). Keep general-purpose mechanism inside and special-purpose policy at the edge.
 - **Pure core:** parse functions (raw bytes to typed state), prompt construction (state in, string out), scoring and assessment (state to results).
 
+For a validation proposal, name the raw representation, what values the adapter accepts, and what an unknown input returns. Identify the first consumer that can trust the parsed type.
+
 **The tests:**
 - "Is this data crossing a system boundary right now?" If not, validation is redundant.
 - "Can this be a pure function that the shell just calls?" If yes, extract it.
