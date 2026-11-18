@@ -1,18 +1,20 @@
 import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Plugin, Skill } from "@opencode/plugin";
 import { parse } from "yaml";
 import { z } from "zod";
+import { runtimeSkillsDirectory } from "./skill-directory.ts";
 
-const skillsDirectory = new URL("../skills/", import.meta.url);
+const bundledSkills = fileURLToPath(new URL("../skills/", import.meta.url));
 
 const skillFrontmatter = z.object({
   description: z.string().min(1),
   "disable-model-invocation": z.boolean().optional(),
 });
 
-async function readSkill(name: string): Promise<Skill.Info> {
-  const path = fileURLToPath(new URL(`${name}/SKILL.md`, skillsDirectory));
+async function readSkill(directory: string, name: string): Promise<Skill.Info> {
+  const path = join(directory, name, "SKILL.md");
 
   const text = await readFile(path, "utf8");
 
@@ -41,12 +43,14 @@ async function readSkill(name: string): Promise<Skill.Info> {
 export default Plugin.define({
   id: "ravn-core",
   async setup(ctx) {
-    const entries = await readdir(skillsDirectory, { withFileTypes: true });
+    const directory = await runtimeSkillsDirectory(bundledSkills);
+
+    const entries = await readdir(directory, { withFileTypes: true });
 
     const skills = await Promise.all(
       entries
         .filter((entry) => entry.isDirectory())
-        .map(({ name }) => readSkill(name)),
+        .map(({ name }) => readSkill(directory, name)),
     );
 
     await ctx.skill.transform((editor) => {

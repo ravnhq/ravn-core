@@ -14,6 +14,7 @@ import { tmpdir } from "node:os";
 import { basename, join, relative } from "node:path";
 import { test } from "node:test";
 import { z } from "zod";
+import { runtimeSkillsDirectory } from "../plugins/agent/ravn-core/opencode/skill-directory.ts";
 import { pluginDirs, tiers } from "../scripts/plugins.ts";
 
 const repoDir = join(import.meta.dirname, "..");
@@ -163,6 +164,44 @@ test("an OpenCode package install includes the server, skills, and their assets"
     "scripts/install.ts",
   ]) {
     assert.ok(paths.has(`skills/bad-test-terminator/${file}`), file);
+  }
+});
+
+test("Node can run a skill helper from an installed OpenCode package", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "opencode-ravn-core-"));
+
+  try {
+    const installed = join(dir, "node_modules", "ravn-core", "skills");
+    const skill = "bad-test-terminator";
+
+    cpSync(join(ravnCoreDir, "skills", skill), join(installed, skill), {
+      recursive: true,
+    });
+
+    const [first, second] = await Promise.all([
+      runtimeSkillsDirectory(installed),
+      runtimeSkillsDirectory(installed),
+    ]);
+
+    assert.equal(first, second);
+    assert.ok(existsSync(join(first, skill, "references", "prune.md")));
+
+    execFileSync(
+      process.execPath,
+      [join(first, skill, "scripts", "install.ts")],
+      {
+        cwd: dir,
+      },
+    );
+
+    const guard = "index.ts";
+
+    assert.deepEqual(
+      readFileSync(join(dir, "tools", "oxlint", skill, guard)),
+      readFileSync(join(installed, skill, "assets", skill, guard)),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 
