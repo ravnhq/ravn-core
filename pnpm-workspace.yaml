@@ -26,3 +26,5 @@ overrides:
   fast-xml-parser: ^5.12.0
   mongoose: ^9.11.4
   "minimatch@>=7.0.0 <11.0.1": 11.0.1
+patchedDependencies:
+  '@openai/codex-sdk@0.156.1': patches/@openai__codex-sdk@0.156.1.patch
