@@ -1,9 +1,8 @@
 ---
 name: why
 description: >-
-  Use for 'why does X work this way', 'why we picked Y', design rationale,
-  regressions, postmortems, or data-backed thresholds. Returns a cited read
-  on decisions and tradeoffs. Use how for runtime behavior.
+  Find the recorded reason a code choice, rule, or threshold exists. Use
+  commits and PRs to explain why it was chosen or changed over time.
 license: See LICENSE.txt
 ---
 

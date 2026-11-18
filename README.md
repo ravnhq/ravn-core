@@ -69,6 +69,8 @@ Read-only and advisory skills, such as `why`, `how`, `review-and-simplify`, and 
 
 Evals prove `ravn-core` in Claude Code, Codex, and Pi. Cursor installs the same package but isn't in the eval matrix yet.
 
+Upgrading from an earlier version? See the [0.25 command migration](docs/releases/0.25.0.md).
+
 ## Install `skill-nudge`
 
 Needs Claude Code v2.1.287 or later.
