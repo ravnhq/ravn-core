@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type {
   GradingResult,
   PromptFunction,
+  ProviderResponse,
   TestCase,
   UnifiedConfig,
 } from "promptfoo";
@@ -21,8 +22,9 @@ import type {
   Command,
   Message,
 } from "../../plugins/mods/skill-nudge/lib/nudge.ts";
-import { openRouterClaudeEnvironment } from "../providers/openrouter-claude.ts";
 import { cases } from "./cases.ts";
+
+const openRouter = process.env.RAVN_EVALS_NUDGE_ROUTE === "openrouter";
 
 const skillsDir = join(
   import.meta.dirname,
@@ -69,24 +71,32 @@ function skillsFor(id: string) {
 const prompt: PromptFunction = async ({ vars }) => {
   const id = String(vars.id);
 
-  return listing(skillsFor(id)) + transcript(messagesOf(id));
+  const text = listing(skillsFor(id)) + transcript(messagesOf(id));
+
+  return openRouter
+    ? JSON.stringify([
+        { role: "system", content: SYSTEM },
+        { role: "user", content: text },
+      ])
+    : text;
 };
 
-// The mod caps Haiku's reply at MAX_TOKENS. The provider cannot: under
-// CLAUDE_CODE_MAX_OUTPUT_TOKENS, Claude Code tells the model it hit the limit and
-// lets it continue, which the mod never does. So cut an over-long reply here
-// instead, keeping the share of its text that the first MAX_TOKENS tokens cover.
-function capped(output: string, completionTokens: number | undefined): string {
-  if (completionTokens === undefined || completionTokens <= MAX_TOKENS)
-    return output;
+function grade(
+  output: string,
+  id: string,
+  usage?: ProviderResponse["tokenUsage"],
+): GradingResult {
+  const { completion = 0, completionDetails } = usage ?? {};
+  const visible = completion - (completionDetails?.reasoning ?? 0);
 
-  return output.slice(
-    0,
-    Math.floor((output.length * MAX_TOKENS) / completionTokens),
-  );
-}
+  if (visible > MAX_TOKENS) {
+    return {
+      pass: false,
+      score: 0,
+      reason: `Visible output exceeds ${MAX_TOKENS} tokens.`,
+    };
+  }
 
-function grade(output: string, id: string): GradingResult {
   const expected = (byId.get(id)?.expect ?? []).map(
     (skill) => `ravn-core:${skill}`,
   );
@@ -115,17 +125,12 @@ const tests: TestCase[] = cases.map((one) => ({
       type: "javascript",
       metric: one.kind,
       value: (output: string, context) =>
-        grade(
-          capped(output, context.providerResponse?.tokenUsage?.completion),
-          one.id,
-        ),
+        grade(output, one.id, context.providerResponse?.tokenUsage),
     },
   ],
 }));
 
 const home = process.env.RAVN_NUDGE_HOME;
-
-const openRouter = process.env.RAVN_EVALS_NUDGE_ROUTE === "openrouter";
 
 const isolated = home
   ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude") }
@@ -135,27 +140,38 @@ const config: UnifiedConfig = {
   description: "skill-nudge: does Haiku suggest the right ravn-core skill?",
   prompts: [{ label: "skill-nudge", raw: "skill-nudge", function: prompt }],
   providers: [
-    {
-      id: "anthropic:claude-agent-sdk",
-      label: openRouter ? "skill-nudge/haiku-or" : "skill-nudge/haiku",
-      config: {
-        model: openRouter ? undefined : "haiku",
-        apiKeyRequired: false,
-        custom_system_prompt: SYSTEM,
-        tools: [],
-        skills: [],
-        persist_session: false,
-        env: openRouter
-          ? {
-              ...isolated,
-              ...openRouterClaudeEnvironment("anthropic/claude-haiku-5.5"),
-            }
-          : isolated,
-        max_turns: 1,
-        // `$.model.complete` sends no thinking, so the eval must not either.
-        thinking: { type: "disabled" },
-      },
-    },
+    openRouter
+      ? {
+          id: "openrouter:anthropic/claude-haiku-5.5",
+          label: "skill-nudge/haiku-or",
+          config: {
+            max_tokens: MAX_TOKENS,
+            omitDefaults: true,
+            passthrough: {
+              reasoning: { enabled: false },
+              provider: {
+                order: ["Anthropic"],
+                allow_fallbacks: false,
+                require_parameters: true,
+              },
+            },
+          },
+        }
+      : {
+          id: "anthropic:claude-agent-sdk",
+          label: "skill-nudge/haiku",
+          config: {
+            model: "haiku",
+            apiKeyRequired: false,
+            custom_system_prompt: SYSTEM,
+            tools: [],
+            skills: [],
+            persist_session: false,
+            env: isolated,
+            max_turns: 1,
+            thinking: { type: "disabled" },
+          },
+        },
   ],
   tests,
   evaluateOptions: { maxConcurrency: 4 },
