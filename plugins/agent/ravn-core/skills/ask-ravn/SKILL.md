@@ -1,8 +1,8 @@
 ---
 name: ask-ravn
 description: >-
-  Map a request to the ravn-core skill or flow that fits. Use when the user asks
-  which skill to use, what ravn-core can do, or where to start a piece of work.
+  Recommend the ravn-core command or workflow that fits. Use for "which skill
+  or command should I use?", "what can ravn-core do?", or "where do I start?".
 metadata:
   proof: subjective
 ---
