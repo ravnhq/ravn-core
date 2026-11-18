@@ -4,7 +4,7 @@ version: 2
 scanner_version: 2.12.0
 rules: []
 fingerprints:
-- hash: sha256:14cc665fcde32c2d74c56168e60ef6120a8fcb784767c16fef042c5797b8ba0b
+- hash: sha256:cc31e95e4c0707db09101c2d4926c9bf7d8d90a2d3ffda8d09a4988d4b01d090
   rule_id: LP3
   file: SKILL.md
   reason: agent-plugins.org frontmatter has no allowed-tools field, and validate-skills.ts rejects it as experimental with divergent harness behavior; the skill's scripts import only Node built-ins and run only on the engineer's explicit command

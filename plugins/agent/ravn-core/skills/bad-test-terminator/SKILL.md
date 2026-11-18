@@ -14,14 +14,18 @@ The Vitest block was verified on Oxlint 1.93.0 with Vitest 3.2.7 and 5.1.0, and 
 
 ## Choose the path
 
-Read the repository's agent instructions, when it has them, and `git status`. Find the package that owns the tests, its package manager, its lint configuration and its test runner. Select `vitest`, `jest`, `bun` or `node` for the runner-specific commands below. For mixed suites, use separate file-pattern overrides and verify each runner in a directory its override covers.
+Read the repository's agent instructions, when it has them, and `git status`. Choose the scope from the user's request: prune only, install or update guards, or both. A request to prune or clean up tests alone selects prune only. A bare invocation has no scope. When the user has not chosen one, ask them to choose among those three paths and wait for their answer before proceeding.
 
-- **The request is to prune or clean up tests, with nothing to install:** follow [Prune the suite](#prune-the-suite). It runs on any runner and linter.
+Find the package that owns the tests, its package manager, its lint configuration and its test runner.
+
+- **Prune only:** follow [Prune the suite](#prune-the-suite), then stop. It runs on any runner and linter, including repositories with guards already installed. Keep dependencies, guard installations, lint and runner configuration, repeat scripts and CI unchanged, apart from removing baseline entries for deleted tests.
 - **A `bad-test-terminator` or `test-guards` entry in `jsPlugins`, or a `tools/oxlint/bad-test-terminator/` or `tools/oxlint/test-guards/` directory, already exists:** read [Update an installation](references/update.md) and follow it in place of the fresh install. A `test-guards` install predates the rename; update.md migrates it first.
 - **Tests run on Vitest, Jest, Bun or Node’s test runner, and the package is linted by Oxlint or has no linter:** continue with the fresh install.
 - **Tests run on another runner, or ESLint is the only linter:** stop and report that installation supports Oxlint with Vitest, Jest, Bun and Node, and name what the repository uses.
 
-In a monorepo, run the procedure once for each package that owns tests.
+For guard installation or update, select `vitest`, `jest`, `bun` or `node` for the runner-specific commands below. For mixed suites, use separate file-pattern overrides and verify each runner in a directory its override covers. When the user chose both, also complete [Prune the suite](#prune-the-suite).
+
+In a monorepo, run the chosen procedure once for each package that owns tests.
 
 Complete when the path (fresh install, update, prune or stop), the package directory, the package manager and the lint configuration file (or "none") are named, and pre-existing uncommitted work is identified.
 

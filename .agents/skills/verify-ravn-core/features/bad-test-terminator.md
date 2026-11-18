@@ -11,6 +11,8 @@
 - `btt.findings`: every finding the guards raise in the existing tests is reported with its rule and file and settled by the route the request names; the change-detector test is deleted or rewritten against real behavior, and the real behavior test survives.
 - `btt.verify`: the transcript shows the self-check staging `test/bad-test-terminator-selfcheck/` and the renamed rules reporting the fixture counts, such as `bad-test-terminator(no-current-date) reported 1`.
 - `btt.report`: the reply reports the findings with the route taken for each and says there is no CI workflow to extend, because the scratch has none.
+- `btt.prune-only`: an explicit prune-only choice removes or rewrites the change-detector test and keeps the behavior test, while dependencies, guard installations, lint and runner configuration, repeat scripts and CI stay unchanged apart from removing baseline entries for deleted tests. This path also works with existing guards or an unsupported installation stack.
+- `btt.scope`: an invocation with no scope asks the user to choose prune only, install or update guards, or both before editing files.
 
 ## How to get to it (user POV)
 
@@ -21,6 +23,8 @@ An engineer in a Vitest package that keeps flaking on CI types the skill's invoc
 - Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts bad-test-terminator /tmp/ravn-verify/$RUN_ID/bad-test-terminator-<harness>/work`. It is the `acme-pricing` package: a real `priceFor` module with one behavior test, plus `test/pricing-calls.test.ts`, a change-detector test built from `vi.mock`, call matchers and a `Date.now` timing assertion, on Vitest with no linter and no Vitest configuration. The builder installs the devDependencies, which the skill's survey needs to run the suite.
 - Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> our vitest runs keep flaking on CI in random orders and nobody can reproduce it locally - install the guards that ban flaky constructs and clean up whatever they catch. Do not ask me questions.`
 - Check `btt.vendored`, `btt.pins`, `btt.block` and `btt.vitest` in the files, quoting `package.json`, `.oxlintrc.json`, the Vitest configuration and the `UPSTREAM.md` fields. Check `btt.findings` and `btt.verify` in the transcript, and `btt.report` in the final message.
+- For `btt.prune-only`, build a fresh scratch per harness and send `<invocation> prune only: clean up tests that guard no behavior. Keep the existing tooling as it is. Do not ask me questions.` Check that the behavior test still runs and the change-detector test is deleted or rewritten, and compare tooling files with their starting contents. Inspect the transcript for install, update, self-check or configuration commands; none belong to this path. Repeat against a copy of the installed scratch to prove existing guards do not redirect the choice into an update.
+- For `btt.scope`, use a fresh scratch and send only the invocation. This run is intentionally interactive: require the three-way scope question and an unchanged worktree, then resume with `Prune only` and check `btt.prune-only`.
 
 ## Gotchas
 
