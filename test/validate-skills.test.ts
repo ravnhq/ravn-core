@@ -185,3 +185,48 @@ test("rejects a .claude repo skill that is a copy instead of a link", () => {
     symlinkSync("../../.agents/skills/validate", link);
   }
 });
+
+test("checks relative links and GitHub heading anchors in both skill trees", () => {
+  for (const probe of [repoProbe, shippedProbe]) {
+    const dir = join(copyDir, probe);
+    mkdirSync(join(dir, "references"), { recursive: true });
+
+    try {
+      writeFileSync(
+        join(dir, "SKILL.md"),
+        skill(
+          probeMeta,
+          [
+            "# Approach `A`",
+            "[same file](#approach-a)",
+            "[other heading][dest]",
+            "[external](https://example.com/missing.md#not-local)",
+            "`[code](missing.md)`",
+            "```md",
+            "[example](missing.md)",
+            "```",
+            "[dest]: <references/Two words.md#rétry-once-1>",
+          ].join("\n"),
+        ),
+      );
+      const reference = join(dir, "references", "Two words.md");
+      const headings = "# Rétry once\n\n# Rétry once\n";
+      writeFileSync(reference, headings);
+      assert.deepEqual(validateSkills(copyDir), []);
+
+      writeFileSync(
+        reference,
+        `${headings}\n[missing](missing.md)\n[renamed](../SKILL.md#stale-heading)\n`,
+      );
+      assert.deepEqual(
+        validateSkills(copyDir).map((error) => error.replace(/:\d+: /, ": ")),
+        [
+          `${probe}/references/Two words.md: missing Markdown link target: missing.md`,
+          `${probe}/references/Two words.md: missing Markdown heading: ../SKILL.md#stale-heading`,
+        ],
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+});

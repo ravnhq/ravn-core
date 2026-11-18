@@ -1,6 +1,12 @@
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
-import type { Assertion, TestCase, UnifiedConfig } from "promptfoo";
+import type {
+  Assertion,
+  AssertionValueFunction,
+  TestCase,
+  UnifiedConfig,
+} from "promptfoo";
+import { referenceWasRead } from "./reference-reads.ts";
 import { fixturesDir } from "./workspace-repo.ts";
 
 export const arms = ["current", "baseline", "without-skill"] as const;
@@ -208,12 +214,14 @@ type Base = {
 // Skill tool call, so `skill-used` cannot see it; the smoke suite proves
 // commands load skills. An explicit trigger checks that the command returns a
 // usable reply; its quality case checks whether that reply follows the skill.
-type Quality = { invoked?: boolean };
+type Disclosure = { references?: string[] };
+
+type Quality = Disclosure & { invoked?: boolean };
 
 export type Case =
   | (Base & Quality & { kind: "quality"; metric: string; rubric: string })
   | (Base & Quality & { kind: "quality"; assert: Assertion[] })
-  | (Base & { kind: "trigger"; invoked?: boolean })
+  | (Base & Disclosure & { kind: "trigger"; invoked?: boolean })
   | (Base & { kind: "route"; to: string })
   | (Base & { kind: "stay-out"; skills: string[] });
 
@@ -222,6 +230,31 @@ function skillRead(skill: string, count: { min: number } | { max: number }) {
     type: "trajectory:step-count" as const,
     value: { type: "command", pattern: `*${skill}/SKILL.md*`, ...count },
   };
+}
+
+function disclosedReference(file: string): Assertion {
+  const value: AssertionValueFunction = (
+    _output,
+    { provider, providerResponse },
+  ) => {
+    const arm = provider?.label?.split("/")[1];
+
+    // Old and no-skill arms answer the same task but cannot be required to
+    // read a file introduced by the current implementation.
+    if (arm === "baseline" || arm === "without-skill") return true;
+
+    const pass =
+      providerResponse !== undefined &&
+      referenceWasRead(providerResponse, file);
+
+    return {
+      pass,
+      score: pass ? 1 : 0,
+      reason: `${file}: ${pass ? "read" : "no completed read in trace"}`,
+    };
+  };
+
+  return { type: "javascript", metric: "reference-read", value };
 }
 
 const invocations = {
@@ -271,6 +304,11 @@ function toTest(
       ? values.map((value) => skillRead(value, { max: 0 }))
       : [{ type: "not-skill-used", value: values }];
 
+  const references =
+    "references" in testCase
+      ? (testCase.references ?? []).map(disclosedReference)
+      : [];
+
   switch (testCase.kind) {
     case "quality":
       return {
@@ -278,6 +316,7 @@ function toTest(
         providers: [`${testCase.fixture}/*`],
         assert: [
           ...(invoked ? [] : [used(skill)]),
+          ...references,
           ...("rubric" in testCase
             ? [
                 {
@@ -293,18 +332,21 @@ function toTest(
       return {
         ...base,
         ...singleArm,
-        assert: invoked
-          ? [
-              {
-                type: "llm-rubric",
-                metric: "explicit-command-accepted",
-                provider: grader,
-                value: `The user explicitly invoked ${invocations[harness](skill)} to request: ${testCase.request}
+        assert: [
+          ...references,
+          ...(invoked
+            ? [
+                {
+                  type: "llm-rubric" as const,
+                  metric: "explicit-command-accepted",
+                  provider: grader,
+                  value: `The user explicitly invoked ${invocations[harness](skill)} to request: ${testCase.request}
 PASS only if the response accepts the skill command and begins the requested task, or asks a task-specific question needed to proceed.
 FAIL if the response reports that the skill or command could not be found, loaded, recognized, or invoked, regardless of wording; if it asks the user to install or locate the skill; or if it only acknowledges the command without beginning the task. An empty response fails.`,
-              },
-            ]
-          : [used(skill)],
+                },
+              ]
+            : [used(skill)]),
+        ],
       };
     case "route":
       return {

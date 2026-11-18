@@ -34,6 +34,8 @@ Each skill carries these case kinds; `skillEval` turns each into its promptfoo t
 
 A case that needs work in progress sets `edits`: find-and-replace edits applied to the fixture before the run and left uncommitted.
 
+For a trigger or quality case that must reach a disclosed file, set `references` to paths relative to the installed skills directory, including the owning skill (for example `example/references/options.md`). This adds a deterministic JavaScript assertion on the current arm: it checks a completed Read or shell output containing the file's text. Promptfoo's `skill-used` proves entry selection, not a reference read. Claude supplies tool calls, Codex supplies command items, and Pi collects read and shell completions from its live events. Baseline and no-skill arms still grade the outcome without requiring new paths.
+
 Check what the agent changed with a `javascript` assertion that reads the step's copy from `context.providerResponse.metadata.workingDir`, as promptfoo's coding-agents guide shows. The copy lasts until all of that step's assertions have run, model-graded ones included. The agent may commit on `main`, so read the starting commit from `private/fixtures/<fixture>.git`. State a hook creates for the agent must resolve inside the copy, such as a relative remote URL, or live outside the workspaces, as babysit's simulator does.
 
 Write each `request` the way an engineer asks inside the repo: short, vague, open-ended, naming neither the skill nor the repo. For user-only quality and trigger cases, `invoked: true` prepends the harness's skill command.

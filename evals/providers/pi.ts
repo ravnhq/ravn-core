@@ -22,12 +22,14 @@ const piEventSchema = z.union([
   z.object({
     type: z.literal("tool_execution_start"),
     toolCallId: z.string(),
+    toolName: z.string(),
     args: z.record(z.string(), z.json()),
   }),
   z.object({
     type: z.literal("tool_execution_end"),
     toolCallId: z.string(),
     isError: z.boolean(),
+    result: z.object({ content: z.unknown() }).optional(),
   }),
   z.object({ type: z.literal("message_end"), message: piMessageSchema }),
   z.object({ type: z.literal("agent_settled") }),
@@ -84,6 +86,32 @@ function skillCallsFrom(events: PiEvent[]): SkillCall[] {
       source: "tool" as const,
       is_error: failedIds.has(event.toolCallId),
     }));
+  });
+}
+
+function toolCallsFrom(events: PiEvent[]) {
+  const results = new Map(
+    events.flatMap((event) =>
+      event.type === "tool_execution_end" ? [[event.toolCallId, event]] : [],
+    ),
+  );
+
+  return events.flatMap((event) => {
+    if (event.type !== "tool_execution_start") return [];
+
+    const end = results.get(event.toolCallId);
+
+    if (!end || end.isError || !["read", "bash"].includes(event.toolName))
+      return [];
+
+    return [
+      {
+        name: event.toolName,
+        input: event.args,
+        output: end.result?.content,
+        is_error: false,
+      },
+    ];
   });
 }
 
@@ -244,7 +272,11 @@ export default class PiProvider implements ApiProvider {
 
     return {
       output: textOf(reply),
-      metadata: { skillCalls: skillCallsFrom(events) },
+      metadata: {
+        skillCalls: skillCallsFrom(events),
+        toolCalls: toolCallsFrom(events),
+        workingDir,
+      },
     };
   }
 }
