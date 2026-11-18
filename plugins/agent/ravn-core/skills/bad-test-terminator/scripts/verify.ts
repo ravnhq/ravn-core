@@ -3,7 +3,7 @@
 // code with the Oxlint configuration the repository already has, then cleans
 // up the copies.
 //
-//   node <skill-directory>/scripts/verify.ts [test-directory] [--effect | --no-effect]
+//   node <skill-directory>/scripts/verify.ts [test-directory] [--runner=vitest|jest|bun|node] [--effect | --no-effect]
 //
 // test-directory defaults to "test". The Effect fixtures run when the package
 // manifest lists effect or @effect/vitest as a direct dependency; the flags
@@ -11,6 +11,7 @@
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { createRequire } from "node:module";
 
 type Manifest = {
   dependencies?: Record<string, string>;
@@ -21,7 +22,22 @@ type Diagnostic = { filename: string; code: string };
 
 const skillRoot = resolve(import.meta.dirname, "..");
 
-const fixtures = resolve(skillRoot, "assets/fixtures");
+const runnerOption = process.argv.find((argument) =>
+  argument.startsWith("--runner="),
+);
+
+const runner = runnerOption?.slice("--runner=".length) ?? "vitest";
+
+if (!["vitest", "jest", "bun", "node"].includes(runner)) {
+  console.error("Use --runner=vitest|jest|bun|node");
+  process.exit(2);
+}
+
+const fixtures = resolve(
+  skillRoot,
+  "assets/fixtures",
+  runner === "vitest" ? "." : runner,
+);
 
 const arguments_ = process.argv.slice(2);
 
@@ -43,8 +59,9 @@ function manifestListsEffect() {
 }
 
 const effect =
-  arguments_.includes("--effect") ||
-  (!arguments_.includes("--no-effect") && manifestListsEffect());
+  runner === "vitest" &&
+  (arguments_.includes("--effect") ||
+    (!arguments_.includes("--no-effect") && manifestListsEffect()));
 
 const testDirectory = resolve(
   process.cwd(),
@@ -53,7 +70,7 @@ const testDirectory = resolve(
 
 const staging = join(testDirectory, "bad-test-terminator-selfcheck");
 
-const expected = {
+const vitestExpected = {
   "banned.test.ts": {
     "eslint(no-restricted-globals)": 3,
     "eslint(no-restricted-imports)": 1,
@@ -77,6 +94,61 @@ const expected = {
   },
 };
 
+const expected: Record<string, Record<string, number>> = runner === "vitest"
+  ? vitestExpected
+  : {
+      "banned.test.ts":
+        runner === "node"
+          ? {
+              "eslint(no-restricted-globals)": 2,
+              "eslint(no-restricted-imports)": 1,
+              "eslint(no-restricted-properties)": 3,
+              "bad-test-terminator(no-current-date)": 1,
+              "bad-test-terminator(no-focused-or-skipped-tests)": 3,
+              "bad-test-terminator(no-test-retries)": 1,
+              "bad-test-terminator(no-test-doubles)": 3,
+              "bad-test-terminator(test-assertions)": 3,
+            }
+          : {
+              "eslint(no-restricted-globals)": 3,
+              "eslint(no-restricted-imports)": 1,
+              "eslint(no-restricted-properties)": 3,
+              "bad-test-terminator(no-current-date)": 1,
+              "bad-test-terminator(no-focused-or-skipped-tests)": 2,
+              "bad-test-terminator(no-test-retries)": 1,
+              "bad-test-terminator(no-test-doubles)": 2,
+              "jest(expect-expect)": 1,
+              "jest(valid-expect)": 1,
+              "jest(no-conditional-expect)": 1,
+              "jest(no-standalone-expect)": 1,
+              "jest(no-restricted-matchers)": 2,
+            },
+    };
+
+if (runner === "bun") {
+  const codes = expected["banned.test.ts"];
+
+  if (codes !== undefined) {
+    for (const code of Object.keys(codes))
+      if (code.startsWith("jest(")) delete codes[code];
+    codes["bad-test-terminator(test-assertions)"] = 6;
+  }
+}
+
+if (runner === "bun" || runner === "node") {
+  for (const name of [
+    "missing",
+    "conditional",
+    "snapshot",
+    "calls",
+    ...(runner === "bun" ? ["incomplete", "standalone"] : []),
+  ]) {
+    expected[`banned-${name}.test.ts`] = {
+      "bad-test-terminator(test-assertions)": 1,
+    };
+  }
+}
+
 const allowed = ["allowed.test.ts", "allowed-effect.test.ts"];
 
 const guardCodes = new Set(
@@ -85,23 +157,18 @@ const guardCodes = new Set(
 
 const selected = (name: string) => effect || !name.includes("effect");
 
-function findOxlint(from: string) {
-  for (let directory = from; ; directory = dirname(directory)) {
-    const candidate = join(directory, "node_modules/.bin/oxlint");
+let oxlint: string;
 
-    if (existsSync(candidate)) return candidate;
-
-    if (dirname(directory) === directory) return null;
-  }
-}
-
-const oxlint = findOxlint(process.cwd());
-
-if (oxlint === null) {
-  console.error(
-    "No node_modules/.bin/oxlint at or above the current directory. Install oxlint, then run this from the package that owns the lint configuration.",
+try {
+  const manifest = createRequire(join(process.cwd(), "package.json")).resolve(
+    "oxlint/package.json",
   );
 
+  oxlint = join(dirname(manifest), "bin/oxlint");
+} catch {
+  console.error(
+    "Oxlint does not resolve from this package. Install it before running the self-check.",
+  );
   process.exit(2);
 }
 
@@ -125,7 +192,7 @@ const fixtureLabel = effect
   ? "generic and Effect fixtures"
   : "generic fixtures";
 
-console.log(`Checking the ${fixtureLabel} in ${staging}`);
+console.log(`Checking ${runner}: the ${fixtureLabel} in ${staging}`);
 
 let failures = 0;
 
@@ -136,7 +203,7 @@ try {
     cpSync(join(fixtures, name), join(staging, name));
   }
 
-  const run = spawnSync(oxlint, ["-f", "json", staging], {
+  const run = spawnSync(process.execPath, [oxlint, "-f", "json", staging], {
     encoding: "utf8",
   });
 
