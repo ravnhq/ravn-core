@@ -1,9 +1,9 @@
 ---
 name: how
 description: >-
-  Trace how code works today: where it lives, how a call flows, or how to
-  follow the existing pattern. For a new seam use codebase-design; for why
-  things were built that way use why.
+  Walk through existing code: where it lives today, who owns what, how a call
+  flows, or how to follow the current pattern. For a proposed design use
+  codebase-design; for historical rationale use why.
 license: See LICENSE.txt
 ---
 

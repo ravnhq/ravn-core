@@ -1,9 +1,9 @@
 ---
 name: codebase-design
 description: >-
-  Design a module: choose its home, one interface or a split, where to parse
-  raw inputs, or what types and test surface it exposes. For current behavior
-  and ownership, use how.
+  Decide whether code should stay split or get one interface, where a new
+  seam should go, or where to parse raw inputs. Use when designing a module's
+  types or test surface. For how existing code works today, use how.
 license: See LICENSE.txt
 metadata:
   proof: subjective
