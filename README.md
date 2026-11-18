@@ -51,7 +51,7 @@ The repo-root `package.json` points Pi at the `ravn-core` skills. From a checkou
 opencode plugin add 'github:ravnhq/ravn-core#main::path:plugins/agent/ravn-core'
 ```
 
-Start an OpenCode session in your project and prompt it with `Use @bad-test-terminator to find tests that guard no behavior. Report findings only.` The plugin loads the `ravn-core` skills with their scripts and references. OpenCode is not in the skill eval matrix yet.
+Start an OpenCode session in your project. Type `/bad-test-terminator`, select the command, and add what you want it to do. You can also attach a skill to a prompt with `@bad-test-terminator`. OpenCode is not in the skill eval matrix yet.
 
 Run `opencode plugin update` to pick up changes.
 
@@ -63,6 +63,7 @@ Run `opencode plugin update` to pick up changes.
 | Claude Code | `/ravn-core:ask-ravn` | `/ravn-core:ship` |
 | Codex | `$ask-ravn` | `$ship` |
 | Pi | `/skill:ask-ravn` | `/skill:ship` |
+| OpenCode v2 (preview) | `/ask-ravn` | `/ship` |
 
 Read-only and advisory skills, such as `why`, `how`, `review-and-simplify`, and most principles, start on their own when a request fits them. Skills that push, open or merge PRs, or write a new skill into your project, such as `ship`, `bug-fix`, and `babysit`, set `disable-model-invocation: true` and run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
 
