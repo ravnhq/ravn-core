@@ -189,7 +189,10 @@ test("Node can run a skill helper from an installed OpenCode package", async () 
 
     execFileSync(
       process.execPath,
-      [join(first, skill, "scripts", "install.ts")],
+      [
+        "--no-experimental-detect-module",
+        join(first, skill, "scripts", "install.ts"),
+      ],
       {
         cwd: dir,
       },
