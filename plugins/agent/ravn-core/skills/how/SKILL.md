@@ -1,10 +1,9 @@
 ---
 name: how
 description: >-
-  Use for how existing code works: "how does X work", "how would I add another
-  Y" following the current pattern, walkthroughs before a change, and where
-  something lives or which package or layer owns it today. To decide a new
-  interface, seam, or split, use codebase-design; for motivation, use why.
+  Trace how code works today: where it lives, how a call flows, or how to
+  follow the existing pattern. For a new seam use codebase-design; for why
+  things were built that way use why.
 license: See LICENSE.txt
 ---
 

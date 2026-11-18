@@ -20,7 +20,7 @@ Fixed-shape work has its playbook: an idea that becomes one PR goes through [shi
 
 ## Start
 
-Open a todolist whose first item is to read the principles table in [ask-ravn](../ask-ravn/SKILL.md#vocabulary-and-principles-underneath). Then add the phases below as todos.
+Add the phases below as todos. Read the guidance linked at each decision when its condition holds.
 
 ## Phase A: Frame
 
@@ -38,8 +38,8 @@ Decompose into atomic, independently landable units. Sequence riskiest unknown f
 
 - Build the verification harness in the repo before the work. Run the pre-change code on the inputs the check will use and save its outputs as the baseline, so the check reads as "old value vs new value" for each input and the reviewer can rerun it. A suite's pass count is a gate, not a baseline; the baseline is the old values. Every input whose value changes is a decision to log and report.
 - For a one-way-door design decision, sketch the shape first with [Sketch First](../codebase-design/SKETCH-FIRST.md). Skip it for mechanical work whose shape is already concrete, and design once: a second design pass over a settled shape is over-engineering, and the smallest change that meets the predicate wins.
-- Decide what fans out. A script that makes every edit in one pass beats workers ([build-the-lever](../principle-build-the-lever/SKILL.md)). Fan out only across seams, each worker on its own worktree or branch ([separate-before-serializing-shared-state](../principle-separate-before-serializing-shared-state/SKILL.md)), and spawn workers in your own harness on your own model family. Where the harness cannot spawn subagents, as in Pi by default, run the same units yourself, one after another, in the designed order.
-- Write the designed phase list, the predicate, and the rigor level to a plan file beside the decision trail. Commit it, with the harness and its saved baseline file, before the first code change. Those commits are what the human reviews, and they show the plan and the baseline came first.
+- For repeated work, read [Build the Lever](../ship/references/build-the-lever.md); a script that handles every unit in one pass beats workers. If delegating, give each worker inputs, a verifiable output, and an owned write scope by [Separate Before Serializing Shared State](../principle-separate-before-serializing-shared-state/SKILL.md). Use your own harness and model family; without a subagent tool, run the units yourself in order.
+- Write the phase list, predicate, and rigor level beside the decision trail. Commit the plan, harness, and saved baseline before the first product edit. Phase C starts only when that commit can replay the old outputs. If inputs or harness change later, rerun them against the pre-change revision and record the new comparison; do not use post-change values as the baseline.
 
 Then execute the design. Add its units to the todolist as concrete items between the Phase C and Phase D entries. Run each under the Phase C loop, and write the Phase D log as you go, a row as each unit lands, rather than saving the whole trail for the end.
 

@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { privateDir } from "./workspace-repo.ts";
 
@@ -9,6 +9,11 @@ const url =
   process.env.RAVN_EVALS_PRIVATE_URL ??
   "https://github.com/ravnhq/ravn-core-evals.git";
 
+const ref = readFileSync(
+  join(import.meta.dirname, "private-ref.txt"),
+  "utf8",
+).trim();
+
 const git = (args: string[]) => {
   const result = spawnSync("git", args, { stdio: "inherit" });
 
@@ -17,10 +22,12 @@ const git = (args: string[]) => {
   }
 };
 
-if (existsSync(join(privateDir, ".git"))) {
-  git(["-C", privateDir, "pull", "-q", "--ff-only"]);
-} else {
-  git(["clone", "-q", url, privateDir]);
+if (!existsSync(join(privateDir, ".git"))) {
+  git(["clone", "--no-checkout", "-q", url, privateDir]);
 }
 
-console.log(`private evals ready in ${privateDir}`);
+git(["-C", privateDir, "fetch", "-q", "origin", ref]);
+
+git(["-C", privateDir, "switch", "-q", "--detach", "FETCH_HEAD"]);
+
+console.log(`private evals ${ref} ready in ${privateDir}`);

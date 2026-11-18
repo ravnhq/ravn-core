@@ -1,5 +1,0 @@
-interface:
-  display_name: "Build the Lever"
-  short_description: "Script the work instead of hand edits"
-policy:
-  allow_implicit_invocation: false

@@ -1,15 +1,14 @@
 ---
 name: grilling
 description: >-
-  Grill the user relentlessly about a plan, design, or decision, one round of
-  questions at a time. Use for "grill me", "poke holes in this", or "stress-test
-  my plan".
+  Stress-test a plan with the user, one round of decisions at a time. Use for
+  "grill me" or "poke holes in this".
 license: See LICENSE.txt
 metadata:
   proof: subjective
 ---
 
-Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
+Interview the user relentlessly until you reach a shared understanding. Start with their plan, design, or decision and map it as a **design tree**: every decision branches into the decisions that hang off it. The explicit command is `grilling` (formerly `grill-me`).
 
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. A question whose answer depends on another still open belongs to a later round. Ask the whole frontier in one round: number each question and give your recommended answer. Wait for the user's answers, then recompute the frontier: settled decisions push it outward and unblock the questions that depended on them.
 

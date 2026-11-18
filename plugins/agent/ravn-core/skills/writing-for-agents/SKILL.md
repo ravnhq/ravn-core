@@ -54,6 +54,8 @@ Every step ends on a **completion criterion**, the condition that tells the agen
 
 The strongest criteria are both checkable and exhaustive.
 
+At a phase boundary, name the input, the artifact the next phase consumes, the check that opens the boundary, and what change invalidates that check. Prescribe an order only when the order protects the result or the user's authority. Use a script for a deterministic check and leave the decision that needs judgment to the agent.
+
 ## When to split
 
 Splitting spends one of the two loads, so split only when the cut earns it:

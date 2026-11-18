@@ -1,8 +1,10 @@
 import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type {
   Assertion,
   AssertionValueFunction,
+  PromptFunction,
   TestCase,
   UnifiedConfig,
 } from "promptfoo";
@@ -78,6 +80,20 @@ function claudeCodeEnv(openRouter: boolean) {
   };
 }
 
+function claudeProjectSkills(fixture: string, arm: string) {
+  const pristine = process.env.RAVN_EVALS_PRISTINE;
+
+  if (pristine === undefined || arm === "without-skill") return [];
+
+  const dir = join(pristine, fixture, arm, ".claude", "skills");
+
+  if (!existsSync(dir)) return [];
+
+  return readdirSync(dir).filter((name) =>
+    existsSync(join(dir, name, "SKILL.md")),
+  );
+}
+
 // Every step runs in promptfoo's fresh copy of the arm's workspace, so no
 // case sees another's changes. "copy", not true: true clones a workspace with
 // no untracked files, as the without-skill arm's usually is, onto a detached
@@ -100,7 +116,9 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           working_dir: workingDir,
           copy_working_dir: "copy",
           setting_sources: ["project"],
-          skills: "all",
+          // An isolated config dir does not hide organization-managed plugin
+          // skills. Allow only unqualified names installed in this arm.
+          skills: claudeProjectSkills(fixture, arm),
           append_allowed_tools: ["Bash", "Agent"],
           env: openRouter
             ? {
@@ -216,7 +234,17 @@ type Base = {
 // usable reply; its quality case checks whether that reply follows the skill.
 type Disclosure = { references?: string[] };
 
-type Quality = Disclosure & { invoked?: boolean };
+type SkillRequestVars = {
+  request: string;
+  bareRequest?: string;
+  baselineRequest?: string;
+};
+
+type Quality = Disclosure & {
+  invoked?: boolean;
+  // The prior command may have encoded the branch that is a mode today.
+  baselineInvocation?: { skill: string; request: string };
+};
 
 export type Case =
   | (Base & Quality & { kind: "quality"; metric: string; rubric: string })
@@ -233,16 +261,7 @@ function skillRead(skill: string, count: { min: number } | { max: number }) {
 }
 
 function disclosedReference(file: string): Assertion {
-  const value: AssertionValueFunction = (
-    _output,
-    { provider, providerResponse },
-  ) => {
-    const arm = provider?.label?.split("/")[1];
-
-    // Old and no-skill arms answer the same task but cannot be required to
-    // read a file introduced by the current implementation.
-    if (arm === "baseline" || arm === "without-skill") return true;
-
+  const value: AssertionValueFunction = (_output, { providerResponse }) => {
     const pass =
       providerResponse !== undefined &&
       referenceWasRead(providerResponse, file);
@@ -263,10 +282,21 @@ const invocations = {
   pi: (skill: string) => `/skill:${skill}`,
 } as const;
 
+export const skillRequest: PromptFunction = async ({ provider, vars }) => {
+  const arm = provider?.label?.split("/")[1];
+
+  if (arm === "baseline") return String(vars.baselineRequest ?? vars.request);
+
+  if (arm === "without-skill") return String(vars.bareRequest ?? vars.request);
+
+  return String(vars.request);
+};
+
 function toTest(
   configSkill: string,
   testCase: Case,
   harness: Runner["harness"],
+  comparing: boolean,
 ): TestCase {
   const skill = testCase.skill ?? configSkill;
 
@@ -276,17 +306,33 @@ function toTest(
     (testCase.kind === "quality" || testCase.kind === "trigger") &&
     testCase.invoked === true;
 
+  const baseline =
+    testCase.kind === "quality" && invoked
+      ? testCase.baselineInvocation
+      : undefined;
+
+  const disclosed = "references" in testCase ? (testCase.references ?? []) : [];
+
+  const vars: SkillRequestVars = {
+    request: invoked
+      ? `${invocations[harness](skill)} ${testCase.request}`
+      : testCase.request,
+  };
+
+  if (invoked) vars.bareRequest = baseline?.request ?? testCase.request;
+
+  if (baseline)
+    vars.baselineRequest = `${invocations[harness](baseline.skill)} ${baseline.request}`;
+
   const base = {
     description: testCase.description,
-    vars: {
-      request: invoked
-        ? `${invocations[harness](skill)} ${testCase.request}`
-        : testCase.request,
-    },
+    vars,
     metadata: {
       ...testCase.metadata,
       kind: testCase.kind,
       fixture: testCase.fixture,
+      invoked,
+      references: disclosed,
       edits: testCase.edits ?? [],
     },
   };
@@ -304,10 +350,7 @@ function toTest(
       ? values.map((value) => skillRead(value, { max: 0 }))
       : [{ type: "not-skill-used", value: values }];
 
-  const references =
-    "references" in testCase
-      ? (testCase.references ?? []).map(disclosedReference)
-      : [];
+  const references = disclosed.map(disclosedReference);
 
   switch (testCase.kind) {
     case "quality":
@@ -315,8 +358,10 @@ function toTest(
         ...base,
         providers: [`${testCase.fixture}/*`],
         assert: [
-          ...(invoked ? [] : [used(skill)]),
-          ...references,
+          // Native selection and reads gate the current run. A comparison
+          // scores only outcomes, which every arm can produce.
+          ...(!comparing && !invoked ? [used(skill)] : []),
+          ...(comparing ? [] : references),
           ...("rubric" in testCase
             ? [
                 {
@@ -359,8 +404,12 @@ FAIL if the response reports that the skill or command could not be found, loade
   }
 }
 
-export function skillEval(skill: string, cases: Case[]): UnifiedConfig {
+export function skillEval(
+  skill: string,
+  cases: Case[],
+): UnifiedConfig & { tests: TestCase[] } {
   const fixtures = [...new Set(cases.map((testCase) => testCase.fixture))];
+  const comparing = process.env.RAVN_EVALS_COMPARE === "1";
 
   const runner = runners.find(
     (candidate) => runnerName(candidate) === requiredEnv("RAVN_EVALS_RUNNER"),
@@ -372,7 +421,9 @@ export function skillEval(skill: string, cases: Case[]): UnifiedConfig {
 
   return {
     description: `${skill}: ${arms.join(" vs ")}`,
-    prompts: ["{{request}}"],
+    prompts: [
+      { label: "skill-request", raw: "{{request}}", function: skillRequest },
+    ],
     providers: fixtures.flatMap((fixture) =>
       arms.map((arm) => provider(fixture, arm, runner)),
     ),
@@ -396,6 +447,8 @@ export function skillEval(skill: string, cases: Case[]): UnifiedConfig {
         },
       },
     },
-    tests: cases.map((testCase) => toTest(skill, testCase, runner.harness)),
+    tests: cases.map((testCase) =>
+      toTest(skill, testCase, runner.harness, comparing),
+    ),
   };
 }

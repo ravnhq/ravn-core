@@ -16,12 +16,17 @@ jobs:
       RAVN_CORE_EVALS_DEPLOY_KEY: ${{ secrets.RAVN_CORE_EVALS_DEPLOY_KEY }}
     steps:
       - uses: actions/checkout@v7
+      - name: Read the paired private eval revision
+        id: private-evals
+        if: env.RAVN_CORE_EVALS_DEPLOY_KEY != ''
+        run: echo "ref=$(cat evals/private-ref.txt)" >> "$GITHUB_OUTPUT"
       # The eval cases and fixtures are private. Without the deploy key
       # (forks), the tests that read them skip.
       - uses: actions/checkout@v7
         if: env.RAVN_CORE_EVALS_DEPLOY_KEY != ''
         with:
           repository: ravnhq/ravn-core-evals
+          ref: ${{ steps.private-evals.outputs.ref }}
           ssh-key: ${{ secrets.RAVN_CORE_EVALS_DEPLOY_KEY }}
           path: evals/private
           persist-credentials: false

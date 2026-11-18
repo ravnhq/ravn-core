@@ -56,10 +56,10 @@ Claude Code mods:
 - [Repo gates without private evals](./repo-gates.md) covers the eval-config skip reason, `evals/run.ts` stopping before it spends tokens, and the `validate` skill's eval fetch step.
 - [Dependency overrides](./dependency-overrides.md) covers the frozen install, the resolved versions of the overridden packages, and each open Dependabot alert's first patched version.
 - [Marketplace install](./marketplace-install.md) covers installing `ravn-core` from the marketplace.
-- [ship idea-to-PR workflow](./ship.md) covers `ship` and the skills it chains: `grilling`, `create-verification-skill`, and `pr`. `research` and `maintain-verification-skill` run only when the change needs outside docs or the repo already has a verification skill.
+- [ship idea-to-PR workflow](./ship.md) covers `ship`, including the applicable create or maintain branch of `verification-skill` and passing CI on the final head.
 - [babysit merge-readiness workflow](./babysit.md) covers gate discovery, thread triage, merge-ready reporting, proof before merging, merging on request, merge-queue drops, and background watching, against a simulated GitHub.
 - [bug-fix workflow](./bug-fix.md) covers the repro, the root cause, red-then-green history on a new branch, and isolating a dirty tree in a worktree.
-- [Formal verification skills](./formal-verification.md) covers `create-formal-verification-skill` reporting a seeded race with a failing test and a rerunnable verify skill, and `maintain-formal-verification-skill` updating that verification after the code is fixed without it.
+- [Formal verification skill](./formal-verification.md) covers a seeded race and a rerunnable proof guide, then resyncing verification after the code changes.
 - [Deprecate and migrate](./deprecate-and-migrate.md) covers inventorying a deprecated function's callers with the bundled script, moving them to the replacement, keeping the public old export, and planning expand, migrate, contract.
 - [Web QA and PR screenshots](./web-qa.md) covers `web-qa` reporting a seeded invisible button label with a screenshot and repro steps, and `pr` laying out before/after screenshots of its fix.
 - [Statechart](./statechart.md) covers `statechart` running TLC through its bundled script on a seeded checkout model, the shortest path to the broken rule in the report and the reply, the labeled Mermaid chart, and the spec left unchanged.
@@ -69,9 +69,16 @@ Claude Code mods:
 - [Engineering principles in ship](./engineering-principles.md) covers conditional dispatch, decisions paired with checks, root-cause fixes, retry safety, write ownership, type and boundary discipline, measured-result validation, and the newly disclosed references in existing skills.
 - [Attack the Premise and Build the Lever](./principles-premise-lever.md) covers naming and testing the premise two failed fixes shared, reverting the refuted fixes, and doing a 30-file caller migration with a rerunnable codemod.
 - [Bad test terminator](./bad-test-terminator.md) covers the vendored plugin with its provenance record, exact matching pins, the guards block, the seven Vitest settings with a repeat run, findings settled on the request's route, and the self-check proving the renamed rules bite, in all three harnesses.
+- [Verification skill lifecycle](./verification-skill.md) covers the create and maintain modes on a real CLI.
+- [Grilling](./grilling.md) covers explicit invocation, discovery, and the decision frontier.
+- [Ask Ravn](./ask-ravn.md) covers mapping without executing work.
+- [Codebase design](./codebase-design.md) covers the design-versus-current-code boundary and branch references.
+- [Architecture survey](./improve-codebase-architecture.md) covers the HTML shortlist before a design choice.
+- [Writing for agents](./writing-for-agents.md) covers writing a runnable common contract and a reachable branch reference.
+- [Shared state ownership](./shared-state-ownership.md) covers the retained standalone principle on independent and truly shared writes.
 
 ## Not covered
 
 These have no dedicated complete live recipe yet. Report them as unverified when a change touches them. Skills exercised only as a link in another recipe are not thereby fully verified.
 
-- `ravn-core` skills without a complete live recipe: `agent-readiness`, `ask-ravn`, `blast-radius`, `codebase-design`, `create-verification-skill` beyond its use in `ship`, `domain-modeling`, `explain-change` (the `explain-change` feature covers only the mod's parser), `grill-me`, `grilling` beyond its use in `ship`, `improve-codebase-architecture`, `maintain-verification-skill`, `pause-safely`, `pr` beyond its use in `ship`, `principle-boundary-discipline`, `principle-explain-the-number`, `principle-fix-root-causes`, `principle-guard-the-context-window`, `principle-make-operations-idempotent`, `principle-prove-it-works` beyond the focused engineering-principles cases, `principle-separate-before-serializing-shared-state`, `principle-type-system-discipline`, `research` beyond its use in `ship`, `session-pickup`, `show-me-your-work`, and `writing-for-agents` beyond its use in `ship`.
+- `ravn-core` skills without a complete live recipe: `agent-readiness`, `blast-radius`, `domain-modeling`, `explain-change` (the `explain-change` feature covers only the mod's parser), `pause-safely`, `pr` beyond its use in `ship`, `principle-explain-the-number`, `principle-fix-root-causes`, `principle-make-operations-idempotent`, `principle-prove-it-works` beyond the focused engineering-principles cases, `research` beyond its use in `ship`, `session-pickup`, and `show-me-your-work`.

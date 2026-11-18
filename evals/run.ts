@@ -286,6 +286,7 @@ try {
       RAVN_EVALS_WORKSPACES: join(jobDir, "workspaces"),
       RAVN_EVALS_HOME: isolatedHomeDir,
       RAVN_EVALS_RUNNER: runner,
+      RAVN_EVALS_COMPARE: arms.length > 1 ? "1" : "0",
       RAVN_EVALS_OTLP_PORT: String(await freePort()),
     };
 

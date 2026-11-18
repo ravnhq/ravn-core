@@ -1,0 +1,10 @@
+# SkillSpector baseline — findings listed here are suppressed on future scans.
+# Edit 'reason' fields and add glob 'rules' as needed. See docs/SUPPRESSION.md.
+version: 2
+scanner_version: 2.12.0
+rules: []
+fingerprints:
+- hash: sha256:6e5bc647f2722b738e8fd0c3bff7bc2c0980586c615be6d3f1e7a05f9468dbd9
+  rule_id: MP3
+  file: references/feature-map-example/README.md
+  reason: Accepted upstream pstack text; "clear states" is a search box's cleared UI state in an example feature map, not agent memory

@@ -144,7 +144,7 @@ Merge the lowest unmerged PR only, and only when all of these hold:
 
 Give the verifier the brief's absolute path, the PR number, `<sha>`, the head and base branches, and the verification skill's path from `verificationSkills` when there is one, and nothing about what you expect it to find. Only `PASS` or `PASS+NOTES` at `<sha>` allows the merge; without one, do not merge. On `FAIL`, handle the verifier's reproduction like a failing check in Step 5; a fix needs a fresh verdict.
 
-`INCONCLUSIVE` because no recipe reaches a behavior: read [Recipe PR](references/recipe-pr.md), which opens the missing recipes as their own PR. Any other `INCONCLUSIVE` is a blocker, with the verifier's reason. When the repository lacks a verification skill, the verifier builds its own checks: say so in your reply, and name [Create Verification Skill](../create-verification-skill/SKILL.md) as the follow-up that lets the next verifier drive those behaviors by recipe; the merge does not wait on it.
+`INCONCLUSIVE` because no recipe reaches a behavior: read [Recipe PR](references/recipe-pr.md), which opens the missing recipes as their own PR. Any other `INCONCLUSIVE` is a blocker, with the verifier's reason. When the repository lacks a verification skill, the verifier builds its own checks: say so in your reply and name [verification-skill create](../verification-skill/SKILL.md) as the follow-up. The merge does not wait on it.
 
 A verdict covers the PR's patch, `git diff origin/<base>...<sha> | git patch-id --stable`. Fetch again just before merging: a head whose patch differs needs a fresh verdict, and so does a base that moved while `mergeQueue` is false (a merge below this PR included), judged against the new base commit you pass the verifier.
 

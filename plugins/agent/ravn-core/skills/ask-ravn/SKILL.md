@@ -24,15 +24,7 @@ This map points to skills; it does not run them. End the turn with the map: star
 
 ## Main flow: idea to ready PR
 
-Start with [ship](../ship/SKILL.md) when an idea or requested change should become a ready pull request with verified results and passing CI. `ship` owns the sequence and the conditions for skipping a step:
-
-1. Shape the goal, then trace the code the change touches, with [why](../why/SKILL.md) for rationale. Use [research](../research/SKILL.md) when external documentation or API facts matter.
-2. Settle assumptions through [grilling](../grilling/SKILL.md). Use [domain-modeling](../domain-modeling/SKILL.md) when terms or state representations need work, and [codebase-design](../codebase-design/SKILL.md) when a module or interface needs shaping.
-3. Write and confirm the plan, build in verifiable steps, and use [show-me-your-work](../show-me-your-work/SKILL.md) when an unattended build needs a decision trail.
-4. Check the real result with [prove-it-works](../principle-prove-it-works/SKILL.md). [Create a verification skill](../create-verification-skill/SKILL.md) when a user-facing project has no such path; [maintain it](../maintain-verification-skill/SKILL.md) when its existing path has drifted. Use [blast-radius](../blast-radius/SKILL.md) when a change may affect behavior beyond its diff.
-5. [pr](../pr/SKILL.md) shapes the PR body; `ship` owns [delivery](../ship/DELIVER-GREEN-CI.md). Explain its completion condition: the PR is marked ready and all applicable checks, including readiness-triggered jobs, pass on its verified latest commit. Passing draft checks is an intermediate gate.
-
-Read `ship` before choosing an entry point within that sequence; its phases are not independently automatic commands.
+For an idea that should become one ready PR, recommend [ship](../ship/SKILL.md). It owns the sequence: read it to identify the next phase and any approval that phase needs. The artifact is a ready PR with all applicable checks passing on its current head, including checks that only run after readiness. For a PR body alone, recommend [pr](../pr/SKILL.md).
 
 ## On-ramps
 
@@ -49,18 +41,20 @@ Use these without the whole `ship` flow:
 | Need | Skill |
 |---|---|
 | Understand current code, ownership, or runtime flow | [how](../how/SKILL.md) |
+| Decide where a new seam should go or what one module should expose | [codebase-design](../codebase-design/SKILL.md) |
 | Investigate why code has its current shape | [why](../why/SKILL.md) |
 | Review a branch, diff, or PR and get one verdict, with safe simplifications applied only when asked | [review-and-simplify](../review-and-simplify/SKILL.md) |
 | Learn a diff, branch, or PR well enough to review it | [explain-change](../explain-change/SKILL.md) |
-| Test a plan or decision by interview | [grill-me](../grill-me/SKILL.md), the user-invoked wrapper around [grilling](../grilling/SKILL.md) |
+| Test a plan or decision by interview | [grilling](../grilling/SKILL.md) |
 | Gather primary-source facts | [research](../research/SKILL.md) |
 | Check what a change could break elsewhere | [blast-radius](../blast-radius/SKILL.md) |
 | Replace, rename, or remove a function, API, endpoint, or column that still has callers | [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md) |
-| Create or audit a project's user-facing verification path | [create-verification-skill](../create-verification-skill/SKILL.md) or [maintain-verification-skill](../maintain-verification-skill/SKILL.md) |
-| Prove a property that tests rarely reach, such as a race, a retry, a state machine, or a parser, or bring that proof back in line with changed code | [create-formal-verification-skill](../create-formal-verification-skill/SKILL.md) or [maintain-formal-verification-skill](../maintain-formal-verification-skill/SKILL.md) |
+| Create or audit a guide for driving the real app | [verification-skill](../verification-skill/SKILL.md), `create` or `maintain` |
+| Prove a particular property in scope or bring a stale proof back in sync with code | [formal-verification-skill](../formal-verification-skill/SKILL.md), `create` or `maintain` |
 | Model-check a TLA+ spec and show each broken rule as the shortest path through a statechart | [statechart](../statechart/SKILL.md) |
 | Audit and fix how well a coding agent can work in a repo | [agent-readiness](../agent-readiness/SKILL.md) |
 | QA a running web app like a user and report each bug with screenshots and repro steps | [web-qa](../web-qa/SKILL.md) |
+| Prune tests that guard no behavior, or install deterministic test guards | [bad-test-terminator](../bad-test-terminator/SKILL.md) |
 | Keep a reviewable trail during unattended work | [show-me-your-work](../show-me-your-work/SKILL.md) |
 | Check a PR or stack's gates and merge readiness | [babysit](../babysit/SKILL.md) in `check` mode |
 | Write a PR body | [pr](../pr/SKILL.md) |
@@ -71,22 +65,20 @@ Use these without the whole `ship` flow:
 
 [domain-modeling](../domain-modeling/SKILL.md) owns domain terms and representations; [codebase-design](../codebase-design/SKILL.md) owns the vocabulary for modules, interfaces, and seams. They can support a flow or answer a focused design request.
 
-Apply principles when their conditions occur during any route:
+Use this table only when the user asks for guidance on one of these decisions. Point to the owning skill when the guidance is disclosed within it:
 
 | Condition | Principle |
 |---|---|
 | Debugging a symptom | [fix-root-causes](../principle-fix-root-causes/SKILL.md) |
 | Two or more fixes on one premise have failed | [attack-the-premise](../principle-attack-the-premise/SKILL.md) |
-| Designing validation, error handling, or adapters | [boundary-discipline](../principle-boundary-discipline/SKILL.md) |
-| Writing types or signatures in a typed language | [type-system-discipline](../principle-type-system-discipline/SKILL.md) |
+| Designing validation, adapters, or types across a module interface | [codebase-design](../codebase-design/SKILL.md) |
 | Writing or reviewing TypeScript | [typescript-best-practices](../typescript-best-practices/SKILL.md) |
 | Handling retries, restarts, or interrupted mutation | [make-operations-idempotent](../principle-make-operations-idempotent/SKILL.md) |
 | Coordinating writers of shared mutable state | [separate-before-serializing-shared-state](../principle-separate-before-serializing-shared-state/SKILL.md) |
 | Planning a measurement, or trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
 | Checking a finished output | [prove-it-works](../principle-prove-it-works/SKILL.md) |
 | Writing, changing, or deleting a test, or a test disagrees with the spec | [test-the-contract](../principle-test-the-contract/SKILL.md) |
-| Making the same change in many places, or work a reviewer must rerun | [build-the-lever](../principle-build-the-lever/SKILL.md) |
-| Large reads or outputs are crowding the session | [guard-the-context-window](../principle-guard-the-context-window/SKILL.md) |
+| Making the same change in many places, or work a reviewer must rerun | [ship](../ship/SKILL.md)'s [build-the-lever reference](../ship/references/build-the-lever.md) |
 
 ## Phase boundaries
 
@@ -94,7 +86,7 @@ Choose at a natural boundary, after recording any decisions and proof the next p
 
 - **Continue** in this session while the current evidence and decisions still fit and the next step depends on them.
 - **Clear** the context when the phase is complete and the next step can start from durable artifacts alone.
-- **Compact** when the context is filling but the next step still needs a concise account of decisions, evidence, and open questions. See [guard-the-context-window](../principle-guard-the-context-window/SKILL.md).
+- **Compact** when the next step still needs a concise account of decisions, evidence, and open questions. For large reads before compaction, point to [Guard the Context Window](../ship/references/guard-the-context-window.md).
 - **Pause or hand off** when asked to stop or transfer work: [pause-safely](../pause-safely/SKILL.md) writes the checkpoint; [session-pickup](../session-pickup/SKILL.md) resumes it. Automatic compaction is not a pause.
 - **Use a subagent** for a bounded, independent slice when the active skill calls for one and the harness permits it. Keep the main thread responsible for integrating and checking the result.
 

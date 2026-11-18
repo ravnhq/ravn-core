@@ -34,7 +34,7 @@ export const cases: Case[] = [
   {
     id: "plan-ready-to-start",
     kind: "fit",
-    expect: ["grilling", "grill-me"],
+    expect: ["grilling"],
     messages: [
       [
         "user",
@@ -158,7 +158,7 @@ export const cases: Case[] = [
   {
     id: "cannot-verify-ui",
     kind: "fit",
-    expect: ["create-verification-skill", "principle-prove-it-works"],
+    expect: ["verification-skill", "principle-prove-it-works"],
     messages: [
       ["user", "fix the date picker so it doesn't close when you tab out"],
       [

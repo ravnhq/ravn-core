@@ -1,12 +1,9 @@
 ---
 name: codebase-design
 description: >-
-  Use when deciding what a module's boundary or interface should be: "design
-  an interface for X", "should this stay split or get one interface", "where
-  should the seam go", "where should this live so callers don't need to know
-  Y", making code testable or AI-navigable, or sketching types before building
-  a module. Supplies the deep-module vocabulary (interfaces, seams, depth,
-  locality). For how the code works today, use how.
+  Design a module: choose its home, one interface or a split, where to parse
+  raw inputs, or what types and test surface it exposes. For current behavior
+  and ownership, use how.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -15,6 +12,8 @@ metadata:
 # Codebase Design
 
 Design **deep modules**: much behaviour behind a small interface, placed at a clean seam, testable through that interface. Use these terms exactly, never "component," "service," "API," or "boundary": the aim is leverage for callers, locality for maintainers, testability for everyone.
+
+Start with the design decision the user wants. For raw inputs or adapters, read [Boundary Discipline](references/boundary-discipline.md) before choosing where validation belongs. For types or signatures, read [Type System Discipline](references/type-system-discipline.md) before proposing the representation.
 
 ## Glossary
 
@@ -54,4 +53,4 @@ Design **deep modules**: much behaviour behind a small interface, placed at a cl
 - **Building a new module, or a design that keeps needing the same workaround**: [Sketch First](SKETCH-FIRST.md), stub the types and signatures before code, implement against the sketch, and scrap it when the workaround recurs.
 - **Exploring alternative interfaces**: [DESIGN-IT-TWICE.md](DESIGN-IT-TWICE.md), parallel sub-agents each design the interface a radically different way; compare on depth, locality, and seam placement.
 - **Code that is hard to trace, or a proposed new layer or mutable state**: [Minimize Reader Load](MINIMIZE-READER-LOAD.md).
-- **Replacing an internal API** when old callers remain, no external users need compatibility, and coordinated breaking changes are permitted: [Migrate Callers Then Delete Legacy APIs](MIGRATE-CALLERS.md).
+- **Replacing an internal API**: use the [caller inventory and migration workflow](../deprecate-and-migrate/SKILL.md) before deciding whether the old entry can leave in the same change.

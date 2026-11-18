@@ -1,0 +1,5 @@
+interface:
+  display_name: "Verification Skill"
+  short_description: "Create or audit a real-user verification guide"
+policy:
+  allow_implicit_invocation: false

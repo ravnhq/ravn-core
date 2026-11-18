@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 import { test } from "node:test";
 import { parse } from "yaml";
@@ -27,9 +27,20 @@ const evalModuleSchema = z.object({
   default: z.object({
     tests: z.array(
       z.object({
-        metadata: z.object({ kind: z.string(), fixture: z.string() }),
+        metadata: z.object({
+          kind: z.string(),
+          fixture: z.string(),
+          invoked: z.boolean(),
+          references: z.array(z.string()),
+        }),
         vars: z.object({ request: z.string() }),
-        assert: z.array(z.object({ type: z.string(), value: z.unknown() })),
+        assert: z.array(
+          z.object({
+            type: z.string(),
+            metric: z.string().optional(),
+            value: z.unknown(),
+          }),
+        ),
       }),
     ),
   }),
@@ -49,6 +60,35 @@ const skills = agentPluginDirs(pluginsDir).flatMap((dir) =>
 const skillNames = new Set(skills.map(({ name }) => name.split("/")[1]));
 
 const caseKinds = ["quality", "trigger", "route", "stay-out"];
+
+const requiredDisclosures = [
+  "verification-skill/references/create.md",
+  "verification-skill/references/maintain.md",
+  "formal-verification-skill/references/create.md",
+  "formal-verification-skill/references/maintain.md",
+  "codebase-design/references/boundary-discipline.md",
+  "codebase-design/references/type-system-discipline.md",
+  "deprecate-and-migrate/references/internal-callers.md",
+  "ship/references/build-the-lever.md",
+  "ship/references/guard-the-context-window.md",
+  "bad-test-terminator/references/install.md",
+  "bad-test-terminator/references/prune.md",
+  "statechart/references/view-model.md",
+  "statechart/references/read-tlc-report.md",
+];
+
+test("private eval configs match the shipped catalog", { skip }, () => {
+  const configs = agentPluginDirs(pluginsDir).flatMap((dir) => {
+    const plugin = basename(dir);
+    const cases = join(privateDir, plugin);
+
+    return readdirSync(cases)
+      .filter((skill) => existsSync(join(cases, skill, "promptfooconfig.ts")))
+      .map((skill) => `${plugin}/${skill}`);
+  });
+
+  assert.deepEqual(configs.sort(), skills.map(({ name }) => name).sort());
+});
 
 const frontmatterSchema = z.object({
   "disable-model-invocation": z.boolean().default(false),
@@ -100,6 +140,29 @@ test("invocation policy follows YAML boolean semantics", () => {
 
 type EvalTest = z.infer<typeof evalModuleSchema>["default"]["tests"][number];
 
+function nativeQuality(skill: string, tests: EvalTest[]) {
+  return tests.some(
+    ({ metadata, assert: assertions }) =>
+      metadata.kind === "quality" &&
+      !metadata.invoked &&
+      assertions.some(({ type, value }) => {
+        if (type === "skill-used") return value === skill;
+
+        if (type !== "trajectory:step-count") return false;
+
+        const trace = z
+          .object({ pattern: z.string(), min: z.number() })
+          .safeParse(value);
+
+        return (
+          trace.success &&
+          trace.data.min === 1 &&
+          trace.data.pattern === `*${skill}/SKILL.md*`
+        );
+      }),
+  );
+}
+
 // Skills a case asserts stay unused: `not-skill-used`, or on Codex a traced
 // SKILL.md read capped at zero.
 function unusedSkills(testCase: EvalTest) {
@@ -132,7 +195,12 @@ function staysOutOfItself(skill: string, tests: EvalTest[]) {
 
 test("a stay-out case must assert the skill under test stays unused", () => {
   const stayOut = (assertion: EvalTest["assert"][number]): EvalTest => ({
-    metadata: { kind: "stay-out", fixture: "repo-a" },
+    metadata: {
+      kind: "stay-out",
+      fixture: "repo-a",
+      invoked: false,
+      references: [],
+    },
     vars: { request: "list the recent commits" },
     assert: [assertion],
   });
@@ -169,6 +237,56 @@ async function loadTests(configPath: string) {
   return evalModuleSchema.parse(await import(configPath)).default.tests;
 }
 
+test("every required disclosed file has both trigger and quality coverage", {
+  skip,
+}, async () => {
+  const covered = new Map<string, Set<string>>();
+
+  for (const { name, configPath } of skills) {
+    const [plugin] = name.split("/");
+
+    for (const { metadata, assert: assertions } of await loadTests(
+      configPath,
+    )) {
+      for (const path of metadata.references) {
+        assert.match(
+          path,
+          /^[\w-]+\/references\/(?:[\w-]+\/)*[\w.-]+\.md$/,
+          `${name}: invalid disclosed path`,
+        );
+        const file = join(pluginsDir, "agent", plugin ?? "", "skills", path);
+
+        assert.ok(
+          existsSync(file) && statSync(file).isFile(),
+          `${name}: missing ${path}`,
+        );
+        const declaration = covered.get(path) ?? new Set<string>();
+        declaration.add(metadata.kind);
+        covered.set(path, declaration);
+
+        const measured = assertions.filter(
+          ({ type, metric }) =>
+            type === "javascript" && metric === "reference-read",
+        );
+
+        assert.ok(
+          measured.length >= metadata.references.length,
+          `${name}: references need execution assertions`,
+        );
+      }
+    }
+  }
+
+  for (const path of requiredDisclosures) {
+    for (const kind of ["quality", "trigger"]) {
+      assert.ok(
+        covered.get(path)?.has(kind),
+        `${path} lacks a ${kind} disclosure case`,
+      );
+    }
+  }
+});
+
 for (const { name, configPath } of skills) {
   test(`${name} has an eval config`, { skip }, () => {
     assert.ok(existsSync(configPath), `missing ${configPath}`);
@@ -178,6 +296,31 @@ for (const { name, configPath } of skills) {
     const tests = await loadTests(configPath);
 
     assert.ok(tests.some((testCase) => testCase.metadata.kind === "quality"));
+  });
+
+  test(`${name} has native quality coverage if model-invocable`, {
+    skip,
+  }, async () => {
+    const [plugin, skill] = name.split("/");
+
+    const policy = invocationPolicy(
+      join(
+        pluginsDir,
+        "agent",
+        plugin ?? "",
+        "skills",
+        skill ?? "",
+        "SKILL.md",
+      ),
+    );
+
+    if (policy["disable-model-invocation"]) return;
+
+    const tests = await loadTests(configPath);
+    assert.ok(
+      nativeQuality(skill ?? "", tests),
+      `${name} needs an uninvoked quality case that asserts entry selection`,
+    );
   });
 
   test(`${name} covers every case kind and routes to a sibling`, {
@@ -237,7 +380,7 @@ for (const { name, configPath } of skills) {
     }
   });
 
-  test(`${name} invokes user-only trigger commands`, { skip }, async () => {
+  test(`${name} covers its invocation policy`, { skip }, async () => {
     const [plugin, skill] = name.split("/");
 
     const policy = invocationPolicy(
@@ -259,6 +402,11 @@ for (const { name, configPath } of skills) {
       (testCase) => testCase.metadata.kind === "trigger",
     );
 
+    assert.ok(
+      triggers.some(({ metadata }) => metadata.invoked === userOnly),
+      `${name} needs a ${userOnly ? "user-only" : "native"} trigger`,
+    );
+
     for (const trigger of triggers) {
       const invoked = [`/${skill} `, `$${skill} `, `/skill:${skill} `].some(
         (prefix) => trigger.vars.request.startsWith(prefix),
@@ -266,9 +414,11 @@ for (const { name, configPath } of skills) {
 
       assert.equal(
         invoked,
-        userOnly,
-        `${name} trigger must match its invocation policy`,
+        trigger.metadata.invoked,
+        `${name} trigger prompt must match its invocation metadata`,
       );
+
+      if (userOnly) assert.ok(invoked, `${name} cannot have a native trigger`);
     }
   });
 

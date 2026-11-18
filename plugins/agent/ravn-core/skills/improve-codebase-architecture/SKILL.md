@@ -1,10 +1,9 @@
 ---
 name: improve-codebase-architecture
 description: >-
-  Survey a codebase for refactors that deepen shallow modules, as an HTML
-  report, then grill the pick. Use for "improve the architecture", "what should
-  we refactor", "where is this code hard to change". For one module's interface,
-  use codebase-design.
+  Survey a repo for refactor candidates and show the shortlist in an HTML
+  report before the user picks one. For a specific module's interface, use
+  codebase-design.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -14,7 +13,7 @@ metadata:
 
 Surface architectural friction and propose **deepening opportunities**: refactors that turn shallow modules into deep ones, for testability and AI-navigability.
 
-Use the `codebase-design` skill's vocabulary and principles in every suggestion. The domain language in `GLOSSARY.md` names good seams; ADRs in `docs/adr/` record decisions not to re-litigate.
+Use [Codebase Design](../codebase-design/SKILL.md)'s vocabulary and principles in every suggestion. The domain language in `GLOSSARY.md` names good seams; ADRs in `docs/adr/` record decisions not to re-litigate.
 
 ## Process
 
@@ -45,7 +44,7 @@ Name the domain with `GLOSSARY.md` terms ("the Order intake module," not "the Fo
 
 **ADR conflicts**: surface a candidate that contradicts an existing ADR only when the friction warrants reopening it, and mark it in the card (_"contradicts ADR-0007, but worth reopening because..."_). Skip refactors an ADR forbids that are merely theoretical.
 
-Propose no interfaces yet. After writing the file, ask the user: "Which of these would you like to explore?"
+The shortlist is ready when every card cites actual code and shows what callers would no longer need to know. If the source changes before the choice, recheck those citations. Ask the user: "Which of these would you like to explore?" Wait for the pick before proposing interfaces.
 
 ### 3. Grilling loop
 
