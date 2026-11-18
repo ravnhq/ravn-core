@@ -82,7 +82,7 @@ Work the steps in order and run each step's verification before starting the nex
 
 If the user steps away while you build, keep a decision trail with [Show Me Your Work](../show-me-your-work/SKILL.md).
 
-For a replacement with old callers, use [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md) to inventory callers and choose the deploy path. For repeated edits or a check a reviewer must rerun, read [Build the Lever](references/build-the-lever.md). For tests you write, change, or keep, use [Test the Contract](../principle-test-the-contract/SKILL.md).
+For a replacement with old callers, use [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md) to inventory callers and choose the deploy path. For repeated edits or a check a reviewer must rerun, read [Build the Lever](../principle-build-the-lever/SKILL.md). For tests you write, change, or keep, use [Test the Contract](../principle-test-the-contract/SKILL.md).
 
 ## Step 10. Prove it works
 

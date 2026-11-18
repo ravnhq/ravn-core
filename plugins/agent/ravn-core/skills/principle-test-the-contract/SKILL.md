@@ -41,7 +41,7 @@ The contract decides, not the shape of the assertion. When "an empty cart never 
 A check that the change can edit judges nothing.
 
 - Settle the tests that judge a change before you make it, then hold them fixed. A test edit after that is a spec decision you report, never a step toward green.
-- When you delegate the implementation, keep its tests outside the delegate's write scope, as [Build the Lever](../ship/references/build-the-lever.md) keeps its contract, and read the delegate's test diff before its summary.
+- When you delegate the implementation, keep its tests outside the delegate's write scope, as [Build the Lever](../principle-build-the-lever/SKILL.md) keeps its contract, and read the delegate's test diff before its summary.
 - Where the repository protects its checks (CI that runs from the base branch, protected test paths, required reviews), work inside that protection. Report a missing one as a finding; [Agent Readiness](../agent-readiness/SKILL.md) audits it.
 - Disclose every test, fixture, spec, and CI change by [Prove It Works](../principle-prove-it-works/SKILL.md).
 

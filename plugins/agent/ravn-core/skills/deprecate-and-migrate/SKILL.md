@@ -1,8 +1,8 @@
 ---
 name: deprecate-and-migrate
 description: >-
-  Replace or rename a symbol across callers, or remove an old route alias
-  or export. Use a codemod for repeated in-repo edits; keep public names
+  Remove or rename a legacy route, alias, function, export, or field. Use
+  when callers must move or an old name should go away. Keep public names
   working until outside use is measured at zero.
 license: See LICENSE.txt
 metadata:
@@ -17,7 +17,7 @@ Hyrum's law: with enough callers, every observable behavior of the old API is de
 
 **Choose the outcome before editing.** An externally reachable name stays until a fresh inventory finds zero local callers and measured traffic shows zero outside use. A request to delete the name does not count as that evidence.
 
-- **Only removal was requested and the gate is closed:** leave each old name working. Give the remaining rollout in order: move outside callers to the named replacement, measure zero use of each old name, then remove it in a later change. This completes the request as far as the evidence allows.
+- **Only removal was requested and the gate is closed:** make no removal edits. Leave every old mapping in place and report a three-step rollout: move outside callers to the named replacement, measure zero use of each old name, then remove it in a later change.
 - **Callers can move now:** migrate them while preserving the old entry, or use the internal path below if every caller shares a deploy and a coordinated break is allowed.
 
 ## Steps

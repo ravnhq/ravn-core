@@ -69,7 +69,7 @@ const requiredDisclosures = [
   "codebase-design/references/boundary-discipline.md",
   "codebase-design/references/type-system-discipline.md",
   "deprecate-and-migrate/references/internal-callers.md",
-  "ship/references/build-the-lever.md",
+  "principle-build-the-lever/SKILL.md",
   "ship/references/guard-the-context-window.md",
   "bad-test-terminator/references/install.md",
   "bad-test-terminator/references/prune.md",
@@ -251,7 +251,7 @@ test("every required disclosed file has both trigger and quality coverage", {
       for (const path of metadata.references) {
         assert.match(
           path,
-          /^[\w-]+\/references\/(?:[\w-]+\/)*[\w.-]+\.md$/,
+          /^[\w-]+\/(?:SKILL\.md|references\/(?:[\w-]+\/)*[\w.-]+\.md)$/,
           `${name}: invalid disclosed path`,
         );
         const file = join(pluginsDir, "agent", plugin ?? "", "skills", path);

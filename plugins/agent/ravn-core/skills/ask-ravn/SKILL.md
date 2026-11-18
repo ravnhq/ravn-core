@@ -79,7 +79,7 @@ Use this table only when the user asks for guidance on one of these decisions. P
 | Planning a measurement, or trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
 | Checking a finished output | [prove-it-works](../principle-prove-it-works/SKILL.md) |
 | Writing, changing, or deleting a test, or a test disagrees with the spec | [test-the-contract](../principle-test-the-contract/SKILL.md) |
-| Making the same change in many places, or work a reviewer must rerun | [ship](../ship/SKILL.md)'s [build-the-lever reference](../ship/references/build-the-lever.md) |
+| Making the same change in many places, or work a reviewer must rerun | [principle-build-the-lever](../principle-build-the-lever/SKILL.md), explicit invocation |
 
 ## Phase boundaries
 

@@ -1,6 +1,18 @@
+---
+name: principle-build-the-lever
+description: >-
+  Apply to any non-trivial work, not just bulk work: edits, migrations,
+  analyses, checks. Build the tool that does it or proves it (codemod, script,
+  generator, or a skill your subagents follow) instead of working by hand.
+disable-model-invocation: true
+license: See LICENSE.txt
+metadata:
+  proof: subjective
+---
+
 # Build the Lever
 
-Adapted from pstack `principle-build-the-lever`, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](../LICENSE.txt).
+Adapted from pstack `principle-build-the-lever`, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
 When the work isn't trivial, build the tool that does it instead of doing it by hand. A codemod, generator, or script does the work the same way every time and reruns for free. It is one artifact a reviewer can read and rerun to check the work, where hand-done changes can only be re-verified by redoing them. A deterministic script turns "trust me" into "run this".
 
@@ -17,4 +29,4 @@ The bar is triviality, not repetition. A one-off still earns a lever when the le
 
 Applying this produces a file. You skipped it when the diff has no codemod, script, generator, or delegate skill, or when you made the same edit by hand in more than a few places.
 
-Distinct from [Prove It Works](../../principle-prove-it-works/SKILL.md), which decides what counts as proof of an output. This builds the tool that does the work, and that tool's rerun is the proof.
+Distinct from [Prove It Works](../principle-prove-it-works/SKILL.md), which decides what counts as proof of an output. This builds the tool that does the work, and that tool's rerun is the proof.
