@@ -4,9 +4,9 @@ The copied plugin and the configuration are the repository's own policy. An upda
 
 1. **Find the installation.** Locate the `bad-test-terminator` and `bad-test-terminator-effect` entries in `jsPlugins`, the directory they point to, the guards override and any baseline override. Read `UPSTREAM.md` beside the plugin for the installed bundle, the merged block, the baseline and the recorded deviations. An install that predates the rename carries `test-guards` and `test-guards-effect` entries pointing at a `tools/oxlint/test-guards/` directory, with `test-guards/*` and `test-guards-effect/*` rule names in its overrides: migrate it first, in step 2.
 
-   Complete when the plugin path, the override and the recorded deviations are named.
+   Identify the runner from the test command and its configuration. Complete when the runner, plugin path, the override and the recorded deviations are named.
 
-2. **Migrate a legacy install.** Rename the plugin directory to `tools/oxlint/bad-test-terminator/`, change the `jsPlugins` keys to `bad-test-terminator` and `bad-test-terminator-effect` with their specifiers pointing at the renamed directory, and rewrite every `test-guards/` and `test-guards-effect/` rule name in the guards override, the baseline and any other override to `bad-test-terminator/` and `bad-test-terminator-effect/`. Then run `node <skill-directory>/scripts/verify.ts <test-directory>` and record the rename under Deviations in `UPSTREAM.md`.
+2. **Migrate a legacy install.** Rename the plugin directory to `tools/oxlint/bad-test-terminator/`, change the `jsPlugins` keys to `bad-test-terminator` and `bad-test-terminator-effect` with their specifiers pointing at the renamed directory, and rewrite every `test-guards/` and `test-guards-effect/` rule name in the guards override, the baseline and any other override to `bad-test-terminator/` and `bad-test-terminator-effect/`. Then run `node <skill-directory>/scripts/verify.ts <test-directory> --runner=<runner>` and record the rename under Deviations in `UPSTREAM.md`.
 
    Complete when no `test-guards` name remains in the configuration, verify exits 0 or every `FAIL` is a recorded deviation, and the rename is recorded.
 
@@ -25,11 +25,11 @@ The copied plugin and the configuration are the repository's own policy. An upda
 
    Complete when every incoming difference is applied, already present, kept local on purpose, or listed as pending.
 
-5. **Merge the configuration.** Compare the live override with the bundled block for the same variant. Add rules and options that are new in the bundle, keep the repository's `files` patterns, severities, baseline and other choices, and list each newly enabled rule for the user.
+5. **Merge the configuration.** Compare the live override with the block printed by `scripts/config.ts <runner>` for the installed runner (add `--effect` only for Vitest with Effect). Add rules and options that are new in the bundle, keep the repository's `files` patterns, severities, baseline and other choices, and list each newly enabled rule for the user.
 
    Complete when the override contains every bundled rule or names the ones left out and why.
 
-6. **Verify.** Run `node <skill-directory>/scripts/verify.ts <test-directory>` and `node <skill-directory>/scripts/check-vitest.ts`, then the repository's lint, typecheck, tests and `test:repeat`. A `FAIL` on a rule the repository customised on purpose is recorded as a deviation; any other `FAIL` is corrected in the configuration.
+6. **Verify.** Run `node <skill-directory>/scripts/verify.ts <test-directory> --runner=<runner>` and the configuration checker from [Runner setup](runners.md), with the same options the test command uses, then the repository's lint, typecheck, tests and `test:repeat`. A `FAIL` on a rule the repository customised on purpose is recorded as a deviation; any other `FAIL` is corrected in the configuration.
 
    Complete when both scripts exit 0 or every remaining `FAIL` is a recorded deviation, and the repository's checks have run.
 

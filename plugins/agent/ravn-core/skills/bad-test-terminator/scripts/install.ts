@@ -65,7 +65,7 @@ writeFileSync(
 - Installed at: \`${destination}/\`
 - Lint block:
 - Test file patterns:
-- Vitest settings:
+- Runner settings:
 - Repeat run:
 - Baseline:
 - Deviations:

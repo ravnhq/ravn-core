@@ -1,25 +1,25 @@
 ---
 name: bad-test-terminator
-description: Install, update or reconfigure the lint rules and Vitest settings that ban flaky tests (real clocks, timers, randomness, network, retries) and change-detector tests (module mocks, spies, call matchers, snapshots) in a repository that uses Oxlint and Vitest, and prune tests that guard no behavior in any test suite. Use when asked to ban flaky, real-clock or change-detector tests, to make a test suite deterministic, or to prune or clean up tests.
+description: Install, update or reconfigure the lint rules and runner settings that ban flaky tests (real clocks, timers, randomness, network, retries) and change-detector tests (module mocks, spies, call matchers, snapshots) in a JavaScript or TypeScript repository that uses Vitest, Jest, Bun or Node’s test runner with Oxlint, and prune tests that guard no behavior in any test suite. Use when asked to ban flaky, real-clock or change-detector tests, to make a test suite deterministic, or to prune or clean up tests.
 license: See LICENSE.txt
 ---
 
 # Bad test terminator
 
-A test earns its place by guarding intended behavior: it fails on a regression, and only on a regression. A guard makes a nondeterministic or implementation-coupled test fail before it merges. The lint guards prevent: they reject the construct in the editor and in CI. The Vitest guards detect: shuffled order exposes order dependence, repeats expose intermittence, and `retry: 0` stops a flaky test from passing on a later attempt. The prune rule reaches what no guard can see, because no tool reads a test and reports that it guards nothing: it deletes or rewrites each test anchored to something other than the behavior.
+A test earns its place by guarding intended behavior: it fails on a regression, and only on a regression. A guard makes a nondeterministic or implementation-coupled test fail before it merges. The lint guards prevent: they reject the construct in the editor and in CI. The runner guards detect: shuffled order exposes order dependence, repeats expose intermittence, and disabling retries stops a flaky test from passing on a later attempt. The prune rule reaches what no guard can see, because no tool reads a test and reports that it guards nothing: it deletes or rewrites each test anchored to something other than the behavior.
 
 The guards are vendored: the target repository owns the copied plugin, the configuration block and every later change to them.
 
-Verified on Oxlint 1.93.0 with Vitest 3.2.7 and 5.1.0, and @effect/vitest 4.1.3. Oxlint JS plugins are alpha, so after an Oxlint upgrade the self-check in step 5 is the evidence that the guards still bite.
+The Vitest block was verified on Oxlint 1.93.0 with Vitest 3.2.7 and 5.1.0, and @effect/vitest 4.1.3. [Runner setup](references/runners.md) covers Jest, Bun and Node, their checks and coverage differences. Oxlint JS plugins are alpha, so after an Oxlint upgrade the self-check in step 5 is the evidence that the guards still bite.
 
 ## Choose the path
 
-Read the repository's agent instructions, when it has them, and `git status`. Find the package that owns the tests, its package manager, its lint configuration and its test runner.
+Read the repository's agent instructions, when it has them, and `git status`. Find the package that owns the tests, its package manager, its lint configuration and its test runner. Select `vitest`, `jest`, `bun` or `node` for the runner-specific commands below. For mixed suites, use separate file-pattern overrides and verify each runner in a directory its override covers.
 
 - **The request is to prune or clean up tests, with nothing to install:** follow [Prune the suite](#prune-the-suite). It runs on any runner and linter.
-- **Tests run on Vitest and the package is linted by Oxlint, or has no linter:** continue with the fresh install.
 - **A `bad-test-terminator` or `test-guards` entry in `jsPlugins`, or a `tools/oxlint/bad-test-terminator/` or `tools/oxlint/test-guards/` directory, already exists:** read [Update an installation](references/update.md) and follow it in place of the fresh install. A `test-guards` install predates the rename; update.md migrates it first.
-- **Tests run on another runner, or ESLint is the only linter:** stop and report that the bundled block targets Oxlint and Vitest, and name what the repository uses.
+- **Tests run on Vitest, Jest, Bun or Node’s test runner, and the package is linted by Oxlint or has no linter:** continue with the fresh install.
+- **Tests run on another runner, or ESLint is the only linter:** stop and report that installation supports Oxlint with Vitest, Jest, Bun and Node, and name what the repository uses.
 
 In a monorepo, run the procedure once for each package that owns tests.
 
@@ -42,7 +42,7 @@ Run the commands from the package directory. Keep the facts from step 1 for the 
 1. **Survey the tests.** Record:
    - the directories that hold test files and how the files are named;
    - whether `effect` or `@effect/vitest` is a direct dependency in the package manifest;
-   - the file that configures Vitest (`vitest.config.*`, or the `test` key of `vite.config.*`);
+   - the runner’s configuration file, setup hooks and the full test command, including CLI options;
    - the CI workflow that runs the tests, and the exact lint and test commands it uses;
    - the result of the repository's lint, typecheck and test commands before any change.
 
@@ -67,55 +67,45 @@ Run the commands from the package directory. Keep the facts from step 1 for the 
 
    Complete when `oxlint` and `@oxlint/plugins` resolve to one identical version.
 
-4. **Merge the lint block.** Use `assets/config/oxlint-bad-test-terminator.effect.json` when the survey found Effect as a direct dependency, and `assets/config/oxlint-bad-test-terminator.json` otherwise. Edit the block's content into `.oxlintrc.json` or `oxlint.config.ts`, keeping the file's formatting:
+4. **Merge the lint block.** Print the block for the selected runner:
+
+   ```bash
+   node <skill-directory>/scripts/config.ts <runner>
+   ```
+
+   Add `--effect` for Vitest when Effect is a direct dependency. The generator uses the bundled Vitest blocks as its shared source. Edit the printed block into `.oxlintrc.json` or `oxlint.config.ts`, keeping the file's formatting:
    - Add its `ignorePatterns` and `jsPlugins` entries to the existing lists, creating a list that is missing.
    - Append its override as the last entry of `overrides`, so it wins over earlier overrides for the same files.
-   - Keep all five bundled `files` patterns, so a test added later in a new location is guarded too. Add a pattern for each test location from the survey that the five leave out. Helper modules inside a test directory are test code and stay under the override.
-   - When the plugin was copied elsewhere, change the two `specifier` paths and the ignore pattern to match.
+   - For a single runner, keep all five bundled `files` patterns and add any test locations the survey found outside them. For mixed suites, partition the patterns by runner so every test file gets exactly its runner’s block. Helper modules inside a test directory are test code and stay under the override.
+   - When the plugin was copied elsewhere, change the plugin `specifier` paths and the ignore pattern to match.
 
-   The override's `"plugins": ["vitest"]` adds the Vitest plugin for those files and leaves the base plugin set in force. The block sets every rule it relies on explicitly, switches off five default style rules of that plugin, and replaces its focused and disabled test rules with `bad-test-terminator/no-focused-or-skipped-tests`, which also sees wrapper APIs such as `it.effect.only`. A rule the repository already enables for the same construct stays as it is beside the block's rule.
+   The override adds the Vitest or Jest built-in plugin where needed. Bun and Node use the bundled assertion rule. The focused and skipped test rule also sees imported aliases, Node test options and wrappers such as `it.effect.only`. Keep rules the repository already enables for the same construct.
 
    Complete when the configuration holds the plugin entries and the override, and in `git diff` on a configuration file that existed before, each removed line returns with a trailing comma as its only change.
 
 5. **Prove the guards bite.**
 
    ```bash
-   node <skill-directory>/scripts/verify.ts <test-directory>
+   node <skill-directory>/scripts/verify.ts <test-directory> --runner=<runner>
    ```
 
-   `<test-directory>` is one directory from the survey that holds test files, relative to the package directory; it defaults to `test`. The script copies fixtures of banned and allowed test code into `<test-directory>/bad-test-terminator-selfcheck/`, lints them with the repository's own configuration, prints one line per rule and removes them. It adds the Effect fixtures when the package manifest lists Effect, and its first line names the fixtures it checks: confirm that matches the block merged in step 4.
+   `<test-directory>` is one directory from the survey that holds test files, relative to the package directory; it defaults to `test`. The script copies fixtures of banned and allowed test code into `<test-directory>/bad-test-terminator-selfcheck/`, lints them with the repository's own configuration, prints one line per rule and removes them. It selects fixtures for the runner and adds Effect fixtures for Vitest when the package manifest lists Effect, and its first line names the fixtures it checks: confirm that matches the block merged in step 4.
 
    A `FAIL` line names a rule that stayed silent or reported allowed code: correct the configuration (the `files` patterns, the plugin registration, the plugin path) and run it again. The fixtures and the script stay as bundled.
 
    Complete when the script exits 0 for the block that was merged.
 
-6. **Set the Vitest guards.** Bring the seven values of `assets/config/vitest.config.ts` into the Vitest configuration from the survey, or copy the file when there is none:
+6. **Set the runner guards.** Follow [Runner setup](references/runners.md) for the selected runner. Merge its settings and cleanup hooks, and run its configuration checker with the same CLI options the test script uses.
 
-   | Setting | Effect |
-   | --- | --- |
-   | `sequence.shuffle: true` | Runs files and tests in a random order and prints the seed |
-   | `retry: 0` | A test passes on its first attempt or fails |
-   | `allowOnly: false` | A committed `.only` fails locally as well as in CI |
-   | `passWithNoTests: false` | An empty run fails |
-   | `restoreMocks: true`, `unstubGlobals: true`, `unstubEnvs: true` | Mock, global and environment state ends with each test |
+   Complete when the checker exits 0 and the report names the runtime protections and coverage gaps for the installed version.
 
-   Keep the repository's other settings. A `retry` above 0 that was already configured is a finding for step 8: name the tests that pass only when retried.
+7. **Add the repeat run.** Follow the runner’s repeat command in [Runner setup](references/runners.md). The installed `tools/oxlint/bad-test-terminator/repeat.ts` runs commands in fresh processes and stops on the first failure. Keep the installed path when wiring `test:repeat`, so it works after this skill’s session ends.
 
-   ```bash
-   node <skill-directory>/scripts/check-vitest.ts
-   ```
-
-   Complete when the script reports all seven settings as resolved by Vitest.
-
-7. **Add the repeat run.** Add a `test:repeat` script to the package manifest:
-   - **`vitest run --help` lists `--repeats`:** `vitest run --repeats 20`, which runs every test 20 more times in one process. The summary keeps the usual test count; the longer duration shows the repeats ran.
-   - **Otherwise (Vitest 3):** `for run in $(seq 1 20); do vitest run || exit 1; done`, which runs the suite 20 times, each with a new shuffle seed.
-
-   Complete when the script exists and starts the tests through the package manager (`npm run test:repeat`, `bun run test:repeat`).
+   Complete when `test:repeat` exists and runs through the package manager.
 
 8. **Run the checks and settle the findings.** Run the repository's lint, typecheck and test commands and `test:repeat`.
 
-   Findings in existing tests are what the install exists to surface. List each one with its rule, file and line, grouped by rule. For a test that fails only on some orders or repeats, record the seed Vitest printed and the test name; `--sequence.seed=<seed>` reproduces it.
+   Findings in existing tests are what the install exists to surface. List each one with its rule, file and line, grouped by rule. For a test that fails only on some orders or repeats, record the runner’s seed and test name; use its replay option from Runner setup.
 
    Then bring the lint command back to green by the route the request names:
    - **The user asked for the tests to be cleaned up:** settle each finding — fix it by [Fixing a finding](#fixing-a-finding), or rewrite it against the behavior something relies on, or delete it with its dependency recorded, by the routes in [Prune the suite](#prune-the-suite).
@@ -129,7 +119,7 @@ Run the commands from the package directory. Keep the facts from step 1 for the 
      }
      ```
 
-     Oxlint switches a `vitest/*` rule off only in an override that carries `"plugins": ["vitest"]`, so the baseline always includes it. A rule is switched off whole for a listed file, so every other rule in that file and every other file stay guarded. The baseline is the cleanup list: each fix or deletion removes an entry.
+     The baseline carries `"plugins": ["vitest"]` for Vitest or `["jest"]` for Jest; Bun and Node use `[]`. Copy only the rule names the selected block enables. A rule is switched off whole for a listed file, so every other rule in that file and every other file stay guarded. The baseline is the cleanup list: each fix or deletion removes an entry.
 
    A test that fails on an order or a repeat stays visible as a failing `test:repeat`; report it as the first cleanup item, and delete it with the seed and the reason recorded when its root cause stays unfound after three fix rounds.
 
@@ -141,7 +131,7 @@ Run the commands from the package directory. Keep the facts from step 1 for the 
 
    Complete when the workflow runs lint, the tests and the repeat run, or the report says there is no workflow to extend.
 
-10. **Record and report.** Fill the six empty fields of `UPSTREAM.md`: the block merged, the `files` patterns, where the Vitest settings live, the repeat command and where CI runs it, the baseline entries, and each deviation from the bundled files (an edited rule, a rule switched off for every file, a pattern removed); baseline entries belong in the Baseline field alone. Update the repository's documentation where it lists the lint rules or the checks CI runs.
+10. **Record and report.** Fill the six empty fields of `UPSTREAM.md`: the block merged, the `files` patterns, where the runner settings and cleanup hooks live, the repeat command and where CI runs it, the baseline entries, and each deviation from the bundled files (an edited rule, a rule switched off for every file, a pattern removed); baseline entries belong in the Baseline field alone. Update the repository's documentation where it lists the lint rules or the checks CI runs.
 
     Review `git status --short` and `git diff` together, since most of the install is new files. Report the installed path, the dependency and configuration changes, the findings with the route taken for each, and the result of each check before and after.
 
@@ -151,13 +141,13 @@ Run the commands from the package directory. Keep the facts from step 1 for the 
 
 | Finding | Replace it with |
 | --- | --- |
-| Real timer, `Date.now()`, `new Date()`, `performance.now()` | A clock the test controls: `vi.useFakeTimers()` with `vi.setSystemTime(fixedInstant)`, or `it.effect` with `TestClock.adjust` |
+| Real timer, `Date.now()`, `new Date()`, `performance.now()` | A clock the test controls: the runner’s fake timers with a fixed instant, or `it.effect` with `TestClock.adjust`; see Runner setup |
 | `it.live`, `Effect.run*`, `excludeTestServices` | `it.effect`, returning the effect so it runs on the test services |
 | `Math.random()` | Fixed values, or a generator with a fixed seed |
 | `fetch`, `FetchHttpClient` | The handler called in process, or an injected fake client |
 | `retry`, `it.flakyTest` | Control of the input that varies: time, order, concurrency or network |
-| `.only`, `.skip` | The test fixed, deleted, or gated with `skipIf` on a platform condition |
-| `vi.mock`, `vi.spyOn`, `toHaveBeenCalled*` | An injected fake that records what it received, and an assertion on that record or on the result |
+| `.only`, `.skip` | The test fixed, deleted, or gated on a platform condition (`skipIf` or Node’s `skip` option) |
+| `vi.mock`, `jest.mock`, `mock.module`, spies, `toHaveBeenCalled*`, Node mock call trackers | An injected fake that records what it received, and an assertion on that record or on the result |
 | A mock standing in for the unit under test | The real unit with its dependencies injected; delete the test when the mock was all it proved |
 | Snapshot matcher | Assertions on the properties the behaviour requires |
 | Test without an assertion | The assertion that states what the test proves; delete the test when nothing is proved |
