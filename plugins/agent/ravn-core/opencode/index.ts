@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { Plugin, Skill } from "@opencode/plugin";
 import { parse } from "yaml";
 import { z } from "zod";
+import { registerPromptify } from "./promptify.ts";
 import { runtimeSkillsDirectory } from "./skill-directory.ts";
 
 const bundledSkills = fileURLToPath(new URL("../skills/", import.meta.url));
@@ -59,8 +60,13 @@ export default Plugin.define({
       }
     });
 
+    const promptify = skills.find(({ id }) => id === "promptify");
+
+    if (promptify) await registerPromptify(ctx, promptify);
+
     await ctx.command.transform((editor) => {
       for (const skill of skills) {
+        if (skill.id === "promptify") continue;
         editor.add({
           name: skill.id,
           description: skill.description,

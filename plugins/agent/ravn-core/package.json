@@ -2,10 +2,12 @@
   "name": "ravn-core",
   "private": true,
   "type": "module",
-  "version": "0.25.0",
+  "version": "0.26.0",
   "license": "MIT",
   "exports": {
-    ".": "./opencode/index.ts"
+    ".": "./opencode/index.ts",
+    "./gui-experimental": "./opencode/promptify-gui.ts",
+    "./tui": "./opencode/promptify-tui.ts"
   },
   "files": [
     "opencode",
