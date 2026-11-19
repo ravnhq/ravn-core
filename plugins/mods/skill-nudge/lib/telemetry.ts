@@ -6,7 +6,8 @@ export type Judgment = {
   at: number;
   prompt: string;
   // `stale`: Haiku answered after the user had already sent another prompt.
-  outcome: "nudge" | "none" | "error" | "stale";
+  // Older events were quiet for an unknown reason and keep their `none` count.
+  outcome: (typeof OUTCOMES)[number];
   skill: string | null;
   skills: number;
   latencyMs: number;
@@ -58,7 +59,17 @@ type Json = null | boolean | number | string | Json[] | JsonObject;
 
 type JsonObject = { [key: string]: Json };
 
-const OUTCOMES = ["nudge", "none", "error", "stale"] as const;
+const OUTCOMES = [
+  "nudge",
+  "vetoed",
+  "abstained",
+  "invalid",
+  "ungrounded",
+  "truncated",
+  "error",
+  "stale",
+  "none",
+] as const;
 
 const FATES = ["used", "typed", "dismissed", "ignored"] as const;
 
@@ -148,7 +159,20 @@ export function summarize(
   sessions: readonly (readonly NudgeEvent[])[],
 ): Summary {
   const events = sessions.flat().sort((a, b) => a.at - b.at);
-  const judgments = { total: 0, nudge: 0, none: 0, error: 0, stale: 0 };
+
+  const judgments = {
+    total: 0,
+    nudge: 0,
+    vetoed: 0,
+    abstained: 0,
+    invalid: 0,
+    ungrounded: 0,
+    truncated: 0,
+    error: 0,
+    stale: 0,
+    none: 0,
+  };
+
   const tokens = { input: 0, output: 0, cacheRead: 0 };
   const tips = emptyFates();
   const bySkill: Record<string, Fates> = {};
@@ -211,7 +235,7 @@ export function report(summary: Summary): string {
 
   return [
     `Skill Nudge, ${summary.from} to ${summary.to} (${summary.sessions} sessions)`,
-    `Judgments: ${judgments.total} (${judgments.nudge} tips, ${judgments.none} quiet, ${judgments.error} errors, ${judgments.stale} too late), ${summary.averageLatencyMs} ms average`,
+    `Judgments: ${judgments.total} (${judgments.nudge} tips, ${judgments.abstained} abstained, ${judgments.vetoed} rejected on review, ${judgments.invalid} invalid, ${judgments.ungrounded} ungrounded, ${judgments.truncated} truncated, ${judgments.error} errors, ${judgments.stale} too late, ${judgments.none} quiet on older versions), ${summary.averageLatencyMs} ms average`,
     `Tips: ${tips.shown} shown, ${taken} taken (${percent(taken, tips.shown)}), ${tips.dismissed} dismissed, ${tips.ignored} ignored`,
     ...skills,
   ].join("\n");

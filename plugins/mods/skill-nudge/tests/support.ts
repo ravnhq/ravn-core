@@ -8,9 +8,21 @@ import type {
 } from "claude-code";
 import { mock } from "claude-code/testing";
 
+import { REVIEW_SYSTEM } from "../lib/nudge.ts";
 import { parseEvents } from "../lib/telemetry.ts";
 
 export const STOCK_TEXT = "stock band";
+
+export const ACTIVE_REQUEST = "What do other teams do about rate limiting?";
+
+export const ACTIVE_MESSAGES: SessionMessage[] = [
+  { role: "user", text: ACTIVE_REQUEST, toolUses: [] },
+  {
+    role: "assistant",
+    text: "I haven't checked other teams' approaches.",
+    toolUses: [],
+  },
+];
 
 export const COMMANDS: CommandInfo[] = [
   { name: "clear", description: "Clear the conversation", source: "builtin" },
@@ -71,9 +83,12 @@ export function world(
       .filter((event) => event.type === "judged").length;
 
   const requests: ModelCompleteInput[] = [];
+  const reviews: ModelCompleteInput[] = [];
   const fills: string[] = [];
   const copies: string[] = [];
   let reply = options.reply ?? '{"skill": null}';
+  let reviewerReply = '{"verdict":"keep"}';
+  let outputTokens = 1;
   let hold: Promise<void> = Promise.resolve();
 
   on("session.start", async (_$, e) => ({ cwd: e.cwd }));
@@ -90,17 +105,21 @@ export function world(
 
     return { value: { isCopied: true as const } };
   });
-  on("session.messages", async () => ({ value: options.messages ?? [] }));
+  on("session.messages", async () => ({
+    value: options.messages ?? ACTIVE_MESSAGES,
+  }));
   on("model.complete", async (_$, e) => {
-    requests.push(e);
+    const reviewing = e.system === REVIEW_SYSTEM;
+
+    (reviewing ? reviews : requests).push(e);
     await hold;
 
     const answer: ModelCompleteResult = {
       isAnswered: true,
-      text: reply,
+      text: reviewing ? reviewerReply : reply,
       usage: {
         input_tokens: 1,
-        output_tokens: 1,
+        output_tokens: reviewing ? 1 : outputTokens,
         cache_creation_input_tokens: 0,
         cache_read_input_tokens: 0,
       },
@@ -140,10 +159,15 @@ export function world(
       throw new Error(`Expected ${count} judgments, saw ${judgments()}.`);
     },
     requests,
+    reviews,
     fills,
     copies,
-    setReply: (text: string) => {
+    setReply: (text: string, tokens = 1) => {
       reply = text;
+      outputTokens = tokens;
+    },
+    setReview: (text: string) => {
+      reviewerReply = text;
     },
     holdModel: () => {
       let release = () => {};
@@ -199,6 +223,7 @@ export const band = {
   viewport: { columns: 100, rows: 30 },
   props: {
     hasSurvey: false,
+    isCollapsed: false,
     isWorking: false,
     maxRows: 10,
     bodyColumns: 95,

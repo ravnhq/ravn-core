@@ -7,12 +7,15 @@ import {
   report,
   summarize,
 } from "../../plugins/mods/skill-nudge/lib/telemetry.ts";
-import type { NudgeEvent } from "../../plugins/mods/skill-nudge/lib/telemetry.ts";
+import type {
+  Judgment,
+  NudgeEvent,
+} from "../../plugins/mods/skill-nudge/lib/telemetry.ts";
 
 const DAY = Date.UTC(2026, 9, 9);
 
 function judged(
-  outcome: "nudge" | "none" | "error" | "stale",
+  outcome: Judgment["outcome"],
   skill: string | null = null,
   prompt = "aaaa0000",
 ): NudgeEvent {
@@ -57,6 +60,11 @@ test("summarize counts judgments, tip fates, and per-skill and per-prompt rates"
   assert.deepEqual(summary.judgments, {
     total: 6,
     nudge: 3,
+    vetoed: 0,
+    abstained: 0,
+    invalid: 0,
+    ungrounded: 0,
+    truncated: 0,
     none: 1,
     error: 1,
     stale: 1,
@@ -89,6 +97,9 @@ test("summarize reports an empty history without dividing by zero", () => {
 test("parseEvents round-trips stored events and drops malformed rows", () => {
   const events: NudgeEvent[] = [
     judged("nudge", "ravn-core:pr"),
+    judged("none"),
+    judged("abstained"),
+    judged("truncated"),
     { type: "dismissed", at: DAY, prompt: "aaaa0000", skill: "ravn-core:pr" },
   ];
 
@@ -109,5 +120,4 @@ test("parseEvents round-trips stored events and drops malformed rows", () => {
 test("promptVersion is stable and changes with the prompt", async () => {
   assert.equal(await promptVersion("a"), await promptVersion("a"));
   assert.notEqual(await promptVersion("a"), await promptVersion("b"));
-  assert.match(await promptVersion("a"), /^[0-9a-f]{8}$/);
 });

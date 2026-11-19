@@ -1,6 +1,7 @@
 import { expect, test } from "claude-code/testing";
 import type { Engine } from "claude-code/testing";
 
+import { MAX_TOKENS } from "../lib/nudge.ts";
 import { band, sessionStart, turn, world } from "./support.ts";
 
 const stats = {
@@ -11,7 +12,11 @@ const stats = {
 };
 
 function reply(skill: string) {
-  return JSON.stringify({ skill, reason: "Now is a good time." });
+  return JSON.stringify({
+    skill,
+    reason: "Now is a good time.",
+    evidence: "U1",
+  });
 }
 
 async function nudgeWith($: Engine, settle: () => Promise<void>) {
@@ -45,7 +50,7 @@ test("stats counts each tip's fate: used, typed, dismissed, ignored", async ($, 
 
   const result = await $.command.run(stats);
   const text = "text" in result ? String(result.text) : "";
-  expect(text).toContain("Judgments: 3 (3 tips, 0 quiet");
+  expect(text).toContain("Judgments: 3 (3 tips, 0 abstained");
   expect(text).toContain(
     "Tips: 3 shown, 2 taken (67%), 1 dismissed, 0 ignored",
   );
@@ -70,9 +75,11 @@ test("the copied summary carries outcomes and no conversation text", async ($, o
     reply: JSON.stringify({
       skill: "ravn-core:research",
       reason: "Look into the acme-billing retry design.",
+      evidence: "U1",
     }),
     messages: [
       { role: "user", text: "acme-billing secret roadmap", toolUses: [] },
+      { role: "assistant", text: "I haven't checked it yet.", toolUses: [] },
     ],
   });
 
@@ -85,4 +92,46 @@ test("the copied summary carries outcomes and no conversation text", async ($, o
   expect(copied).toContain('"installId"');
   expect(copied).toContain('"ravn-core:research"');
   expect(copied).not.toContain("acme-billing");
+});
+
+test("stats separates deliberate silence, invalid, ungrounded, truncated and late replies", async ($, on) => {
+  const { judged, setReply, holdModel, clock, copies } = world(on);
+  await $.session.start(sessionStart);
+  await nudgeWith($, () => judged(1));
+
+  setReply("not JSON");
+  await nudgeWith($, () => judged(2));
+
+  setReply(
+    JSON.stringify({
+      skill: "ravn-core:research",
+      reason: "Run the check.",
+      evidence: "A99",
+    }),
+  );
+  await nudgeWith($, () => judged(3));
+
+  setReply('{"skill": "ravn-core:', MAX_TOKENS);
+  await nudgeWith($, () => judged(4));
+
+  setReply(reply("ravn-core:research"));
+  const release = holdModel();
+
+  for (let index = 0; index < 2; index += 1) await $.turn.complete(turn());
+  await clock.settle();
+  await $.prompt.submit(submit("already moved on"));
+  release();
+  await judged(5);
+
+  await $.command.run(stats);
+  const summary = JSON.parse(copies[0] ?? "{}");
+  expect(summary.judgments).toMatchObject({
+    total: 5,
+    abstained: 1,
+    invalid: 1,
+    ungrounded: 1,
+    truncated: 1,
+    stale: 1,
+    nudge: 0,
+  });
 });
