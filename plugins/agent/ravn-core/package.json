@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.25.0",
+  "license": "MIT",
   "exports": {
     ".": "./opencode/index.ts"
   },
