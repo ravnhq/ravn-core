@@ -90,6 +90,6 @@ test("rewrites the active request off-chat and appends only the draft", async ($
   expect(routed.text).toBeUndefined();
   expect(filled).toEqual({ text: "\n\nMy rewritten request", mode: "append" });
   expect(JSON.stringify(await $.ui.render(band))).not.toContain(
-    "Rewriting your prompt",
+    "Reading your code and files",
   );
 });
