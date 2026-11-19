@@ -23,30 +23,54 @@ const band = {
   },
 };
 
-test("passes the active request to a read-only child and reports spawn failure", async ($, on) => {
-  let prompt = "";
-  let tools: readonly string[] = [];
+test("rewrites the active request off-chat and appends only the draft", async ($, on) => {
+  let argv: readonly string[] = [];
+  let filled: { text: string; mode: string } | undefined;
+  let finish = () => {};
 
-  on("agent.register", async (_$, spec) => {
-    tools = spec.tools ?? [];
-    expect(spec.background).toBe(true);
-
-    return { value: { agent: "promptify:rewrite" } };
+  const finished = new Promise<void>((resolve) => {
+    finish = resolve;
   });
-  on("agent.spawn", async (_$, input) => {
-    prompt = input.prompt;
 
-    return { deny: "background work is disabled" };
+  on("process.run", async (_$, input) => {
+    argv = input.argv;
+
+    return {
+      value: {
+        exitCode: 0,
+        stdout:
+          "Private analysis\n<promptify-draft>My rewritten request</promptify-draft>",
+        stderr: "",
+        isStdoutTruncated: false,
+        isStderrTruncated: false,
+      },
+    };
   });
+  on("prompt.read", async () => ({
+    value: { text: "My existing text", cursor: 16 },
+  }));
+  on("prompt.fill", async (_$, input) => {
+    filled = { text: input.text, mode: input.mode };
+
+    return {
+      isFilled: true,
+      text: input.text,
+      cursor: input.text.length,
+    };
+  });
+  on("ui.toast", async () => ({ value: undefined }));
   on("command.register", async (_$, input) => ({
     value: { command: input.name },
   }));
   on("session.messages", async () => ({
     value: [{ role: "user", text: "Tighten the release check", toolUses: [] }],
   }));
-  on("ui.invalidate", async () => ({ value: undefined }));
+  on("ui.invalidate", async () => {
+    if (filled) finish();
+
+    return { value: undefined };
+  });
   on("session.start", async (_$, e) => ({ cwd: e.cwd }));
-  on("turn.complete", async (_$, e) => ({ text: e.answer }));
   on("ui.render", async () => ({
     type: "Text",
     props: {},
@@ -60,9 +84,11 @@ test("passes the active request to a read-only child and reports spawn failure",
   });
   const routed = await $.command.run(command);
 
-  expect(tools.join(",")).toBe("Read,Glob,Grep");
-  expect(prompt).toContain("Tighten the release check");
-  expect(routed.text).toContain("background work is disabled");
+  await finished;
+  expect(argv).toContain("--no-session-persistence");
+  expect(argv).toContain("Read,Glob,Grep");
+  expect(routed.text).toBeUndefined();
+  expect(filled).toEqual({ text: "\n\nMy rewritten request", mode: "append" });
   expect(JSON.stringify(await $.ui.render(band))).not.toContain(
     "Rewriting your prompt",
   );
