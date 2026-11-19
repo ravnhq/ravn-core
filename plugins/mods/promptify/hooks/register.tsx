@@ -4,8 +4,17 @@ import { workflow } from "./workflow";
 
 const command = "promptify";
 
+const loadingMessages = [
+  "Reading your code and files…",
+  "Working out what a pro would do…",
+  "Finding the rawest material…",
+  "Picking the methods and tools…",
+  "Deciding what would prove it right…",
+  "Writing your improved prompt…",
+];
+
 export const register: Register = (on) => {
-  let running = false;
+  let loadingIndex: number | undefined;
 
   on("session.start", async ($, e, next) => {
     if (!e.isInteractive) return next(e);
@@ -23,7 +32,7 @@ export const register: Register = (on) => {
   });
 
   on("command.run", { command }, async ($, e) => {
-    if (running) {
+    if (loadingIndex !== undefined) {
       $.ui.toast("Promptify is already running.");
 
       return {};
@@ -41,8 +50,15 @@ export const register: Register = (on) => {
       return {};
     }
 
-    if (running) return {};
-    running = true;
+    if (loadingIndex !== undefined) return {};
+    loadingIndex = 0;
+
+    // These are rotating activity messages, not progress estimates.
+    const loading = $.clock.every(3500, async () => {
+      if (loadingIndex === undefined) return;
+      loadingIndex = (loadingIndex + 1) % loadingMessages.length;
+      await $.ui.invalidate("ui.render");
+    });
 
     const recentConversation = messages.map(({ role, text }) => ({
       role,
@@ -105,7 +121,8 @@ export const register: Register = (on) => {
           `Promptify failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       } finally {
-        running = false;
+        loading.cancel();
+        loadingIndex = undefined;
         await $.ui.invalidate("ui.render");
       }
     };
@@ -117,10 +134,10 @@ export const register: Register = (on) => {
   });
 
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
-    if (!running || e.props.hasSurvey) return next(e);
+    if (loadingIndex === undefined || e.props.hasSurvey) return next(e);
 
     const { Text } = $.ui.resolve(e);
 
-    return <Text>Rewriting your prompt…</Text>;
+    return <Text>{loadingMessages[loadingIndex]}</Text>;
   });
 };
