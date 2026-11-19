@@ -31,6 +31,7 @@
     "eval:compare": "node evals/run.ts --repeat 3",
     "eval:smoke": "node evals/run.ts --smoke",
     "eval:skill-nudge": "node evals/skill-nudge/run.ts",
+    "eval:report": "node evals/report.ts",
     "eval:view": "promptfoo view"
   },
   "devDependencies": {

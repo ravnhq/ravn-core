@@ -378,6 +378,12 @@ try {
     if (outcome.status === "rejected") throw outcome.reason;
   }
 
+  if (!smoke && (arms.length > 1 || repeat > 1)) {
+    const { writeReport } = await import("./report.ts");
+
+    console.log(`report: ${writeReport(resultsDir)}`);
+  }
+
   process.exitCode = statuses.find((status) => status !== 0) ?? 0;
 } finally {
   // Codex may rotate its login inside the copy even when the run throws, so the

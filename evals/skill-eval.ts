@@ -453,7 +453,14 @@ export function skillEval(
     providers: fixtures.flatMap((fixture) =>
       arms.map((arm) => provider(fixture, arm, runner)),
     ),
-    defaultTest: { options: { provider: grader } },
+    // The route lands on every result row, so report.ts can refuse to compare
+    // arms or runs graded through different routes.
+    defaultTest: {
+      options: { provider: grader },
+      metadata: {
+        graderRoute: openRouterGrader ? "openrouter" : "first-party",
+      },
+    },
     extensions: [
       `file://${join(import.meta.dirname, "hooks.ts")}:extensionHook`,
     ],
