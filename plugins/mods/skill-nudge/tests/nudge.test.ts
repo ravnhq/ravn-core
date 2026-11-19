@@ -77,7 +77,7 @@ test("a proposed tip is checked against the whole answer before it can show", as
       ...ACTIVE_MESSAGES.slice(0, 1),
       {
         role: "assistant",
-        text: "There were two options. I compared both against three primary sources. A gateway limit fits this app.",
+        text: `There were two options. ${"Comparison detail. ".repeat(100)}I compared both against three primary sources. A gateway limit fits this app.`,
         toolUses: [],
       },
     ],

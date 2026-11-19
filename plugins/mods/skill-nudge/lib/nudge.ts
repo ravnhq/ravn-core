@@ -128,19 +128,19 @@ export function listing(skills: readonly Skill[]): string {
   return `Installed skills:\n${lines.join("\n")}\n\n`;
 }
 
+function renderMessage({ role, text, toolUses }: Message, limit?: number) {
+  const tools = toolUses.map((call) => call.tool);
+  const used = tools.length > 0 ? ` [tools: ${tools.join(", ")}]` : "";
+  const content = limit === undefined ? text.trim() : clip(text.trim(), limit);
+
+  return `${role}: ${content}${used}`;
+}
+
 export function transcript(messages: readonly Message[]): string {
   const { earlier, latest } = exchanges(messages);
 
-  const render = (message: Message) => {
-    const tools = message.toolUses.map((call) => call.tool);
-    const text = clip(message.text.trim(), MESSAGE_CHARS);
-    const used = tools.length > 0 ? ` [tools: ${tools.join(", ")}]` : "";
-
-    return `${message.role}: ${text}${used}`;
-  };
-
   return [
-    `Earlier context (not new requests):\n${earlier.map(render).join("\n\n")}`,
+    `Earlier context (not new requests):\n${earlier.map((message) => renderMessage(message, MESSAGE_CHARS)).join("\n\n")}`,
     `Latest exchange (choose evidence only from the IDs below):\n${evidenceLines(
       latest,
     )
@@ -155,7 +155,13 @@ export function reviewPrompt(
   messages: readonly Message[],
   { skill, reason }: Suggestion,
 ): string {
-  return `${transcript(messages)}\n\nProposed tip:\n${JSON.stringify({ skill, reason })}`;
+  const { earlier, latest } = exchanges(messages);
+
+  return [
+    `Earlier context:\n${earlier.map((message) => renderMessage(message, MESSAGE_CHARS)).join("\n\n")}`,
+    `Full latest exchange:\n${latest.map((message) => renderMessage(message)).join("\n\n")}`,
+    `Proposed tip:\n${JSON.stringify({ skill, reason })}`,
+  ].join("\n\n");
 }
 
 /** A valid, explicit approval is required; no reply or malformed JSON stays quiet. */
