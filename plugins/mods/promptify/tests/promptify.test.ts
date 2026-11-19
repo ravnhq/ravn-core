@@ -63,5 +63,7 @@ test("passes the active request to a read-only child and reports spawn failure",
   expect(tools.join(",")).toBe("Read,Glob,Grep");
   expect(prompt).toContain("Tighten the release check");
   expect(routed.text).toContain("background work is disabled");
-  expect(JSON.stringify(await $.ui.render(band))).not.toContain("Insert draft");
+  expect(JSON.stringify(await $.ui.render(band))).not.toContain(
+    "Rewriting your prompt",
+  );
 });

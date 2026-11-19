@@ -8,7 +8,7 @@ const start = "<promptify-draft>";
 
 const end = "</promptify-draft>";
 
-type Job = { agentId?: string; draft?: string };
+type Job = { agentId?: string };
 
 export const register: Register = (on) => {
   let worker = "";
@@ -32,7 +32,8 @@ export const register: Register = (on) => {
 
     await $.command.register({
       name: command,
-      description: "Deepen a prompt in the background without sending it",
+      description:
+        "Rewrite a prompt and put it back in the input box without sending",
       argumentHint: "[prompt]",
       immediate: true,
     });
@@ -48,7 +49,7 @@ export const register: Register = (on) => {
   on("command.run", { command }, async ($, e) => {
     if (!worker) return { text: "Promptify needs an interactive session." };
 
-    if (job && !job.draft) return { text: "Promptify is already running." };
+    if (job) return { text: "Promptify is already running." };
 
     const current: Job = {};
     job = current;
@@ -106,55 +107,40 @@ export const register: Register = (on) => {
         ? e.answer.slice(opening + start.length, closing).trim()
         : "";
 
-    if (e.reason === "answer" && draft) current.draft = draft;
-    else {
-      job = undefined;
-      $.ui.toast(
-        e.reason === "aborted"
-          ? "Promptify canceled."
-          : "No draft returned. Try /promptify with an explicit request.",
-      );
-    }
+    try {
+      if (e.reason !== "answer" || !draft) {
+        $.ui.toast(
+          e.reason === "aborted"
+            ? "Promptify canceled."
+            : "No rewrite returned. Try /promptify followed by your request.",
+        );
+      } else {
+        const { text } = await $.prompt.read();
 
-    await $.ui.invalidate("ui.render");
+        const { isFilled } = await $.prompt.fill({
+          text: `${text ? "\n\n" : ""}${draft}`,
+          mode: "append",
+        });
+
+        $.ui.toast(
+          isFilled
+            ? "Rewrite added to the input box. Edit it before sending."
+            : "Could not add the rewrite. Close any open dialog and try /promptify again.",
+        );
+      }
+    } finally {
+      job = undefined;
+      await $.ui.invalidate("ui.render");
+    }
 
     return next(e);
   });
 
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {
-    const current = job;
+    if (!job || e.props.hasSurvey) return next(e);
 
-    if (!current || e.props.hasSurvey) return next(e);
+    const { Text } = $.ui.resolve(e);
 
-    const { Box, Button, Text } = $.ui.resolve(e);
-    const draft = current.draft;
-
-    if (!draft) return <Text>Promptify is reading and rewriting…</Text>;
-
-    const dismiss = async () => {
-      if (job !== current) return;
-      job = undefined;
-      await $.ui.invalidate("ui.render");
-    };
-
-    const insert = async () => {
-      if (job !== current) return;
-      const { text } = await $.prompt.read();
-
-      const { isFilled } = await $.prompt.fill({
-        text: `${text ? "\n\n" : ""}${draft}`,
-        mode: "append",
-      });
-
-      if (isFilled) await dismiss();
-    };
-
-    return (
-      <Box flexDirection="row" gap={1}>
-        <Text>Promptify draft ready</Text>
-        <Button key="insert" label="Insert draft" onPress={insert} />
-        <Button key="dismiss" label="Dismiss" onPress={dismiss} />
-      </Box>
-    );
+    return <Text>Rewriting your prompt…</Text>;
   });
 };
