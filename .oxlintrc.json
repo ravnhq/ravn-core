@@ -12,6 +12,8 @@
     ".cursor/**",
     ".gemini/**",
     ".opencode/**",
+    "plugins/agent/ravn-core/opencode/promptify-gui.cjs",
+
     ".pi/**",
     ".roo/**",
     ".windsurf/**",

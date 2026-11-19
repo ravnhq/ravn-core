@@ -1,0 +1,5 @@
+interface:
+  display_name: "Promptify"
+  short_description: "Deepen a prompt without carrying it out"
+policy:
+  allow_implicit_invocation: false

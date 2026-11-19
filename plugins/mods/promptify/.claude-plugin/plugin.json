@@ -1,0 +1,10 @@
+{
+  "name": "promptify",
+  "version": "0.1.2",
+  "license": "MIT",
+  "description": "Rewrite a prompt in the background and insert it as an unsent draft.",
+  "author": { "name": "Ravn AI Enablement Team" },
+  "homepage": "https://github.com/ravnhq/ravn-core",
+  "repository": "https://github.com/ravnhq/ravn-core",
+  "keywords": ["prompt", "mod", "claude-code"]
+}

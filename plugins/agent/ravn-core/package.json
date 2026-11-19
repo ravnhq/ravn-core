@@ -2,17 +2,21 @@
   "name": "ravn-core",
   "private": true,
   "type": "module",
-  "version": "0.25.0",
+  "version": "0.26.1",
   "license": "MIT",
   "exports": {
-    ".": "./opencode/index.ts"
+    ".": "./opencode/index.ts",
+    "./gui-experimental": "./opencode/promptify-gui.cjs",
+    "./tui": "./opencode/promptify-tui.ts"
   },
   "files": [
     "opencode",
-    "skills"
+    "skills",
+    "pi"
   ],
   "dependencies": {
     "@opencode/plugin": "2.3.0",
+    "effect": "4.1.0",
     "yaml": "2.9.1",
     "zod": "4.6.7"
   },
@@ -22,6 +26,9 @@
   "pi": {
     "skills": [
       "./skills"
+    ],
+    "extensions": [
+      "./pi/promptify.ts"
     ]
   }
 }

@@ -1,0 +1,1 @@
+{ "description": "Background prompt rewriting", "modules": ["./register.tsx"] }
