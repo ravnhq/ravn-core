@@ -229,6 +229,11 @@ function linkErrors(root: string, errors: string[]) {
 
   // Glob each real skill directory: Node's glob does not traverse a directory
   // symlink by default. Resolve links from the source file, as an install does.
+  // Relative to the resolved root, since realDir is resolved too: a root
+  // reached through a symlink, such as macOS's /var temp dirs, would
+  // otherwise yield paths that climb out of it.
+  const realRoot = realpathSync(root);
+
   for (const skill of sortedGlob(root, ".agents/skills/*")) {
     const dir = join(root, skill);
 
@@ -237,7 +242,7 @@ function linkErrors(root: string, errors: string[]) {
     const realDir = realpathSync(dir);
 
     for (const file of sortedGlob(realDir, "**/*.md")) {
-      files.add(relative(root, join(realDir, file)));
+      files.add(relative(realRoot, join(realDir, file)));
     }
   }
 
