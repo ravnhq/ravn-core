@@ -31,12 +31,12 @@ claude --plugin-dir ./plugins/mods/skill-nudge
 - Haiku judges at most once every two finished turns, and only after the main conversation's turns that end in an answer. Interrupted turns, subagent turns, and non-interactive sessions such as `claude -p` never trigger it.
 - Haiku sees only skills and slash commands from plugins and from your own user or project configuration. Built-in commands and MCP prompts stay out of the list.
 - A skill the session already ran, through the Skill tool or typed as `/name`, is never suggested. Skill Nudge suggests each skill at most once per session.
-- Most turns produce no tip. Haiku suggests a skill only when it fits well, and the mod drops any reply that names a skill outside the list.
+- Most turns produce no tip. A tip names an unfinished action and cites a line from the latest request or answer. Before showing a tip, a short second Haiku request checks it against the whole answer. Tips without evidence, approvals, or a listed skill stay hidden.
 - If you send a new prompt while Haiku is still deciding, the mod drops that late suggestion.
 
 ## Cost and privacy
 
-Each judgment is one Haiku request on your session's own Claude Code client and account. It sends the names and descriptions of the listed skills, cached across requests, plus the last eight messages of the conversation, each cut to 1,500 characters, along with the names of the tools each message used. Tool inputs and outputs aren't sent. Skill Nudge never changes what the main model reads.
+Each judgment starts with one Haiku request on your session's own Claude Code client and account. It sends the names and descriptions of the listed skills, cached across requests, plus the last eight messages of the conversation, each cut to 1,500 characters, along with the names of the tools each message used. Only a proposed tip gets a second request. That request sends the same conversation excerpt and the proposed tip, not the skill list. Both requests share a 20-second deadline. Tool inputs and outputs aren't sent. Skill Nudge never changes what the main model reads.
 
 ## Usage stats
 
@@ -53,6 +53,8 @@ The record stays in Claude Code's plugin store on your machine. Nothing is sent 
 - a random install ID, so shared summaries can be told apart.
 
 Events never include conversation text, Haiku's reason, file paths, repository names, or your identity. Skill Nudge keeps the newest 500 events per session and the newest 50 sessions.
+
+Stats separates deliberate abstentions, tips rejected on review, invalid replies, suggestions without evidence, replies cut off at the token limit, and tips that arrived too late. Older events recorded as quiet remain separate because they did not distinguish those outcomes.
 
 ## Limits
 

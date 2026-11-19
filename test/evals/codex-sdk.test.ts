@@ -23,9 +23,13 @@ test("Codex SDK reads JSONL search results with Unicode line separators", {
     },
   };
 
-  writeFileSync(executable, '#!/bin/sh\ncat "$CODEX_TEST_EVENTS"\n', {
-    mode: 0o700,
-  });
+  writeFileSync(
+    executable,
+    '#!/bin/sh\ncat >/dev/null\ncat "$CODEX_TEST_EVENTS"\n',
+    {
+      mode: 0o700,
+    },
+  );
 
   const message = {
     type: "item.completed",

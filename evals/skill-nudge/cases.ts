@@ -14,6 +14,15 @@ export type Case = {
   messages: Row[];
 };
 
+const deliveredResearch: Row[] = [
+  ["user", "research how other apps handle offline sync conflicts"],
+  [
+    "assistant",
+    "I wrote the findings to docs/research/offline-sync.md: CRDTs, last-writer-wins with vector clocks, and server-side merge queues, with sources.",
+    ["Skill:ravn-core:research", "Write"],
+  ],
+];
+
 export const cases: Case[] = [
   // fit: a skill fits the next step.
   {
@@ -300,16 +309,27 @@ export const cases: Case[] = [
     kind: "stay-out",
     expect: [],
     messages: [
-      ["user", "research how other apps handle offline sync conflicts"],
-      [
-        "assistant",
-        "I wrote the findings to docs/research/offline-sync.md: CRDTs, last-writer-wins with vector clocks, and server-side merge queues, with sources.",
-        ["Skill:ravn-core:research", "Write"],
-      ],
+      ...deliveredResearch,
       ["user", "nice, which one is simplest?"],
       [
         "assistant",
         "Last-writer-wins with per-field timestamps is the simplest to build; it loses concurrent edits to the same field.",
+      ],
+    ],
+  },
+  {
+    id: "research-done-new-repo-rationale",
+    kind: "route",
+    expect: ["why"],
+    messages: [
+      ...deliveredResearch,
+      [
+        "user",
+        "Why did this repo switch from last-writer-wins to the server merge queue?",
+      ],
+      [
+        "assistant",
+        "I haven't checked the history. It might have been to avoid lost updates.",
       ],
     ],
   },
@@ -335,6 +355,33 @@ export const cases: Case[] = [
       [
         "assistant",
         "On the parent: `display: flex; align-items: center;` and give it a height.",
+      ],
+    ],
+  },
+
+  {
+    id: "rounding-open-consumer",
+    kind: "fit",
+    heldOut: true,
+    expect: ["blast-radius"],
+    messages: [
+      ["user", "What could this rounding change break outside the tax helper?"],
+      [
+        "assistant",
+        "Receipts and refunds both call the helper. I ran checkout receipts against the fixture and the totals match. I haven't run the refund flow.",
+      ],
+    ],
+  },
+  {
+    id: "rounding-both-consumers-verified",
+    kind: "stay-out",
+    heldOut: true,
+    expect: [],
+    messages: [
+      ["user", "What could this rounding change break outside the tax helper?"],
+      [
+        "assistant",
+        "Receipts and refunds both call the helper. I ran checkout receipts and the refund flow against the fixture and checked that both totals match. Neither flow breaks on that input.",
       ],
     ],
   },

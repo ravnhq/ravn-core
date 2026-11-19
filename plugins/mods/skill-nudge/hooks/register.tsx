@@ -3,13 +3,18 @@ import type { EngineInterface, Register } from "claude-code";
 
 import {
   MAX_TOKENS,
+  REVIEW_MAX_TOKENS,
+  REVIEW_SYSTEM,
   SYSTEM,
+  applyReview,
   catalog,
   listing,
   parse,
+  reviewPrompt,
   transcript,
   usedSkills,
 } from "../lib/nudge.ts";
+import type { ReviewedDecision } from "../lib/nudge.ts";
 import {
   parseEvents,
   promptVersion,
@@ -23,6 +28,10 @@ const COMMAND = "skill-nudge";
 const ENABLED_KEY = "enabled";
 
 const MODEL = "haiku";
+
+const JUDGMENT_TIMEOUT_MS = 20_000;
+
+const JUDGMENT_PROMPT = `${SYSTEM}\n${REVIEW_SYSTEM}`;
 
 const INSTALL_KEY = "installId";
 
@@ -95,7 +104,7 @@ async function fate(
     type,
     skill,
     at: await $.clock.now(),
-    prompt: await promptVersion(SYSTEM),
+    prompt: await promptVersion(JUDGMENT_PROMPT),
   });
 }
 
@@ -159,11 +168,40 @@ async function judge($: EngineInterface, at: number): Promise<void> {
       { text: transcript(messages) },
     ],
     maxTokens: MAX_TOKENS,
-    timeoutMs: 20000,
+    timeoutMs: JUDGMENT_TIMEOUT_MS,
   });
 
+  let decision: ReviewedDecision = reply.isAnswered
+    ? parse(
+        reply.text,
+        skills,
+        messages,
+        reply.usage.output_tokens >= MAX_TOKENS,
+      )
+    : { kind: "error" as const };
+
+  const remaining = JUDGMENT_TIMEOUT_MS - ((await $.clock.now()) - startedAt);
+
+  const review =
+    decision.kind === "nudge" && at === epoch && remaining > 0
+      ? await $.model.complete({
+          model: MODEL,
+          system: REVIEW_SYSTEM,
+          prompt: reviewPrompt(messages, decision.suggestion),
+          maxTokens: REVIEW_MAX_TOKENS,
+          timeoutMs: remaining,
+        })
+      : undefined;
+
+  if (decision.kind === "nudge" && at === epoch) {
+    decision = applyReview(
+      decision,
+      review?.isAnswered ? review.text : undefined,
+    );
+  }
+
   const now = await $.clock.now();
-  const found = reply.isAnswered ? parse(reply.text, skills) : undefined;
+  const found = decision.kind === "nudge" ? decision.suggestion : undefined;
   const isStale = at !== epoch;
   const shows = found !== undefined && !isStale;
 
@@ -179,20 +217,17 @@ async function judge($: EngineInterface, at: number): Promise<void> {
   await record($, {
     type: "judged",
     at: now,
-    prompt: await promptVersion(SYSTEM),
-    outcome: reply.isAnswered
-      ? isStale
-        ? "stale"
-        : found === undefined
-          ? "none"
-          : "nudge"
-      : "error",
+    prompt: await promptVersion(JUDGMENT_PROMPT),
+    outcome: reply.isAnswered && isStale ? "stale" : decision.kind,
     skill: found?.skill ?? null,
     skills: skills.length,
     latencyMs: now - startedAt,
-    inputTokens: reply.usage.input_tokens,
-    outputTokens: reply.usage.output_tokens,
-    cacheReadTokens: reply.usage.cache_read_input_tokens,
+    inputTokens: reply.usage.input_tokens + (review?.usage.input_tokens ?? 0),
+    outputTokens:
+      reply.usage.output_tokens + (review?.usage.output_tokens ?? 0),
+    cacheReadTokens:
+      reply.usage.cache_read_input_tokens +
+      (review?.usage.cache_read_input_tokens ?? 0),
   });
 }
 

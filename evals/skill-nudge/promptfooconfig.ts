@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type {
+  ApiProvider,
   GradingResult,
   PromptFunction,
   ProviderResponse,
@@ -11,10 +12,14 @@ import { parse as parseYaml } from "yaml";
 
 import {
   MAX_TOKENS,
+  REVIEW_MAX_TOKENS,
+  REVIEW_SYSTEM,
   SYSTEM,
+  applyReview,
   catalog,
   listing,
   parse,
+  reviewPrompt,
   transcript,
   usedSkills,
 } from "../../plugins/mods/skill-nudge/lib/nudge.ts";
@@ -25,6 +30,83 @@ import type {
 import { cases } from "./cases.ts";
 
 const openRouter = process.env.RAVN_EVALS_NUDGE_ROUTE === "openrouter";
+
+const home = process.env.RAVN_NUDGE_HOME;
+
+function modelPrompt(system: string, text: string): string {
+  return openRouter
+    ? JSON.stringify([
+        { role: "system", content: system },
+        { role: "user", content: text },
+      ])
+    : text;
+}
+
+function provider(system: string, maxTokens: number) {
+  return openRouter
+    ? {
+        id: "openrouter:anthropic/claude-haiku-5.5",
+        config: {
+          max_tokens: maxTokens,
+          omitDefaults: true,
+          passthrough: {
+            reasoning: { enabled: false },
+            provider: {
+              order: ["Anthropic"],
+              allow_fallbacks: false,
+              require_parameters: true,
+            },
+          },
+        },
+      }
+    : {
+        id: "anthropic:claude-agent-sdk",
+        config: {
+          model: "haiku",
+          apiKeyRequired: false,
+          custom_system_prompt: system,
+          tools: [],
+          skills: [],
+          persist_session: false,
+          env: home
+            ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude") }
+            : {},
+          max_turns: 1,
+          thinking: { type: "disabled" },
+        },
+      };
+}
+
+function visibleTokens(usage: ProviderResponse["tokenUsage"]) {
+  return usage?.completion === undefined
+    ? undefined
+    : usage.completion - (usage.completionDetails?.reasoning ?? 0);
+}
+
+let reviewer: Promise<ApiProvider> | undefined;
+
+async function askReviewer(text: string) {
+  const route = provider(REVIEW_SYSTEM, REVIEW_MAX_TOKENS);
+
+  reviewer ??= import("promptfoo").then(({ loadApiProvider }) =>
+    loadApiProvider(route.id, { options: route }),
+  );
+
+  const raw = modelPrompt(REVIEW_SYSTEM, text);
+
+  const response = await (await reviewer).callApi(raw, {
+    prompt: { raw, label: "nudge-review" },
+    vars: {},
+    bustCache: true,
+  });
+
+  const tokens = visibleTokens(response.tokenUsage);
+
+  if (response.error || (tokens !== undefined && tokens > REVIEW_MAX_TOKENS))
+    return undefined;
+
+  return String(response.output ?? "");
+}
 
 const skillsDir = join(
   import.meta.dirname,
@@ -70,30 +152,26 @@ function skillsFor(id: string) {
 // The mod's request: its system prompt goes on the provider, this is the user turn.
 const prompt: PromptFunction = async ({ vars }) => {
   const id = String(vars.id);
-
   const text = listing(skillsFor(id)) + transcript(messagesOf(id));
 
-  return openRouter
-    ? JSON.stringify([
-        { role: "system", content: SYSTEM },
-        { role: "user", content: text },
-      ])
-    : text;
+  return modelPrompt(SYSTEM, text);
 };
 
-function grade(
+export async function gradeReply(
   output: string,
   id: string,
   usage?: ProviderResponse["tokenUsage"],
-): GradingResult {
-  const { completion = 0, completionDetails } = usage ?? {};
-  const visible = completion - (completionDetails?.reasoning ?? 0);
+  review: (prompt: string) => Promise<string | undefined> = askReviewer,
+): Promise<GradingResult> {
+  // The SDK may continue beyond its limit. Grade what it actually returned
+  // and fail visible over-budget replies; never slice JSON using reasoning.
+  const tokens = visibleTokens(usage);
 
-  if (visible > MAX_TOKENS) {
+  if (tokens !== undefined && tokens > MAX_TOKENS) {
     return {
       pass: false,
       score: 0,
-      reason: `Visible output exceeds ${MAX_TOKENS} tokens.`,
+      reason: `over-budget: ${tokens} visible tokens; limit ${MAX_TOKENS}`,
     };
   }
 
@@ -101,18 +179,40 @@ function grade(
     (skill) => `ravn-core:${skill}`,
   );
 
-  const found = parse(output, skillsFor(id));
-  const got = found?.skill ?? "nothing";
+  const messages = messagesOf(id);
+
+  const candidate = parse(
+    output,
+    skillsFor(id),
+    messages,
+    tokens === MAX_TOKENS,
+  );
+
+  const decision =
+    candidate.kind === "nudge"
+      ? applyReview(
+          candidate,
+          await review(reviewPrompt(messages, candidate.suggestion)),
+        )
+      : candidate;
+
+  if (
+    decision.kind !== "abstained" &&
+    decision.kind !== "vetoed" &&
+    decision.kind !== "nudge"
+  ) {
+    return { pass: false, score: 0, reason: decision.kind };
+  }
+
+  const got = decision.kind === "nudge" ? decision.suggestion.skill : "nothing";
 
   const pass =
-    expected.length === 0 ? found === undefined : expected.includes(got);
+    expected.length === 0 ? decision.kind !== "nudge" : expected.includes(got);
 
   return {
     pass,
     score: pass ? 1 : 0,
-    reason: `expected ${expected.join(" or ") || "nothing"}, got ${got}${
-      found ? ` (${found.reason})` : ""
-    }`,
+    reason: `expected ${expected.join(" or ") || "nothing"}, got ${got}${decision.kind === "vetoed" ? ` (vetoed: ${decision.verdict})` : ""}`,
   };
 }
 
@@ -125,53 +225,19 @@ const tests: TestCase[] = cases.map((one) => ({
       type: "javascript",
       metric: one.kind,
       value: (output: string, context) =>
-        grade(output, one.id, context.providerResponse?.tokenUsage),
+        gradeReply(output, one.id, context.providerResponse?.tokenUsage),
     },
   ],
 }));
-
-const home = process.env.RAVN_NUDGE_HOME;
-
-const isolated = home
-  ? { HOME: home, CLAUDE_CONFIG_DIR: join(home, ".claude") }
-  : {};
 
 const config: UnifiedConfig = {
   description: "skill-nudge: does Haiku suggest the right ravn-core skill?",
   prompts: [{ label: "skill-nudge", raw: "skill-nudge", function: prompt }],
   providers: [
-    openRouter
-      ? {
-          id: "openrouter:anthropic/claude-haiku-5.5",
-          label: "skill-nudge/haiku-or",
-          config: {
-            max_tokens: MAX_TOKENS,
-            omitDefaults: true,
-            passthrough: {
-              reasoning: { enabled: false },
-              provider: {
-                order: ["Anthropic"],
-                allow_fallbacks: false,
-                require_parameters: true,
-              },
-            },
-          },
-        }
-      : {
-          id: "anthropic:claude-agent-sdk",
-          label: "skill-nudge/haiku",
-          config: {
-            model: "haiku",
-            apiKeyRequired: false,
-            custom_system_prompt: SYSTEM,
-            tools: [],
-            skills: [],
-            persist_session: false,
-            env: isolated,
-            max_turns: 1,
-            thinking: { type: "disabled" },
-          },
-        },
+    {
+      ...provider(SYSTEM, MAX_TOKENS),
+      label: openRouter ? "skill-nudge/haiku-or" : "skill-nudge/haiku",
+    },
   ],
   tests,
   evaluateOptions: { maxConcurrency: 4 },
