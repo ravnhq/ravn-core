@@ -10,6 +10,7 @@ virtualStoreType: global
 # default confirmation prompt aborts where there is no TTY.
 confirmModulesPurge: false
 allowBuilds:
+  '@google/genai': false
   '@playwright/browser-chromium': false
   '@swc/core': false
   esbuild: false

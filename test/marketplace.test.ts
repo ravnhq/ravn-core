@@ -114,16 +114,22 @@ test("the ravn-core Pi package version matches plugin.json and the Claude market
   assert.equal(piPackage.private, true);
   assert.equal(piPackage.type, "module");
   assert.deepEqual(piPackage.keywords, ["pi-package"]);
-  assert.deepEqual(piPackage.pi, { skills: ["./skills"] });
+  assert.deepEqual(piPackage.pi, {
+    skills: ["./skills"],
+    extensions: ["./pi/promptify.ts"],
+  });
   assert.equal(piPackage.version, manifest.version);
   assert.equal(piPackage.version, entry.version);
 });
 
-test("a Pi install of the repo root loads only the ravn-core skills", () => {
+test("a Pi install of the repo root loads the ravn-core skills and Promptify extension", () => {
   const rootPackage = readJson(join(repoDir, "package.json"));
 
   assert.deepEqual(rootPackage.pi, {
     skills: [`./${relative(repoDir, join(ravnCoreDir, "skills"))}`],
+    extensions: [
+      `./${relative(repoDir, join(ravnCoreDir, "pi/promptify.ts"))}`,
+    ],
   });
 });
 
@@ -149,6 +155,7 @@ test("an OpenCode package install includes the server, skills, and their assets"
   const paths = new Set(pack.files.map((file) => file.path));
 
   assert.ok(paths.has(manifest.exports["."].slice(2)), "server entry point");
+  assert.ok(paths.has("opencode/promptify-gui.cjs"), "desktop bundle");
   assert.ok(paths.has("LICENSE"), "MIT license");
 
   const skillsDir = join(ravnCoreDir, "skills");
