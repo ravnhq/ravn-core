@@ -8,6 +8,7 @@
 - `statechart.trace`: `report.md` says `ChargedAtMostOnce breaks` with a 5-step shortest path, and the final message gives that path in words: pay, time out, the first charge lands, pay again, the second charge lands.
 - `statechart.chart`: the final message shows the chart as a `mermaid` block whose states carry the agent's labels rather than raw variable values, with the breaking state marked `breaks`.
 - `statechart.repo`: `git status --short` is empty: the spec and its config are unchanged, and the rule was not weakened.
+- `statechart.disclosure`: read `references/view-model.md` before authoring a view and `references/read-tlc-report.md` before interpreting the result.
 
 ## How to get to it (user POV)
 

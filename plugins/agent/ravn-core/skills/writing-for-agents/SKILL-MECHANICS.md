@@ -11,7 +11,9 @@ Two choices, trading the two loads:
 
 Pick model-invocation only when the agent must reach the skill from a request alone, with no human naming it and no skill linking it. A skill that only ever fires by hand is user-invoked and pays no context load.
 
-Shared reference that two user-invoked skills both need lives as a plain file inside one of them, and the other links it by relative path, as `ship` links `codebase-design/MIGRATE-CALLERS.md`. Links work only within one installed plugin; reference shared across plugins goes in a model-invoked skill.
+Shared reference lives as a plain file with one owner. Other skills link to it at the decision that needs it, as [`deprecate-and-migrate`](../deprecate-and-migrate/SKILL.md) links [`ship`'s sequencing reference](../ship/SEQUENCE-VERIFIABLE-UNITS.md) when moving callers one at a time. Links work only within one installed plugin; reference shared across plugins goes in a model-invoked skill.
+
+Write the description against its closest neighbor: name the decision or deliverable that would make the agent choose this skill instead. Test the two requests with a single change in intent, plus one ordinary request that should load neither. Test selection, any required reference read, and the final outcome separately.
 
 ## Splitting by invocation
 

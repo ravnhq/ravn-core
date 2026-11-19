@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { z } from "zod";
 import {
@@ -78,4 +79,40 @@ test("explicit triggers use semantic acceptance grading on every runner", (t) =>
       `${command} record decisions as we work`,
     );
   }
+});
+
+test("the OpenRouter rubric route keeps the Sonnet judge isolated", () => {
+  const config = new URL("../../evals/skill-eval.ts", import.meta.url);
+
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      `import { grader } from ${JSON.stringify(config.href)}; console.log(JSON.stringify(grader));`,
+    ],
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        RAVN_EVALS_GRADER_ROUTE: "openrouter",
+        RAVN_EVALS_HOME: "/isolated",
+        OPENROUTER_API_KEY: "test-key",
+        CLAUDE_CODE_OAUTH_TOKEN: "must-not-reach-openrouter",
+      },
+    },
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  const selected = JSON.parse(result.stdout);
+
+  assert.equal(selected.id, "anthropic:claude-agent-sdk");
+  assert.equal(selected.config.model, undefined);
+  assert.deepEqual(selected.config.tools, []);
+  assert.equal(selected.config.env.HOME, "/isolated");
+  assert.equal(
+    selected.config.env.ANTHROPIC_MODEL,
+    "anthropic/claude-sonnet-5.5",
+  );
+  assert.equal(selected.config.env.CLAUDE_CODE_OAUTH_TOKEN, "");
 });

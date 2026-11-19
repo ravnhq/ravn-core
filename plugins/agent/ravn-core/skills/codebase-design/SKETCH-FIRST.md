@@ -38,10 +38,10 @@ When you scrap, name the signal you saw, then:
 
 ## Red flags
 
-A red flag is a reason to revise or reject the shape. Shallow modules and the deletion test are in [SKILL.md](SKILL.md), pass-through layers in [Minimize Reader Load](MINIMIZE-READER-LOAD.md), temporal decomposition in [Model the Domain](../domain-modeling/MODEL-THE-DOMAIN.md), and wire types crossing a seam in [Boundary Discipline](../principle-boundary-discipline/SKILL.md). Also screen for:
+A red flag is a reason to revise or reject the shape. Shallow modules and the deletion test are in [SKILL.md](SKILL.md), pass-through layers in [Minimize Reader Load](MINIMIZE-READER-LOAD.md), temporal decomposition in [Model the Domain](../domain-modeling/MODEL-THE-DOMAIN.md), and wire types crossing a seam in [Boundary Discipline](references/boundary-discipline.md). Also screen for:
 
 - **Information leakage**: one internal decision (a representation, policy, or protocol detail) appears in more than one module, so changing it takes coordinated edits. Move the decision behind one module's interface.
 - **Split ownership**: more than one module writes the same state or keeps its own copy. An agent that edits one writer cannot see the others, so their rules diverge. Give each piece of state one owner; other modules read it or ask the owner to change it.
-- **Two ways to do one task**: an agent copies whichever way it finds first, so every way keeps gaining callers. Keep one way, and move callers off the others and delete them in the same change, per [Migrate Callers Then Delete Legacy APIs](MIGRATE-CALLERS.md).
+- **Two ways to do one task**: an agent copies whichever way it finds first, so every way keeps gaining callers. Keep one way and use [the migration workflow](../deprecate-and-migrate/SKILL.md) to choose when it is safe to remove the others.
 - **Importable internals**: an agent imports a module's internals because that is the shortest path that compiles, and they become part of the interface. Make internals unreachable from outside the module, so such an import fails the build.
 - **Hand-synced list**: two or more places list the same items, and an agent that sees one list updates only that one. Keep one list and derive the others from it; when a list cannot be derived, make the build fail when the lists disagree.

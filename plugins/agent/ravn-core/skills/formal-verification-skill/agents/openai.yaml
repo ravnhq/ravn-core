@@ -1,0 +1,5 @@
+interface:
+  display_name: "Formal Verification Skill"
+  short_description: "Create or resync a project-local formal proof guide"
+policy:
+  allow_implicit_invocation: false

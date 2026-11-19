@@ -1106,6 +1106,59 @@ describe("pricing module", () => {
   git(cwd, ["commit", "-qam", "feat: pricing cart"]);
 }
 
+function authoringScratch(cwd: string) {
+  initRepo(cwd);
+  mkdirSync(join(cwd, "src"));
+  writeFileSync(
+    join(cwd, "AGENTS.md"),
+    `# Scratch fixture
+
+Put project-local skill output under \`.agents/skills/\`. Keep scratch output local; do not push or publish.
+`,
+  );
+  writeFileSync(
+    join(cwd, "src/format.mjs"),
+    `export const cents = (price) => Math.round(price * 100);\n`,
+  );
+  writeFileSync(
+    join(cwd, "src/checkout.mjs"),
+    `import { cents } from "./format.mjs";
+export const checkout = (price) => ({ total: cents(price) });
+`,
+  );
+  writeFileSync(
+    join(cwd, "src/invoice.mjs"),
+    `import { cents } from "./format.mjs";
+export const invoice = (price) => ({ amount: cents(price) });
+`,
+  );
+  writeFileSync(
+    join(cwd, "notes.mjs"),
+    `import { appendFileSync, existsSync, readFileSync } from "node:fs";
+const [verb, value] = process.argv.slice(2);
+const file = process.env.NOTES_DB ?? "notes.txt";
+if (verb === "add" && value) {
+  appendFileSync(file, value + "\\n");
+  console.log("saved");
+} else if (verb === "list" || (verb === "search" && value)) {
+  if (existsSync(file)) {
+    const text = readFileSync(file, "utf8");
+    process.stdout.write(verb === "list" ? text : text.split("\\n").filter((line) => line.includes(value)).join("\\n") + "\\n");
+  }
+} else {
+  console.error("usage: notes.mjs <add|list|search> [text]");
+  process.exitCode = 2;
+}
+`,
+  );
+  git(cwd, ["add", "-A"]);
+  git(cwd, [
+    "commit",
+    "-qm",
+    "feat: add pricing callers and a local notes CLI",
+  ]);
+}
+
 const [kind, dir, scenario] = process.argv.slice(2);
 
 if (import.meta.main) {
@@ -1128,6 +1181,8 @@ if (import.meta.main) {
     figureScratch(resolve(dir));
   else if (kind === "bad-test-terminator" && dir !== undefined)
     badTestTerminatorScratch(resolve(dir));
+  else if (kind === "authoring" && dir !== undefined)
+    authoringScratch(resolve(dir));
   else {
     console.error(
       "usage: scratch.ts babysit <dir> [" +
@@ -1138,7 +1193,7 @@ if (import.meta.main) {
         principleScenarios.join("|") +
         "] | deprecate-and-migrate <dir> | web-qa <dir> [" +
         webQAScenarios.join("|") +
-        "] | statechart <dir> | figure-it-out <dir> | bad-test-terminator <dir>",
+        "] | statechart <dir> | figure-it-out <dir> | bad-test-terminator <dir> | authoring <dir>",
     );
     process.exit(64);
   }

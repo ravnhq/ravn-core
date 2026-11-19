@@ -8,7 +8,7 @@ fingerprints:
   rule_id: P6
   file: scripts/ir.ts
   reason: The flagged statement returns the TLA+ invariants that a spec checks, which are the model checker's rules, not a system prompt
-- hash: sha256:230632ae6b39fa25b961b86ad34c8af1933938a2630d3d269b929c262f870904
+- hash: sha256:5b54a960dbc155628a34b98a195e989234eaaefb239d981281c822f56abfb407
   rule_id: LP3
   file: SKILL.md
   reason: agent-plugins.org frontmatter has no allowed-tools field; the bundled script runs java on the spec the user wrote and fetches one pinned, SHA-256-checked jar

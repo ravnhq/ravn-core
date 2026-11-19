@@ -7,7 +7,9 @@ import {
   realpathSync,
   statSync,
 } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, extname, join, relative, resolve } from "node:path";
+import GithubSlugger from "github-slugger";
+import MarkdownIt from "markdown-it";
 import { parse } from "yaml";
 
 // After a compaction, Claude Code re-attaches each invoked skill cut short:
@@ -168,12 +170,136 @@ const sizeErrors = (root: string, errors: string[]) => {
   }
 };
 
+const markdown = new MarkdownIt({ html: true });
+
+function markdownBody(text: string) {
+  // Preserve line numbers without parsing frontmatter as Markdown.
+  return text.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/, (header) =>
+    header.replace(/[^\r\n]/g, " "),
+  );
+}
+
+function markdownHeadings(tokens: ReturnType<MarkdownIt["parse"]>) {
+  const slugger = new GithubSlugger();
+
+  return new Set(
+    tokens.flatMap((token, index) => {
+      if (token.type !== "heading_open") return [];
+
+      const title = tokens[index + 1]?.children
+        ?.map((child) => {
+          if (["text", "code_inline", "image"].includes(child.type))
+            return child.content;
+
+          return child.type === "softbreak" ? " " : "";
+        })
+        .join("");
+
+      return title ? [slugger.slug(title)] : [];
+    }),
+  );
+}
+
+function localLink(
+  source: string,
+  href: string,
+  errors: string[],
+  location: string,
+) {
+  if (/^(?:[a-z][a-z\d+.-]*:|\/)/i.test(href)) return;
+
+  try {
+    const hash = href.indexOf("#");
+    const urlPath = (hash < 0 ? href : href.slice(0, hash)).split("?")[0] ?? "";
+    const fragment = hash < 0 ? "" : decodeURIComponent(href.slice(hash + 1));
+
+    return {
+      path: urlPath
+        ? resolve(dirname(source), decodeURIComponent(urlPath))
+        : source,
+      fragment,
+    };
+  } catch {
+    errors.push(`${location}: invalid Markdown link encoding: ${href}`);
+  }
+}
+
+function linkErrors(root: string, errors: string[]) {
+  const files = new Set(sortedGlob(root, "plugins/agent/*/skills/**/*.md"));
+
+  // Glob each real skill directory: Node's glob does not traverse a directory
+  // symlink by default. Resolve links from the source file, as an install does.
+  for (const skill of sortedGlob(root, ".agents/skills/*")) {
+    const dir = join(root, skill);
+
+    if (!existsSync(dir) || !statSync(dir).isDirectory()) continue;
+
+    const realDir = realpathSync(dir);
+
+    for (const file of sortedGlob(realDir, "**/*.md")) {
+      files.add(relative(root, join(realDir, file)));
+    }
+  }
+
+  const headings = new Map<string, Set<string>>();
+
+  const tokensAt = (path: string) =>
+    markdown.parse(markdownBody(readFileSync(path, "utf8")), {});
+
+  for (const file of [...files].sort()) {
+    const source = join(root, file);
+
+    for (const token of tokensAt(source)) {
+      for (const child of token.children ?? []) {
+        const href =
+          child.type === "link_open"
+            ? child.attrGet("href")
+            : child.type === "image"
+              ? child.attrGet("src")
+              : null;
+
+        if (!href) continue;
+
+        const location = `${file}:${(token.map?.[0] ?? 0) + 1}`;
+        const target = localLink(source, href, errors, location);
+
+        if (!target) continue;
+
+        if (!existsSync(target.path)) {
+          errors.push(`${location}: missing Markdown link target: ${href}`);
+          continue;
+        }
+
+        if (
+          !target.fragment ||
+          extname(target.path).toLowerCase() !== ".md" ||
+          !statSync(target.path).isFile()
+        )
+          continue;
+
+        const path = realpathSync(target.path);
+        let anchors = headings.get(path);
+
+        if (anchors === undefined) {
+          anchors = markdownHeadings(tokensAt(path));
+          headings.set(path, anchors);
+        }
+
+        if (!anchors.has(target.fragment)) {
+          errors.push(`${location}: missing Markdown heading: ${href}`);
+        }
+      }
+    }
+  }
+}
+
 export const validateSkills = (root: string) => {
   const errors: string[] = [];
 
   repoSkillErrors(root, errors);
   shippedSkillErrors(root, errors);
   sizeErrors(root, errors);
+  linkErrors(root, errors);
 
   return errors;
 };

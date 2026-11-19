@@ -1,7 +1,7 @@
 import type { UnifiedConfig } from "promptfoo";
 
 const config: UnifiedConfig = {
-  prompts: ["{{request}}"],
+  prompts: [],
   providers: [],
   defaultTest: {
     assert: [
@@ -10,7 +10,9 @@ const config: UnifiedConfig = {
         value: {
           method: "average",
           threshold: 0.7,
-          weights: { "llm-rubric": 4, "skill-used": 2 },
+          // skillEval emits only outcome rubrics and workspace assertions
+          // for comparable cases. Selection and reference reads gate pnpm eval.
+          weights: { "llm-rubric": 4, javascript: 1 },
         },
       },
     ],

@@ -1,6 +1,6 @@
 # why and how
 
-`why` answers a rationale question from the commits and PR discussions behind the code, citing what the authors wrote and marking its own inferences. `how` answers an architecture question with one read-only explanation of the code as it is now, or does that exploration itself in a harness without subagents.
+`why` answers a rationale question from the commits and PR discussions behind the code, citing what the authors wrote and marking its own inferences. `how` answers an architecture question with a read-only explanation of the code as it is now.
 
 ## Sub-features
 
@@ -29,4 +29,4 @@
 ## Gotchas
 
 - The rationale lives only in the commit body, not in a code comment, so an answer read off the source alone has no grounds for "five failures" and fails `why.record`.
-- Claude Code's `how` run spawns one `Agent` call; Pi has no subagents and explores in the main session. Both are correct.
+- `how` must return the walkthrough in the same turn. A progress message waiting for another agent does not pass `how.flow`.

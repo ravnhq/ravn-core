@@ -1,6 +1,6 @@
 # Formal verification skills
 
-`/ravn-core:create-formal-verification-skill` verifies one promise the code makes with a model checker or prover, reports what the check finds without changing product code, and leaves a project skill that reruns the check. `/ravn-core:maintain-formal-verification-skill` brings that verification back in line after the covered code changes without it.
+`/ravn-core:formal-verification-skill create` checks a named property without changing product code and leaves a project skill that reruns the check. `formal-verification-skill maintain` checks whether the model or proof still describes the changed code, resyncs it, and reruns it.
 
 ## Sub-features
 
@@ -11,16 +11,16 @@
 
 ## How to get to it (user POV)
 
-- An engineer types the create skill's invocation form (README) and names the code to verify.
-- After the code changes without the check, the engineer types the maintain skill's invocation form.
+- An engineer types the invocation form (README) followed by `create` and names the code to verify.
+- After the code changes without the check, the engineer uses the same skill with `maintain`.
 
 ## Driving it with scripts/scratch.ts
 
 - Build one scratch repo per harness: `node .agents/skills/verify-ravn-core/scripts/scratch.ts formal-verification /tmp/ravn-verify/$RUN_ID/formal-<harness>/work`. Its `acquire` reads a job's lease and writes it in two store calls; its one test acquires in sequence and passes on the race.
-- Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> Verify the job lease in src/lease.ts. Do not ask me questions; use the defaults.`
+- Load the working-tree skills as the README's Harness runs say, and send one turn: `<invocation> create a verification for the job lease in src/lease.ts. Do not ask me questions; use the defaults.` Confirm the create reference was read.
 - Check `formal.finding`, `formal.test`, and `formal.skill`: quote the final message, `git diff HEAD -- src test` (empty), `git status --short`, and `npm test`; then commit the skill, clone the repo, and run the skill's command in the clone yourself and quote the violation.
 - Commit what the first turn left, then drift the code: `node .agents/skills/verify-ravn-core/scripts/scratch.ts formal-verification <same dir> fix`. It makes `acquire` one atomic `claim` call and leaves the verification as it was.
-- Send the second turn: `<invocation> The lease code changed since the verification was written. Do not ask me questions; use the defaults.` Codex and Pi start a new session for it; pass Pi the generated skill with `--skill`.
+- Send the second turn: `<invocation> maintain the formal lease verification after src/lease.ts changed. Use the defaults.` Confirm the maintain reference was read. Codex and Pi start a new session for it; pass Pi the generated skill with `--skill`.
 - Check `formal.updated`: quote the final message, the sync commit in the verify skill beside `git log --oneline`, `git diff HEAD -- src` (empty), and the output of the skill's command run by you.
 
 ## Gotchas

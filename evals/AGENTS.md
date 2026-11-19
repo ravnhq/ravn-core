@@ -11,12 +11,12 @@ Follow promptfoo's [Test Agent Skills](https://www.promptfoo.dev/docs/guides/tes
   - `arms`: `current` (the working tree), `baseline` (the skill at `--baseline-ref`, default `main`), `without-skill` (no skills installed). Providers differ only in `working_dir`, so a score difference comes from the skill text.
   - `runners`: each harness and model pair. Add a model or harness there, not in a config. Runners whose model starts with `openrouter/` route through OpenRouter (Claude Code via `ANTHROPIC_BASE_URL`, Codex via a generated `config.toml` in the isolated home's `.codex-openrouter`), so they never touch first-party quota. Results and labels carry an `-or` suffix.
   - Provider labels are `<fixture>/<arm>/<harness>/<model>[-or]`.
-  - `grader`: the pinned `llm-rubric` judge, `anthropic:claude-agent-sdk` with `apiKeyRequired: false`. Keep it pinned: promptfoo's default grader falls back to Codex on your real `~/.codex`.
+  - `grader`: the pinned `llm-rubric` judge, `anthropic:claude-agent-sdk` with `apiKeyRequired: false`. Keep it pinned: promptfoo's default grader falls back to Codex on your real `~/.codex`. Set `RAVN_EVALS_GRADER_ROUTE=openrouter` and `OPENROUTER_API_KEY` to route the same Sonnet 5.5 judge through OpenRouter, independently of which harness generates the answer. Label that route in the evidence and use the same route for every comparison arm.
 - `run.ts` runs each config once per runner and names it in `RAVN_EVALS_RUNNER`, so comparisons stay inside one harness and model and `skillEval` builds only that runner's providers. It adds `compare.ts`, which carries `max-score`, only when more than one arm runs; single-arm cases opt out through `disableDefaultAsserts`, which `skillEval` sets for them.
 - `providers/pi.ts` is our Pi provider, since promptfoo has none. Keep it to promptfoo's custom provider interface: `implements ApiProvider`, and promptfoo sets `label`. The Pi runner uses `RAVN_VERIFY_PI_PROVIDER` (default `openai`) and `RAVN_VERIFY_PI_MODEL` (default `gpt-6-luna`), matching doctor's provider selection. For Codex through CLIProxy, export `RAVN_VERIFY_PI_PROVIDER=cliproxyapi` and `RAVN_VERIFY_PI_MODEL=codex/gpt-6-luna` for both smoke and evals. The provider splits only the first slash and passes explicit `--provider` and `--model`, preserving slash-containing model IDs. Result labels retain the final model name; keep the selected provider and full model ID with the run evidence.
 - Workspaces follow promptfoo's [isolated workspaces](https://www.promptfoo.dev/docs/guides/evaluate-coding-agents/#isolated-workspaces): every provider sets `copy_working_dir: "copy"`, so each eval step runs in a fresh copy of its arm's workspace that promptfoo deletes after the step's assertions. No case sees another's commits or edits, and installed skill and agent files stay intact. Use `"copy"`, not `true`: `true` clones a workspace with no untracked files, as the without-skill arm's usually is, onto a detached HEAD, while arms with installed skills are copied on `main`. `providers/pi.ts` takes the step's copy from the prompt config's `working_dir`, as promptfoo's agent providers do.
 - `hooks.ts` sets up each test's inputs, which `copy_working_dir` cannot, because promptfoo copies the workspace after `beforeEach` runs: `run.ts` builds a pristine workspace per fixture and arm, and before each step the hook replaces the job's workspaces with that set and applies the case's `edits`. A skill's own `beforeEach` hook, such as ship's, runs after it on the same workspaces. `skillEval` keeps `maxConcurrency: 1` because every step copies from those shared workspaces, which the hook rebuilds.
-- Claude Code runs with `CLAUDE_CONFIG_DIR` in the isolated home, because it loads the plugins installed in its config dir: a released `ravn-core:why` stood in for the skill under test. First-party runners log in with `CLAUDE_CODE_OAUTH_TOKEN`, a token from `claude setup-token` that you export, since the login stays in your real config dir. OpenRouter runners blank it, because promptfoo passes the parent env through.
+- Claude Code runs with `CLAUDE_CONFIG_DIR` in the isolated home. Organization-managed plugins may still appear, so the provider's `skills` allowlist takes unqualified project names from each pristine arm; the no-skill arm gets an empty list. First-party runners log in with `CLAUDE_CODE_OAUTH_TOKEN`, a token from `claude setup-token` that you export, since the login stays in your real config dir. OpenRouter runners blank it, because promptfoo passes the parent env through.
 - Codex runs with `sandbox_mode: "danger-full-access"`: `workspace-write` keeps `.git` and `.agents` read-only, and skills under test commit and write handoffs there. Workspaces are temp copies.
 
 ## Mod evals
@@ -29,16 +29,18 @@ Run `pnpm eval:skill-nudge` with `CLAUDE_CODE_OAUTH_TOKEN` for the isolated Clau
 
 Each skill carries these case kinds; `skillEval` turns each into its promptfoo test:
 
-1. `quality`: every arm answers it; `skill-eval.ts` selects skill-use and outcome assertions.
+1. `quality`: the current run requires selection for a natural request, any declared reference reads, and the outcome. A multi-arm comparison scores only the outcome in every arm. Each model-invocable skill needs at least one uninvoked quality case.
 2. `trigger`: the current arm must use the skill, or accept its explicit command for a user-only skill.
 3. `route`: a near-miss that belongs to a model-invocable sibling skill, which must be used instead.
 4. `stay-out`: a plain task where no listed skill should fire. At least one lists the skill under test.
 
 A case that needs work in progress sets `edits`: find-and-replace edits applied to the fixture before the run and left uncommitted.
 
+For a trigger or quality case that must reach a disclosed file, set `references` to paths relative to the installed skills directory, including the owning skill (for example `example/references/options.md`). This checks a completed Read or shell output containing the file's text. Promptfoo's `skill-used` proves entry selection, not a reference read. Claude supplies tool calls, Codex supplies command items, and Pi collects read and shell completions from its live events. `pnpm eval` gates quality on these reads; `pnpm eval:compare` leaves them out of quality scoring rather than awarding pass credit to an arm that cannot load the current path. Current-only trigger cases still check their reads.
+
 Check what the agent changed with a `javascript` assertion that reads the step's copy from `context.providerResponse.metadata.workingDir`, as promptfoo's coding-agents guide shows. The copy lasts until all of that step's assertions have run, model-graded ones included. The agent may commit on `main`, so read the starting commit from `private/fixtures/<fixture>.git`. State a hook creates for the agent must resolve inside the copy, such as a relative remote URL, or live outside the workspaces, as babysit's simulator does.
 
-Write each `request` the way an engineer asks inside the repo: short, vague, open-ended, naming neither the skill nor the repo. For user-only quality and trigger cases, `invoked: true` prepends the harness's skill command.
+Write each `request` the way an engineer asks inside the repo: short, vague, open-ended, naming neither the skill nor the repo. `invoked: true` prepends the harness's skill command. For a renamed command, `baselineInvocation` carries the old skill name and the equivalent request without the new mode word. The no-skill arm gets the task without a command. Only model-invocable skills can have native triggers; they can also have an explicit trigger in addition.
 
 Pick questions whose answer the skill's workflow is needed for. If a comment next to the code already answers it, answering directly is correct and the case tests nothing.
 
@@ -47,6 +49,8 @@ Write the rubric as PASS and FAIL conditions on the outcome an engineer needs, a
 ## Fixtures
 
 The per-skill configs and their fixtures derive from private Ravn code, so they live in the private `ravnhq/ravn-core-evals` repo. `pnpm eval:fetch` clones it into the gitignored `private/`; set `RAVN_EVALS_PRIVATE_URL` to clone from elsewhere. Without it, `run.ts` finds no skill configs and the tests that read them skip. Commit config and fixture changes there, and keep this repo free of anything that names or quotes them.
+
+CI and `pnpm eval:fetch` use the commit in `private-ref.txt`, not private `main`. Develop paired changes on a private branch and point the public change at its exact commit. Test both together, then land the private change and ensure the pinned commit remains reachable before landing the public change. Each public revision keeps its matching suite even when private `main` advances.
 
 Fixtures are frozen history, kept as bare repos at `private/fixtures/<name>.git` under neutral names and cloned into temp workspaces by `run.ts`. Bare means no fixture source sits in a working tree, so the repo's tooling never sees it.
 
@@ -64,7 +68,7 @@ Fixtures are frozen history, kept as bare repos at `private/fixtures/<name>.git`
 - `pnpm eval:view` opens promptfoo's side-by-side view of the last run.
 - Every run writes promptfoo's JSON results, with each assertion's pass or fail reason, to `results/<plugin>-<skill>-<harness>-<model>.json`. Read those to diagnose a failure; the CLI table truncates.
 
-Codex runs with `HOME` pointed at a temp directory holding only a copy of your Codex login; Codex reads `$HOME/.codex`, and promptfoo passes it a minimal environment. `providers/pi.ts` gives Pi a minimal environment too, so tokens such as `GH_TOKEN` never reach it; add a variable to its allowlist only when Pi needs it.
+Skill evals give every harness a temporary `HOME`. Codex uses an explicit `CODEX_HOME` containing only its login or OpenRouter provider config. Pi uses an explicit `PI_CODING_AGENT_DIR` containing only the chosen provider and model and its credential, not the host settings, extensions, or skill catalog. Pi resolves a configured API key with its CLI before staging the isolated profile; no model sees the host credential command. The Claude rubric grader has a separate config directory, no tools or skills, and does not save sessions. `pnpm eval:skill-nudge` isolates its Promptfoo store and, on the SDK route, Claude’s config. The frozen workspaces carry a local Git identity so nothing needs the engineer's global Git configuration.
 
 Codex's `skill-used` counts a skill read only when the whole shell command succeeds, so on Codex runners `skillEval` asserts skill use with `trajectory:step-count` on traced `SKILL.md` reads instead, as the guide shows.
 

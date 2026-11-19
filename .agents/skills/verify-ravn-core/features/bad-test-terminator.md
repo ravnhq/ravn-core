@@ -13,6 +13,7 @@
 - `btt.report`: the reply reports the findings with the route taken for each and says there is no CI workflow to extend, because the scratch has none.
 - `btt.prune-only`: an explicit prune-only choice removes or rewrites the change-detector test and keeps the behavior test, while dependencies, guard installations, lint and runner configuration, repeat scripts and CI stay unchanged apart from removing baseline entries for deleted tests. This path also works with existing guards or an unsupported installation stack.
 - `btt.scope`: an invocation with no scope asks the user to choose prune only, install or update guards, or both before editing files.
+- `btt.disclosure`: a fresh install reads `references/install.md` before modifying tooling. Prune-only never reads the install procedure as an instruction to run it.
 
 ## How to get to it (user POV)
 

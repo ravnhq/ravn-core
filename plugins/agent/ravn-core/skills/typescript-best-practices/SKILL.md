@@ -1,9 +1,8 @@
 ---
 name: typescript-best-practices
 description: >-
-  TypeScript type-safety rules: discriminated unions, branded types, no `as`,
-  exhaustive switches, schema-derived types. Use when writing, editing, or
-  reviewing TypeScript.
+  Keep TypeScript changes type-safe. Use when writing or reviewing TypeScript:
+  narrow unknowns, exhaust variants, and derive types from schemas.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -13,7 +12,7 @@ metadata:
 
 Adapted from pstack `typescript-best-practices`, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-Apply [Type System Discipline](../principle-type-system-discipline/SKILL.md) first. Apply every rule below; [references/patterns.md](references/patterns.md) holds the examples, under a heading per rule. Read it for a rule you cannot apply from its row alone.
+Read [Type System Discipline](../codebase-design/references/type-system-discipline.md) first for the language-neutral contract. Apply every rule below; [examples](references/patterns.md) show the TypeScript implementation of each. Read one when you cannot apply its rule from the row alone.
 
 | Rule | Summary |
 |------|---------|
@@ -28,7 +27,7 @@ Apply [Type System Discipline](../principle-type-system-discipline/SKILL.md) fir
 | Type guards | Verify the claim: a lying guard is worse than `as`, since its name says it's safe. Name them `isX` or `hasX`. |
 | Exhaustiveness | Assign the discriminant to `const _exhaustive: never = x;` in default arms so a new variant fails to compile. |
 | `satisfies` over `as` | Validates the value without widening literal types. |
-| Boundary validation | Parse where data crosses in, into a named domain type; `Record<string, unknown>` (however spelled) stops at that parse. Trust types inside. See [Boundary Discipline](../principle-boundary-discipline/SKILL.md). |
+| Boundary validation | Parse where data crosses in, into a named domain type; `Record<string, unknown>` (however spelled) stops at that parse. Trust types inside. Read [Boundary Discipline](../codebase-design/references/boundary-discipline.md) when placing the parse. |
 | Schema-derived types | Reach for `Pick`/`Omit`/`Parameters`/`ReturnType`/`Awaited`/`typeof`, or generated types from a `.proto`, OpenAPI, GraphQL, or migration, before declaring a new interface. |
 | Object args | Pass objects, not positional args, so order is self-documenting. Skip on hot paths (per-frame render, tokenizers, parsers). |
 | Real tests | Mock only what you can't run locally. Prefer the framework's real test primitives with leak/disposable checks, and verify UI in a running build. |

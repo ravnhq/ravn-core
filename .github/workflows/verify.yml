@@ -23,9 +23,13 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Read the paired private eval revision
+        id: private-evals
+        run: echo "ref=$(cat evals/private-ref.txt)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         with:
           repository: ravnhq/ravn-core-evals
+          ref: ${{ steps.private-evals.outputs.ref }}
           ssh-key: ${{ secrets.RAVN_CORE_EVALS_DEPLOY_KEY }}
           path: evals/private
           persist-credentials: false
@@ -64,7 +68,7 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: >-
           pi -p -a --no-session --model openai/gpt-6-luna
-          "/skill:maintain-verification-skill Target .agents/skills/verify-ravn-core. This run is unattended in GitHub Actions:
+          "/skill:verification-skill maintain .agents/skills/verify-ravn-core. This run is unattended in GitHub Actions:
           you may run the smoke eval and one plugin skill eval on the runners claude-code/claude-sonnet-5-5, codex/gpt-6-luna, pi/gpt-6-luna;
           report marketplace-install as unverified. Leave proven corrections uncommitted in the working tree; the workflow opens the PR."
           > "$RUNNER_TEMP/maintain.txt" 2>&1

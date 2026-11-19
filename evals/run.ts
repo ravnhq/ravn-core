@@ -247,6 +247,16 @@ try {
 
   cpSync(codexAuthFile, isolatedCodexAuthFile);
 
+  if (selectedRunners.some((runner) => runner.startsWith("pi/"))) {
+    const { seedPiHome } = await import("./pi-home.ts");
+
+    seedPiHome(
+      join(isolatedHomeDir, "pi"),
+      process.env.RAVN_VERIFY_PI_PROVIDER || "openai",
+      process.env.RAVN_VERIFY_PI_MODEL || "gpt-6-luna",
+    );
+  }
+
   rmSync(resultsDir, { recursive: true, force: true });
 
   mkdirSync(resultsDir, { recursive: true });
@@ -286,6 +296,7 @@ try {
       RAVN_EVALS_WORKSPACES: join(jobDir, "workspaces"),
       RAVN_EVALS_HOME: isolatedHomeDir,
       RAVN_EVALS_RUNNER: runner,
+      RAVN_EVALS_COMPARE: arms.length > 1 ? "1" : "0",
       RAVN_EVALS_OTLP_PORT: String(await freePort()),
     };
 

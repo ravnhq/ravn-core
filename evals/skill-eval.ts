@@ -1,6 +1,14 @@
 import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import type { Assertion, TestCase, UnifiedConfig } from "promptfoo";
+import type {
+  Assertion,
+  AssertionValueFunction,
+  PromptFunction,
+  TestCase,
+  UnifiedConfig,
+} from "promptfoo";
+import { openRouterClaudeEnvironment } from "./providers/openrouter-claude.ts";
 import { fixturesDir } from "./workspace-repo.ts";
 
 export const arms = ["current", "baseline", "without-skill"] as const;
@@ -29,10 +37,37 @@ export const openRouterModels = [
 
 type Runner = (typeof runners)[number];
 
+const openRouterGrader = process.env.RAVN_EVALS_GRADER_ROUTE === "openrouter";
+
 export const grader = {
   id: "anthropic:claude-agent-sdk",
-  config: { model: "claude-sonnet-5-5", apiKeyRequired: false },
+  config: {
+    model: openRouterGrader ? undefined : "claude-sonnet-5-5",
+    apiKeyRequired: false,
+    tools: [],
+    skills: [],
+    persist_session: false,
+    env: graderEnvironment(),
+  },
 };
+
+function graderEnvironment() {
+  const home = process.env.RAVN_EVALS_HOME;
+
+  if (!home) return {};
+
+  const isolated = {
+    HOME: home,
+    CLAUDE_CONFIG_DIR: join(home, ".claude-grader"),
+  };
+
+  return openRouterGrader
+    ? {
+        ...isolated,
+        ...openRouterClaudeEnvironment("anthropic/claude-sonnet-5.5"),
+      }
+    : isolated;
+}
 
 const piProvider = `file://${join(import.meta.dirname, "providers", "pi.ts")}`;
 
@@ -65,11 +100,26 @@ function claudeCodeEnv(openRouter: boolean) {
 
   // run.ts refuses to start a first-party Claude Code runner without it.
   return {
+    HOME: requiredEnv("RAVN_EVALS_HOME"),
     CLAUDE_CONFIG_DIR: configDir,
     CLAUDE_CODE_OAUTH_TOKEN: openRouter
       ? ""
       : (process.env.CLAUDE_CODE_OAUTH_TOKEN ?? ""),
   };
+}
+
+function claudeProjectSkills(fixture: string, arm: string) {
+  const pristine = process.env.RAVN_EVALS_PRISTINE;
+
+  if (pristine === undefined || arm === "without-skill") return [];
+
+  const dir = join(pristine, fixture, arm, ".claude", "skills");
+
+  if (!existsSync(dir)) return [];
+
+  return readdirSync(dir).filter((name) =>
+    existsSync(join(dir, name, "SKILL.md")),
+  );
 }
 
 // Every step runs in promptfoo's fresh copy of the arm's workspace, so no
@@ -93,23 +143,16 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           apiKeyRequired: false,
           working_dir: workingDir,
           copy_working_dir: "copy",
+          persist_session: false,
           setting_sources: ["project"],
-          skills: "all",
+          // An isolated config dir does not hide organization-managed plugin
+          // skills. Allow only unqualified names installed in this arm.
+          skills: claudeProjectSkills(fixture, arm),
           append_allowed_tools: ["Bash", "Agent"],
           env: openRouter
             ? {
                 ...claudeCodeEnv(true),
-                ANTHROPIC_BASE_URL: "https://openrouter.ai/api",
-                ANTHROPIC_AUTH_TOKEN: process.env.OPENROUTER_API_KEY ?? "",
-                ANTHROPIC_API_KEY: "",
-                ANTHROPIC_DEFAULT_SONNET_MODEL: modelWithoutRoute(
-                  runner,
-                ).replace("anthropic/", ""),
-                ANTHROPIC_DEFAULT_OPUS_MODEL: modelWithoutRoute(runner).replace(
-                  "anthropic/",
-                  "",
-                ),
-                ANTHROPIC_MODEL: modelWithoutRoute(runner),
+                ...openRouterClaudeEnvironment(modelWithoutRoute(runner)),
               }
             : claudeCodeEnv(false),
         },
@@ -119,7 +162,8 @@ export function provider(fixture: string, arm: string, runner: Runner) {
     case "codex": {
       const openRouter = runner.model.startsWith("openrouter/");
 
-      const cliEnv = { HOME: requiredEnv("RAVN_EVALS_HOME") };
+      const home = requiredEnv("RAVN_EVALS_HOME");
+      const cliEnv = { HOME: home, CODEX_HOME: join(home, ".codex") };
 
       if (openRouter) {
         const withCodexHome = {
@@ -170,6 +214,7 @@ export function provider(fixture: string, arm: string, runner: Runner) {
           model: runner.model,
           working_dir: workingDir,
           copy_working_dir: "copy",
+          home: requiredEnv("RAVN_EVALS_HOME"),
         },
       };
   }
@@ -208,12 +253,24 @@ type Base = {
 // Skill tool call, so `skill-used` cannot see it; the smoke suite proves
 // commands load skills. An explicit trigger checks that the command returns a
 // usable reply; its quality case checks whether that reply follows the skill.
-type Quality = { invoked?: boolean };
+type Disclosure = { references?: string[] };
+
+type SkillRequestVars = {
+  request: string;
+  bareRequest?: string;
+  baselineRequest?: string;
+};
+
+type Quality = Disclosure & {
+  invoked?: boolean;
+  // The prior command may have encoded the branch that is a mode today.
+  baselineInvocation?: { skill: string; request: string };
+};
 
 export type Case =
   | (Base & Quality & { kind: "quality"; metric: string; rubric: string })
   | (Base & Quality & { kind: "quality"; assert: Assertion[] })
-  | (Base & { kind: "trigger"; invoked?: boolean })
+  | (Base & Disclosure & { kind: "trigger"; invoked?: boolean })
   | (Base & { kind: "route"; to: string })
   | (Base & { kind: "stay-out"; skills: string[] });
 
@@ -224,16 +281,48 @@ function skillRead(skill: string, count: { min: number } | { max: number }) {
   };
 }
 
+function disclosedReference(file: string): Assertion {
+  const value: AssertionValueFunction = async (
+    _output,
+    { providerResponse },
+  ) => {
+    const { referenceWasRead } = await import("./reference-reads.ts");
+
+    const pass =
+      providerResponse !== undefined &&
+      referenceWasRead(providerResponse, file);
+
+    return {
+      pass,
+      score: pass ? 1 : 0,
+      reason: `${file}: ${pass ? "read" : "no completed read in trace"}`,
+    };
+  };
+
+  return { type: "javascript", metric: "reference-read", value };
+}
+
 const invocations = {
   "claude-code": (skill: string) => `/${skill}`,
   codex: (skill: string) => `$${skill}`,
   pi: (skill: string) => `/skill:${skill}`,
 } as const;
 
+export const skillRequest: PromptFunction = async ({ provider, vars }) => {
+  const arm = provider?.label?.split("/")[1];
+
+  if (arm === "baseline") return String(vars.baselineRequest ?? vars.request);
+
+  if (arm === "without-skill") return String(vars.bareRequest ?? vars.request);
+
+  return String(vars.request);
+};
+
 function toTest(
   configSkill: string,
   testCase: Case,
   harness: Runner["harness"],
+  comparing: boolean,
 ): TestCase {
   const skill = testCase.skill ?? configSkill;
 
@@ -243,17 +332,33 @@ function toTest(
     (testCase.kind === "quality" || testCase.kind === "trigger") &&
     testCase.invoked === true;
 
+  const baseline =
+    testCase.kind === "quality" && invoked
+      ? testCase.baselineInvocation
+      : undefined;
+
+  const disclosed = "references" in testCase ? (testCase.references ?? []) : [];
+
+  const vars: SkillRequestVars = {
+    request: invoked
+      ? `${invocations[harness](skill)} ${testCase.request}`
+      : testCase.request,
+  };
+
+  if (invoked) vars.bareRequest = baseline?.request ?? testCase.request;
+
+  if (baseline)
+    vars.baselineRequest = `${invocations[harness](baseline.skill)} ${baseline.request}`;
+
   const base = {
     description: testCase.description,
-    vars: {
-      request: invoked
-        ? `${invocations[harness](skill)} ${testCase.request}`
-        : testCase.request,
-    },
+    vars,
     metadata: {
       ...testCase.metadata,
       kind: testCase.kind,
       fixture: testCase.fixture,
+      invoked,
+      references: disclosed,
       edits: testCase.edits ?? [],
     },
   };
@@ -271,13 +376,18 @@ function toTest(
       ? values.map((value) => skillRead(value, { max: 0 }))
       : [{ type: "not-skill-used", value: values }];
 
+  const references = disclosed.map(disclosedReference);
+
   switch (testCase.kind) {
     case "quality":
       return {
         ...base,
         providers: [`${testCase.fixture}/*`],
         assert: [
-          ...(invoked ? [] : [used(skill)]),
+          // Native selection and reads gate the current run. A comparison
+          // scores only outcomes, which every arm can produce.
+          ...(!comparing && !invoked ? [used(skill)] : []),
+          ...(comparing ? [] : references),
           ...("rubric" in testCase
             ? [
                 {
@@ -293,18 +403,21 @@ function toTest(
       return {
         ...base,
         ...singleArm,
-        assert: invoked
-          ? [
-              {
-                type: "llm-rubric",
-                metric: "explicit-command-accepted",
-                provider: grader,
-                value: `The user explicitly invoked ${invocations[harness](skill)} to request: ${testCase.request}
+        assert: [
+          ...references,
+          ...(invoked
+            ? [
+                {
+                  type: "llm-rubric" as const,
+                  metric: "explicit-command-accepted",
+                  provider: grader,
+                  value: `The user explicitly invoked ${invocations[harness](skill)} to request: ${testCase.request}
 PASS only if the response accepts the skill command and begins the requested task, or asks a task-specific question needed to proceed.
 FAIL if the response reports that the skill or command could not be found, loaded, recognized, or invoked, regardless of wording; if it asks the user to install or locate the skill; or if it only acknowledges the command without beginning the task. An empty response fails.`,
-              },
-            ]
-          : [used(skill)],
+                },
+              ]
+            : [used(skill)]),
+        ],
       };
     case "route":
       return {
@@ -317,8 +430,12 @@ FAIL if the response reports that the skill or command could not be found, loade
   }
 }
 
-export function skillEval(skill: string, cases: Case[]): UnifiedConfig {
+export function skillEval(
+  skill: string,
+  cases: Case[],
+): UnifiedConfig & { tests: TestCase[] } {
   const fixtures = [...new Set(cases.map((testCase) => testCase.fixture))];
+  const comparing = process.env.RAVN_EVALS_COMPARE === "1";
 
   const runner = runners.find(
     (candidate) => runnerName(candidate) === requiredEnv("RAVN_EVALS_RUNNER"),
@@ -330,7 +447,9 @@ export function skillEval(skill: string, cases: Case[]): UnifiedConfig {
 
   return {
     description: `${skill}: ${arms.join(" vs ")}`,
-    prompts: ["{{request}}"],
+    prompts: [
+      { label: "skill-request", raw: "{{request}}", function: skillRequest },
+    ],
     providers: fixtures.flatMap((fixture) =>
       arms.map((arm) => provider(fixture, arm, runner)),
     ),
@@ -354,6 +473,8 @@ export function skillEval(skill: string, cases: Case[]): UnifiedConfig {
         },
       },
     },
-    tests: cases.map((testCase) => toTest(skill, testCase, runner.harness)),
+    tests: cases.map((testCase) =>
+      toTest(skill, testCase, runner.harness, comparing),
+    ),
   };
 }

@@ -1,6 +1,6 @@
 # ship idea-to-PR workflow
 
-`/ravn-core:ship` takes a loose idea through planning, a verification skill, the build, and a ready-to-push check to a ready PR with passing CI on its latest commit. It chains `research`, `grilling`, `create-verification-skill` or `maintain-verification-skill`, `principle-prove-it-works`, and `pr`, so one run exercises all of them.
+`/ravn-core:ship` takes a loose idea through planning and verification to a ready PR with passing CI on its latest commit. It uses `grilling`, `pr`, and the applicable `verification-skill` create or maintain reference when the repo has a user-facing surface. A new push invalidates earlier CI proof.
 
 ## Sub-features
 

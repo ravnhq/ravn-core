@@ -36,18 +36,18 @@
 
 **Repro Steps**
 
-<!-- Each step has a screenshot. A reader should be able to follow along visually. -->
+<!-- Replace each screenshot placeholder with a Markdown image pointing at the captured file, relative to this report. -->
 
 1. Navigate to {URL}
-   ![Step 1](screenshots/issue-001-step-1.png)
+   {Step 1 screenshot}
 
 2. {Action -- e.g., click "Settings" in the sidebar}
-   ![Step 2](screenshots/issue-001-step-2.png)
+   {Step 2 screenshot}
 
 3. {Action -- e.g., type "test" in the search field and press Enter}
-   ![Step 3](screenshots/issue-001-step-3.png)
+   {Step 3 screenshot}
 
 4. **Observe:** {what goes wrong -- e.g., the page shows a blank white screen instead of search results}
-   ![Result](screenshots/issue-001-result.png)
+   {Result screenshot}
 
 ---

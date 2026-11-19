@@ -22,12 +22,14 @@ const piEventSchema = z.union([
   z.object({
     type: z.literal("tool_execution_start"),
     toolCallId: z.string(),
+    toolName: z.string(),
     args: z.record(z.string(), z.json()),
   }),
   z.object({
     type: z.literal("tool_execution_end"),
     toolCallId: z.string(),
     isError: z.boolean(),
+    result: z.object({ content: z.unknown() }).optional(),
   }),
   z.object({ type: z.literal("message_end"), message: piMessageSchema }),
   z.object({ type: z.literal("agent_settled") }),
@@ -87,6 +89,32 @@ function skillCallsFrom(events: PiEvent[]): SkillCall[] {
   });
 }
 
+function toolCallsFrom(events: PiEvent[]) {
+  const results = new Map(
+    events.flatMap((event) =>
+      event.type === "tool_execution_end" ? [[event.toolCallId, event]] : [],
+    ),
+  );
+
+  return events.flatMap((event) => {
+    if (event.type !== "tool_execution_start") return [];
+
+    const end = results.get(event.toolCallId);
+
+    if (!end || end.isError || !["read", "bash"].includes(event.toolName))
+      return [];
+
+    return [
+      {
+        name: event.toolName,
+        input: event.args,
+        output: end.result?.content,
+        is_error: false,
+      },
+    ];
+  });
+}
+
 function finalReply(events: PiEvent[]): PiMessage | undefined {
   return events
     .flatMap((event) =>
@@ -103,23 +131,25 @@ function textOf(message: PiMessage): string {
     .join("\n");
 }
 
-const piEnvNames = ["PATH", "HOME", "TMPDIR", "LANG", "PI_CODING_AGENT_DIR"];
+const piEnvNames = ["PATH", "TMPDIR", "LANG"];
 
-function piEnv(): NodeJS.ProcessEnv {
-  return Object.fromEntries(
+function piEnv(home: string): NodeJS.ProcessEnv {
+  const inherited = Object.fromEntries(
     piEnvNames.flatMap((name) => {
       const value = process.env[name];
 
       return value === undefined ? [] : [[name, value]];
     }),
   );
+
+  return { ...inherited, HOME: home, PI_CODING_AGENT_DIR: join(home, "pi") };
 }
 
-function runPi(args: string[], cwd: string): Promise<PiRun> {
+function runPi(args: string[], cwd: string, home: string): Promise<PiRun> {
   return new Promise((done, fail) => {
     const child = spawn("pi", args, {
       cwd,
-      env: piEnv(),
+      env: piEnv(home),
       stdio: ["ignore", "pipe", "pipe"],
     });
 
@@ -218,6 +248,7 @@ export default class PiProvider implements ApiProvider {
         prompt,
       ],
       workingDir,
+      z.string().parse(config.home),
     );
 
     if (run.exitCode !== 0) {
@@ -244,7 +275,11 @@ export default class PiProvider implements ApiProvider {
 
     return {
       output: textOf(reply),
-      metadata: { skillCalls: skillCallsFrom(events) },
+      metadata: {
+        skillCalls: skillCallsFrom(events),
+        toolCalls: toolCallsFrom(events),
+        workingDir,
+      },
     };
   }
 }

@@ -2,7 +2,7 @@
 
 Adapted from pstack `principle-minimize-reader-load`, MIT License, Copyright (c) 2026 Lauren Tan. See [LICENSE.txt](LICENSE.txt).
 
-Maintainability is the work a reader must do to understand code. Track two independent axes: **layers to trace** (indirections between the question and the answer) and **state to hold** (hidden or mutable context the reader must remember). A flat file with 50 globals is as hard to reason about as a 6-layer adapter stack. Guard both: this is the human analog of [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
+Maintainability is the work a reader must do to understand code. Track two independent axes: **layers to trace** (indirections between the question and the answer) and **state to hold** (hidden or mutable context the reader must remember). A flat file with 50 globals is as hard to reason about as a 6-layer adapter stack. Guard both: this is the human analog of [Guard the Context Window](../ship/references/guard-the-context-window.md).
 
 - **Collapse layers** that cost more than they save: wrappers with one caller, adapters with no second implementation, speculative indirection, and pass-through layers that repeat the same methods and arguments. Inline them.
 - **Make adjacent layers change the abstraction.**

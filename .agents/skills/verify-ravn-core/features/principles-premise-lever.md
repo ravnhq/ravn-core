@@ -1,6 +1,6 @@
 # Attack the Premise and Build the Lever
 
-`/ravn-core:principle-attack-the-premise` makes the agent name the belief that earlier failed fixes shared and test it before a new fix, then revert the fixes the evidence refutes. `/ravn-core:principle-build-the-lever` makes the agent do a many-file change with a rerunnable codemod or script instead of hand edits.
+`/ravn-core:principle-attack-the-premise` makes the agent test the belief earlier failed fixes shared before trying another. `deprecate-and-migrate` discloses Build the Lever on the internal path for a many-caller migration, so the reviewable change includes a rerunnable codemod.
 
 ## Sub-features
 
@@ -18,13 +18,13 @@
 - Build one scratch repo per harness and scenario: `node .agents/skills/verify-ravn-core/scripts/scratch.ts principles /tmp/ravn-verify/$RUN_ID/<scenario>-<harness>/work <premise|lever>`. `premise` holds a price module whose `setPrice` writes to a copy of the store, under two commits that fix the read cache instead; its test fails. `lever` holds 30 handlers calling `logEvent` in three shapes (one line, multi-line, template name with a computed payload); its test passes.
 - Load the working-tree skills as the README's Harness runs say, and send one turn each:
   - `premise`: `<invocation> npm test still fails: after setPrice, getPrice returns the old price. My last two commits tried to fix the price cache and neither worked. Fix it and commit. Do not ask me questions.`
-  - `lever`: `<invocation> Replace logEvent(name, payload) in src/log.ts with recordEvent({ name, payload }), migrate every caller, and delete logEvent. Commit when done. Do not ask me questions.`
+  - `lever`: invoke `deprecate-and-migrate`: “Replace `logEvent(name, payload)` with `recordEvent({ name, payload })`. Only code in this repo can call the old function, all callers deploy together, and a coordinated break is permitted. Move every caller and remove the old function. Commit when done.” Require reads of `references/internal-callers.md` and `ship/references/build-the-lever.md`.
 - Check `premise.*`: quote the transcript lines that state and test the premise and their order against the first edit to `src/prices.ts`, then `git log --oneline`, `git show HEAD -- src/prices.ts`, and `node --test`.
 - Check `lever.*`: quote the script's path and the command that ran it, rerun it yourself and quote `git status --short` (empty), then `grep -rn logEvent src` (empty) and `node --test`.
 
 ## Gotchas
 
-- Both skills are `proof: subjective`: the code outcome alone does not show the skill worked. A run that fixes `setPrice` without stating and testing the premise fails `premise.named`, and a correct migration done with per-file edits fails `lever.tool`.
+- Check the process and outcome: a run that fixes `setPrice` without testing the premise fails `premise.named`, and a correct migration done with per-file edits fails `lever.tool`.
 - A one-line `sed` or `perl -pi` misses the multi-line calls; the agent may still use one as its lever for the single-line shape, so judge the whole change by `lever.migrated`.
 - Rerunning the failing test is not a premise test: it fails the same way whether or not the cache is to blame. `premise.named` needs a check whose result depends on the premise.
 - A codemod written outside the repo, such as under `/tmp`, leaves nothing to rerun and fails `lever.tool`, even when the migration is right.

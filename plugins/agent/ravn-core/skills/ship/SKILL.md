@@ -20,7 +20,7 @@ If the user brings only an idea or a problem, lay out two or three ways to appro
 
 ## Step 2. Gather the facts
 
-Trace the code the change touches until you can explain how it works, and use [Why](../why/SKILL.md) when existing behavior looks deliberate or odd. For a library, API, or tool the change builds on, use the `research` skill. For reading that spans many files or large outputs, use [Guard the Context Window](../principle-guard-the-context-window/SKILL.md).
+Trace the code the change touches until you can explain how it works, and use [Why](../why/SKILL.md) when existing behavior looks deliberate or odd. For a library, API, or tool the change builds on, use the `research` skill. For reading that spans many files or large outputs, read [Guard the Context Window](references/guard-the-context-window.md).
 
 For a bug you find mid-change, run [Bug Fix](../bug-fix/SKILL.md)'s Steps 1 to 3 before choosing a fix. For a measured performance or eval claim, use [Explain the Number](../principle-explain-the-number/SKILL.md) to vet the baseline before planning from it.
 
@@ -40,8 +40,8 @@ If the change adds a module or reshapes an interface, use the `codebase-design` 
 
 Apply these principles when their conditions hold:
 
-- For types or function signatures in a statically typed language, use [Type System Discipline](../principle-type-system-discipline/SKILL.md), and in TypeScript also [TypeScript Best Practices](../typescript-best-practices/SKILL.md).
-- For validation, error handling, or framework adapters, use [Boundary Discipline](../principle-boundary-discipline/SKILL.md) and [Fix Root Causes](../principle-fix-root-causes/SKILL.md).
+- For types or function signatures in a statically typed language, read [Type System Discipline](../codebase-design/references/type-system-discipline.md), and in TypeScript also use [TypeScript Best Practices](../typescript-best-practices/SKILL.md).
+- For validation, error handling, or framework adapters, read [Boundary Discipline](../codebase-design/references/boundary-discipline.md) and use [Fix Root Causes](../principle-fix-root-causes/SKILL.md).
 - For mutating commands, lifecycle steps, or loops that retries or interruptions can repeat, use [Make Operations Idempotent](../principle-make-operations-idempotent/SKILL.md).
 - For concurrent actors that might write the same object, use [Separate Before Serializing Shared State](../principle-separate-before-serializing-shared-state/SKILL.md).
 
@@ -74,7 +74,7 @@ Create the branch from the plan; never work on the default branch.
 
 Skip the rest of this step if the repo has no user-facing surface, such as a UI, CLI, or service; Step 10 then relies on the repo's own checks.
 
-Find the repo's project-local verification skill, a `verify-<app>` skill with a `features/` map. If none exists, use [Create Verification Skill](../create-verification-skill/SKILL.md) to bootstrap one. Put it where the repo already keeps its project skills, following its conventions. Commit it as its own commit. If one exists, drive a feature the change touches through it once; if its recipe no longer works, use [Maintain Verification Skill](../maintain-verification-skill/SKILL.md) to correct it. In both cases, commit the verification changes on this branch instead of opening a separate PR.
+Find the repo's `verify-<app>` skill with a `features/` map. If absent, follow [verification-skill create](../verification-skill/references/create.md) and commit the proven guide separately on this branch. If present, drive one affected journey; if its recipe has drifted, follow [verification-skill maintain](../verification-skill/references/maintain.md) and commit the correction here. Step 9 consumes a runnable guide and its baseline evidence, or a named blocker; a launch or fixture change invalidates the affected baseline.
 
 ## Step 9. Build
 
@@ -82,7 +82,7 @@ Work the steps in order and run each step's verification before starting the nex
 
 If the user steps away while you build, keep a decision trail with [Show Me Your Work](../show-me-your-work/SKILL.md).
 
-For a new internal API with old callers, use [Migrate Callers Then Delete Legacy APIs](../codebase-design/MIGRATE-CALLERS.md) when no external users need compatibility and the project permits coordinated breaking changes; when callers outside the repo or another deploy may still use it, use [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md). For tests you write, change, or keep, use [Test the Contract](../principle-test-the-contract/SKILL.md).
+For a replacement with old callers, use [deprecate-and-migrate](../deprecate-and-migrate/SKILL.md) to inventory callers and choose the deploy path. For repeated edits or a check a reviewer must rerun, read [Build the Lever](../principle-build-the-lever/SKILL.md). For tests you write, change, or keep, use [Test the Contract](../principle-test-the-contract/SKILL.md).
 
 ## Step 10. Prove it works
 
@@ -104,4 +104,4 @@ Commit with the repo's commit convention, push the branch, and open a draft PR a
 
 ## Step 13. Deliver green CI
 
-Use [Deliver Green CI](DELIVER-GREEN-CI.md) to wait for checks, repair failures, and verify the latest PR commit before marking it ready. Finish only when its applicable CI checks pass. Report the PR URL, verified head commit, local and CI results with evidence links, and anything from the plan left undone. If blocked, report the failing or missing checks and the concrete blocker as incomplete delivery. Otherwise end the report with how to land the PR: the user runs [Babysit](../babysit/SKILL.md) on it, which clears later review threads and merges only when they ask.
+Give [Deliver Green CI](DELIVER-GREEN-CI.md) the draft PR URL and the expected draft and ready checks from the plan. Every push invalidates the prior CI evidence. Finish only with the PR ready and every applicable check passing on the same verified final head. Report the URL, head, check links, and anything still open. If a check is missing or blocked, report incomplete delivery and name what opens it. For a verified PR, point the user to [Babysit](../babysit/SKILL.md) for later review threads and merging on request.
