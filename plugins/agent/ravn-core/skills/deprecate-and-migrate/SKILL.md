@@ -1,9 +1,12 @@
 ---
 name: deprecate-and-migrate
 description: >-
-  Remove or rename a legacy route, alias, function, export, or field. Use
-  when callers must move or an old name should go away. Keep public names
-  working until outside use is measured at zero.
+  Remove, replace, or rename a route, path, endpoint, alias, function,
+  method, property, export, or field, and move every caller to the
+  replacement ("get rid of the old ones", "drop the old name", "rename X to
+  Y", "switch everything to X", "update everything that calls it").
+  Coordinated one-change breaks for callers that ship together; externally
+  reachable names stay working until outside use is measured at zero.
 license: See LICENSE.txt
 metadata:
   proof: subjective
@@ -17,7 +20,7 @@ Hyrum's law: with enough callers, every observable behavior of the old API is de
 
 **Choose the outcome before editing.** An externally reachable name stays until a fresh inventory finds zero local callers and measured traffic shows zero outside use. A request to delete the name does not count as that evidence.
 
-- **Only removal was requested and the gate is closed:** make no removal edits. Leave every old mapping in place and report a three-step rollout: move outside callers to the named replacement, measure zero use of each old name, then remove it in a later change.
+- **Only removal was requested and the gate is closed:** make no removal edits, not even a subset framed as cleanup. Deleting one reachable alias now is the failure this skill exists to prevent. Leave every old mapping working and report the three-step rollout: move outside callers to the named replacement, measure zero use of each old name, then remove it in a later change.
 - **Callers can move now:** migrate them while preserving the old entry, or use the internal path below if every caller shares a deploy and a coordinated break is allowed.
 
 ## Steps
@@ -30,7 +33,7 @@ Hyrum's law: with enough callers, every observable behavior of the old API is de
 
    Its JSON is the inventory: `count`, `filesSearched`, and each match as `file:line`. A plain search returns the same empty result for "no callers" and for "searched nothing"; the script exits 1 for the second, so fix `--root` or `--exclude` and rerun. Sort every match: caller, definition, test, or docs. Then name the callers no search of this repo can show: other services and repos, clients of a public API or endpoint, schedulers and config outside the repo, rows already stored in the old shape, and the previous release still serving while a deploy rolls out. Done when every match is sorted and each outside caller has a way to measure its usage (logs, a metric, a counter on the old path) or is marked unmeasured.
 
-2. **Choose the path.** Treat HTTP routes and their aliases, queue topics, webhooks, published exports, CLI flags, config or environment keys, shared databases, and stored data as externally reachable even if the inventory found no local caller. If every caller is in the same deploy and a coordinated break is allowed, read [the internal-caller path](references/internal-callers.md) and follow it. For outside or older-deploy callers, follow the steps below in separate deploys.
+2. **Choose the path.** Treat HTTP routes and their aliases, queue topics, webhooks, published exports, CLI flags, config or environment keys, shared databases, and stored data as externally reachable even if the inventory found no local caller. If every caller is in the same deploy and a coordinated break is allowed, read [the internal-caller path](references/internal-callers.md) and follow it; that path routes repeated edits through [Build the Lever](../principle-build-the-lever/SKILL.md), so read that skill too. For outside or older-deploy callers, follow the steps below in separate deploys.
 
 3. **Expand.** Add the new API beside the old one. The old one keeps its behavior, as is or as a thin adapter over the new one. Mark it deprecated where its callers will see it (a `@deprecated` tag, a deprecation header or log line, a note naming the replacement), and count its use. Public consumers get a notice with the replacement, a migration guide, and a removal condition based on measured usage, with any contractual notice period as a floor. For a schema change: add the new column, table, or field as nullable or defaulted, dual-write old and new, and backfill existing rows in throttled batches. Every migration has a down path you have run.
 
@@ -43,3 +46,4 @@ Hyrum's law: with enough callers, every observable behavior of the old API is de
 - **Inventory:** the commands you ran, the count and files, and each outside caller with how its usage is measured.
 - **Plan:** the phases, the deploy each lands in, where each outside caller is configured and the change that moves it to the replacement, and the measured condition that opens contract.
 - **Done now:** the phase this change reached, the checks you ran, and the callers left.
+- **Lever:** when the internal path applied, the codemod's path in the tree, the command that ran it, the files it changed, and the rerun that changed nothing.
