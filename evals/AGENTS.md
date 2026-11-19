@@ -34,6 +34,8 @@ Each skill carries these case kinds; `skillEval` turns each into its promptfoo t
 3. `route`: a near-miss that belongs to a model-invocable sibling skill, which must be used instead.
 4. `stay-out`: a plain task where no listed skill should fire. At least one lists the skill under test.
 
+Each model-invocable skill grows toward about 20 selection cases: 8 to 10 native triggers and 8 to 10 near-misses (routes and stay-outs), judged by their rate across repeats. Tag those added for that set with `metadata: { set: "trigger-20" }`. `run.ts` includes them only when `--repeat` is above 1, as in `pnpm eval:compare`, so the single-run gate stays small; `report.ts` gives their rates.
+
 A case that needs work in progress sets `edits`: find-and-replace edits applied to the fixture before the run and left uncommitted.
 
 For a trigger or quality case that must reach a disclosed file, set `references` to paths relative to the installed skills directory, including the owning skill (for example `example/references/options.md`). This checks a completed Read or shell output containing the file's text. Promptfoo's `skill-used` proves entry selection, not a reference read. Claude supplies tool calls, Codex supplies command items, and Pi collects read and shell completions from its live events. `pnpm eval` gates quality on these reads; `pnpm eval:compare` leaves them out of quality scoring rather than awarding pass credit to an arm that cannot load the current path. Current-only trigger cases still check their reads.

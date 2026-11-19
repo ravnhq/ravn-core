@@ -297,6 +297,9 @@ try {
       RAVN_EVALS_HOME: isolatedHomeDir,
       RAVN_EVALS_RUNNER: runner,
       RAVN_EVALS_COMPARE: arms.length > 1 ? "1" : "0",
+      // A trigger rate needs repeats, so the 20-query trigger sets run only
+      // in repeated runs such as eval:compare, not in the single-run gate.
+      RAVN_EVALS_TRIGGER_SETS: repeat > 1 ? "1" : "0",
       RAVN_EVALS_OTLP_PORT: String(await freePort()),
     };
 

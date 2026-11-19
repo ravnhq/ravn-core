@@ -436,6 +436,7 @@ export function skillEval(
 ): UnifiedConfig & { tests: TestCase[] } {
   const fixtures = [...new Set(cases.map((testCase) => testCase.fixture))];
   const comparing = process.env.RAVN_EVALS_COMPARE === "1";
+  const triggerSets = process.env.RAVN_EVALS_TRIGGER_SETS === "1";
 
   const runner = runners.find(
     (candidate) => runnerName(candidate) === requiredEnv("RAVN_EVALS_RUNNER"),
@@ -480,8 +481,10 @@ export function skillEval(
         },
       },
     },
-    tests: cases.map((testCase) =>
-      toTest(skill, testCase, runner.harness, comparing),
+    tests: cases.flatMap((testCase) =>
+      triggerSets || testCase.metadata?.set !== "trigger-20"
+        ? [toTest(skill, testCase, runner.harness, comparing)]
+        : [],
     ),
   };
 }
