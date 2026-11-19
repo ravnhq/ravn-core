@@ -2,6 +2,7 @@ import { expect, test } from "claude-code/testing";
 import type { Engine } from "claude-code/testing";
 
 import {
+  ACTIVE_MESSAGES,
   STOCK_TEXT,
   band,
   describe,
@@ -11,8 +12,11 @@ import {
   world,
 } from "./support.ts";
 
-const RESEARCH =
-  '{"skill": "ravn-core:research", "reason": "You are weighing approaches; research what others did first."}';
+const RESEARCH = JSON.stringify({
+  skill: "ravn-core:research",
+  reason: "You are weighing approaches; research what others did first.",
+  evidence: "U1",
+});
 
 const toggle = {
   command: "skill-nudge",
@@ -51,7 +55,7 @@ test("asks Haiku after two answered turns and shows the skill above the prompt",
 });
 
 test("draws nothing of its own when Haiku suggests no skill or an unlisted one", async ($, on) => {
-  const { judged, requests, setReply } = world(on);
+  const { judged, requests, reviews, setReply } = world(on);
   await $.session.start(sessionStart);
   await finishTurns($, 2);
   await judged(1);
@@ -62,7 +66,39 @@ test("draws nothing of its own when Haiku suggests no skill or an unlisted one",
   await finishTurns($, 2);
   await judged(2);
   expect(requests.length).toBe(2);
+  expect(reviews.length).toBe(0);
   expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
+});
+
+test("a proposed tip is checked against the whole answer before it can show", async ($, on) => {
+  const { judged, reviews, setReview } = world(on, {
+    reply: RESEARCH,
+    messages: [
+      ...ACTIVE_MESSAGES.slice(0, 1),
+      {
+        role: "assistant",
+        text: `There were two options. ${"Comparison detail. ".repeat(100)}I compared both against three primary sources. A gateway limit fits this app.`,
+        toolUses: [],
+      },
+    ],
+  });
+
+  await $.session.start(sessionStart);
+  setReview('{"verdict":"already-done"}');
+  await finishTurns($, 2);
+  await judged(1);
+  expect(reviews.length).toBe(1);
+  expect(reviews[0]!.prompt).toContain(
+    "I compared both against three primary sources.",
+  );
+  expect(reviews[0]!.prompt).not.toContain("Deploy the app");
+  expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
+
+  // A rejected tip wasn't shown, so it isn't marked as offered.
+  setReview('{"verdict":"keep"}');
+  await finishTurns($, 2);
+  await judged(2);
+  expect(textOf(await $.ui.render(band))).toContain("ravn-core:research");
 });
 
 test("stays quiet in a non-interactive session", async ($, on) => {
@@ -117,7 +153,7 @@ test("the tip answers a bare digit from the empty prompt, as a survey does", asy
   await ui.unmount();
 });
 
-test("a new prompt clears the tip and drops a judgment still in flight", async ($, on) => {
+test("a new prompt drops a judgment still in flight", async ($, on) => {
   const { clock, holdModel, judged } = world(on, { reply: RESEARCH });
   await $.session.start(sessionStart);
   const release = holdModel();
@@ -150,6 +186,7 @@ test("never offers the same skill twice, nor one the session already ran", async
         ],
       },
       { role: "user", text: "/deploy staging", toolUses: [] },
+      ...ACTIVE_MESSAGES,
     ],
   });
 
@@ -170,7 +207,11 @@ test("never offers the same skill twice, nor one the session already ran", async
 
 test("a reply that drops the plugin prefix still names the one listed skill", async ($, on) => {
   const { judged, fills } = world(on, {
-    reply: '{"skill": "research", "reason": "You are weighing approaches."}',
+    reply: JSON.stringify({
+      skill: "research",
+      reason: "You are weighing approaches.",
+      evidence: "U1",
+    }),
   });
 
   await $.session.start(sessionStart);
@@ -179,6 +220,45 @@ test("a reply that drops the plugin prefix still names the one listed skill", as
   await $.ui.render(band);
   await $.ui.press({ plugin: "skill-nudge", key: "use" });
   expect(fills).toEqual(["/ravn-core:research "]);
+});
+
+test("a tip must name an evidence ID supplied for the latest exchange", async ($, on) => {
+  const { judged, setReply } = world(on, {
+    reply: JSON.stringify({
+      skill: "research",
+      reason: "Check what other teams did.",
+      evidence: "What do other teams do about rate limiting?",
+    }),
+    messages: [
+      ...ACTIVE_MESSAGES,
+      {
+        role: "user",
+        text: "Can you reproduce the failure now?",
+        toolUses: [],
+      },
+      {
+        role: "assistant",
+        text: "I can check, but haven't run the endpoint.",
+        toolUses: [],
+      },
+    ],
+  });
+
+  await $.session.start(sessionStart);
+  await finishTurns($, 2);
+  await judged(1);
+  expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
+
+  setReply(
+    JSON.stringify({
+      skill: "research",
+      reason: "Check the endpoint before drawing a conclusion.",
+      evidence: "A1",
+    }),
+  );
+  await finishTurns($, 2);
+  await judged(2);
+  expect(textOf(await $.ui.render(band))).toContain("Check the endpoint");
 });
 
 test("Use asks Claude to run a skill hidden from the / menu, as a user-invocable: false skill is", async ($, on) => {
