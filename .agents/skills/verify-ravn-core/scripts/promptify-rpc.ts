@@ -84,6 +84,7 @@ async function driveRpc(): Promise<void> {
       "--mode",
       "rpc",
       "--no-session",
+      "--no-extensions",
       "--no-skills",
       "--no-context-files",
       "--no-mcp",
