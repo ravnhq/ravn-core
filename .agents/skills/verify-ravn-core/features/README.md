@@ -76,6 +76,7 @@ Claude Code mods:
 - [Architecture survey](./improve-codebase-architecture.md) covers the HTML shortlist before a design choice.
 - [Writing for agents](./writing-for-agents.md) covers writing a runnable common contract and a reachable branch reference.
 - [Shared state ownership](./shared-state-ownership.md) covers the retained standalone principle on independent and truly shared writes.
+- [Promptify](./promptify.md) covers the host-neutral engine, Pi surfaces, real Pi RPC editor delivery, and packaged exports.
 
 ## Not covered
 
