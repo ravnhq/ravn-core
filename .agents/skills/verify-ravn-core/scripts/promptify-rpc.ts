@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { resolve } from "node:path";
+import { once } from "node:events";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { createInterface } from "node:readline";
 import { z } from "zod";
 
@@ -77,6 +80,8 @@ async function driveRpc(): Promise<void> {
 
   const extension = resolve("plugins/agent/ravn-core/pi/promptify.ts");
 
+  const agentDir = mkdtempSync(join(tmpdir(), "ravn-promptify-rpc-"));
+
   const child = spawn(
     process.execPath,
     [
@@ -91,7 +96,10 @@ async function driveRpc(): Promise<void> {
       "--extension",
       extension,
     ],
-    { stdio: ["pipe", "pipe", "pipe"] },
+    {
+      env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },
+      stdio: ["pipe", "pipe", "pipe"],
+    },
   );
 
   let stderr = "";
@@ -187,7 +195,13 @@ async function driveRpc(): Promise<void> {
   } finally {
     lines.close();
     child.stdin.end();
-    child.kill();
+
+    if (child.exitCode === null && child.signalCode === null) {
+      child.kill();
+      await once(child, "exit");
+    }
+
+    rmSync(agentDir, { force: true, recursive: true });
   }
 }
 
