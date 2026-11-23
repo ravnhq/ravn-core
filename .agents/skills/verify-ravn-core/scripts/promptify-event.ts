@@ -65,7 +65,43 @@ interface Proof {
   readonly agentRunStarted: boolean;
 }
 
+async function verifyCommandOrder(): Promise<void> {
+  let commandActive = true;
+  let sentDuringCommand: boolean | undefined;
+
+  await presentPromptify({
+    result: {
+      request: "original",
+      draft,
+      answer: `<promptify-draft>${draft}</promptify-draft>`,
+    },
+    surface: createPiPromptifySurface({
+      mode: "rpc",
+      hasUI: false,
+      ui: {
+        getEditorText: () => "",
+        setEditorText: () => undefined,
+        editor: async () => undefined,
+      },
+      pi: {
+        sendMessage: () => {
+          sentDuringCommand = commandActive;
+        },
+      },
+      customType,
+    }),
+  });
+
+  commandActive = false;
+
+  await new Promise<void>((resolvePromise) => setImmediate(resolvePromise));
+
+  assert.equal(sentDuringCommand, false);
+}
+
 async function driveRpc(): Promise<void> {
+  await verifyCommandOrder();
+
   const cli = fileURLToPath(
     new URL(
       "./bundle/cli.js",
