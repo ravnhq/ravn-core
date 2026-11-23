@@ -187,7 +187,6 @@ export default function promptify(pi: ExtensionAPI) {
                   "json",
                   "-p",
                   "--no-extensions",
-                  "--no-mcp",
                   "--no-skills",
                   "--no-context-files",
                   "--tools",

@@ -21,7 +21,6 @@ const promptResponseSchema = z.object({
   id: z.literal(promptId),
   command: z.literal("prompt"),
   success: z.literal(true),
-  data: z.object({ disposition: z.literal("handled") }),
 });
 
 const eventTypeSchema = z.object({ type: z.string() });
@@ -87,7 +86,6 @@ async function driveRpc(): Promise<void> {
       "--no-extensions",
       "--no-skills",
       "--no-context-files",
-      "--no-mcp",
       "--extension",
       extension,
     ],
