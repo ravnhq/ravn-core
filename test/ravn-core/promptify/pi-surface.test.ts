@@ -13,6 +13,7 @@ const result = {
 function host() {
   let editorText = "existing";
   const dialogs: Array<{ title: string; prefill?: string }> = [];
+  const deferred: Array<() => void> = [];
 
   const messages: Array<{
     customType: string;
@@ -42,7 +43,15 @@ function host() {
     },
   };
 
-  return { ui, pi, dialogs, messages, editorText: () => editorText };
+  return {
+    ui,
+    pi,
+    dialogs,
+    messages,
+    defer: (task: () => void) => deferred.push(task),
+    runDeferred: () => deferred.splice(0).forEach((task) => task()),
+    editorText: () => editorText,
+  };
 }
 
 test("Pi TUI maps Promptify to the composer", async () => {
@@ -55,6 +64,7 @@ test("Pi TUI maps Promptify to the composer", async () => {
       ui: target.ui,
       pi: target.pi,
       customType: "promptify",
+      defer: target.defer,
     }),
   });
   assert.equal(target.editorText(), "rewritten\n\nexisting");
@@ -72,6 +82,7 @@ test("Pi RPC maps Promptify to one editable dialog", async () => {
       ui: target.ui,
       pi: target.pi,
       customType: "promptify",
+      defer: target.defer,
     }),
   });
   assert.equal(target.editorText(), "existing");
@@ -81,8 +92,8 @@ test("Pi RPC maps Promptify to one editable dialog", async () => {
   assert.deepEqual(target.messages, []);
 });
 
-test("headless Pi modes emit a displayed message without triggering a turn", async () => {
-  for (const mode of ["json", "print"] as const) {
+test("Pi without host UI emits only after the handled command settles", async () => {
+  for (const mode of ["rpc", "json", "print"] as const) {
     const target = host();
     await presentPromptify({
       result,
@@ -92,8 +103,13 @@ test("headless Pi modes emit a displayed message without triggering a turn", asy
         ui: target.ui,
         pi: target.pi,
         customType: "promptify",
+        defer: target.defer,
       }),
     });
+    assert.deepEqual(target.messages, []);
+
+    target.runDeferred();
+
     assert.deepEqual(target.messages, [
       {
         customType: "promptify",
