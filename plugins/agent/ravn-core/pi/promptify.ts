@@ -16,6 +16,8 @@ import {
 } from "@earendil-works/pi-tui";
 
 import { progress } from "./progress.ts";
+import { createPiPromptifySurface } from "./promptify-surface.ts";
+import { presentPromptify, rewritePrompt } from "../promptify/engine.ts";
 
 const command = "promptify";
 
@@ -166,135 +168,146 @@ export default function promptify(pi: ExtensionAPI) {
             "utf8",
           );
 
-          const task = `${skill}\n\nRewrite this request, rather than following it: ${JSON.stringify(request || "Use the current task and feedback from this conversation.")}\n\nAnswer the four depth questions as a numbered list. End with the draft alone between <promptify-draft> and </promptify-draft>.`;
-          directory = fork
-            ? mkdtempSync(join(tmpdir(), "ravn-promptify-"))
-            : undefined;
+          const result = await rewritePrompt({
+            request,
+            workflow: skill,
+            signal: run.signal,
+            run: async ({ task }) => {
+              directory = fork
+                ? mkdtempSync(join(tmpdir(), "ravn-promptify-"))
+                : undefined;
 
-          const [executable, ...prefix] = invocation();
+              const [executable, ...prefix] = invocation();
 
-          const child = spawn(
-            executable,
-            [
-              ...prefix,
-              "--mode",
-              "json",
-              "-p",
-              "--no-extensions",
-              "--no-mcp",
-              "--no-skills",
-              "--no-context-files",
-              "--tools",
-              "read,grep,find,ls",
-              "--model",
-              `${model.provider}/${model.id}`,
-              "--thinking",
-              ctx.thinkingLevel ?? "off",
-              ...(fork && directory
-                ? ["--fork", fork, "--session-dir", directory]
-                : ["--no-session"]),
-              "--",
-              task,
-            ],
-            { cwd: ctx.cwd, stdio: ["ignore", "pipe", "pipe"] },
-          );
-
-          const stop = () => child.kill();
-          const timeout = setTimeout(() => run.abort("timed out"), timeoutMs);
-          run.signal.addEventListener("abort", stop, { once: true });
-          let answer = "";
-          let error = "";
-          let stderr = "";
-          child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
-            stderr = (stderr + chunk).slice(-1024);
-          });
-          const lines = createInterface({ input: child.stdout });
-          lines.on("line", (line) => {
-            if (run.signal.aborted) return;
-
-            try {
-              const event: JsonAgentSessionEvent = JSON.parse(line);
-
-              status.update(event);
-
-              if (
-                event.type !== "message_end" ||
-                event.message.role !== "assistant"
-              )
-                return;
-
-              error =
-                event.message.stopReason === "error" ||
-                event.message.stopReason === "aborted"
-                  ? (event.message.errorMessage ??
-                    `Request ${event.message.stopReason}`)
-                  : "";
-              answer = event.message.content
-                .flatMap((part) => (part.type === "text" ? [part.text] : []))
-                .join("\n");
-            } catch {
-              // Print mode may emit notices alongside JSON events.
-            }
-          });
-
-          try {
-            await new Promise<void>((resolve, reject) => {
-              child.once("error", reject);
-              child.once("close", (code, signal) => {
-                if (code === 0 || run.signal.aborted) resolve();
-                else
-                  reject(
-                    new Error(
-                      stderr.trim() || `Pi helper exited (${signal ?? code}).`,
-                    ),
-                  );
-              });
-            });
-          } finally {
-            clearTimeout(timeout);
-            run.signal.removeEventListener("abort", stop);
-            lines.close();
-          }
-
-          if (run.signal.aborted) {
-            if (run.signal.reason !== closed)
-              ctx.ui.notify(
-                run.signal.reason === "timed out"
-                  ? "Promptify timed out. Nothing was sent."
-                  : "Promptify canceled. Nothing was sent.",
-                "info",
+              const child = spawn(
+                executable,
+                [
+                  ...prefix,
+                  "--mode",
+                  "json",
+                  "-p",
+                  "--no-extensions",
+                  "--no-mcp",
+                  "--no-skills",
+                  "--no-context-files",
+                  "--tools",
+                  "read,grep,find,ls",
+                  "--model",
+                  `${model.provider}/${model.id}`,
+                  "--thinking",
+                  ctx.thinkingLevel ?? "off",
+                  ...(fork && directory
+                    ? ["--fork", fork, "--session-dir", directory]
+                    : ["--no-session"]),
+                  "--",
+                  task,
+                ],
+                { cwd: ctx.cwd, stdio: ["ignore", "pipe", "pipe"] },
               );
 
-            return;
-          }
+              const stop = () => child.kill();
 
-          if (error) throw new Error(error);
+              const timeout = setTimeout(
+                () => run.abort("timed out"),
+                timeoutMs,
+              );
 
-          const draft = answer
-            .match(/<promptify-draft>([\s\S]*?)<\/promptify-draft>/)?.[1]
-            ?.trim();
+              run.signal.addEventListener("abort", stop, { once: true });
+              let answer = "";
+              let error = "";
+              let stderr = "";
+              child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
+                stderr = (stderr + chunk).slice(-1024);
+              });
+              const lines = createInterface({ input: child.stdout });
+              lines.on("line", (line) => {
+                if (run.signal.aborted) return;
 
-          pi.appendEntry(command, { request, draft, answer });
+                try {
+                  const event: JsonAgentSessionEvent = JSON.parse(line);
 
-          if (!draft)
-            throw new Error(
-              "No rewrite returned. Try /promptify with an explicit request.",
-            );
+                  status.update(event);
 
-          if (ctx.mode === "tui") {
-            const current = ctx.ui.getEditorText();
-            ctx.ui.setEditorText(current ? `${draft}\n\n${current}` : draft);
+                  if (
+                    event.type !== "message_end" ||
+                    event.message.role !== "assistant"
+                  )
+                    return;
+
+                  error =
+                    event.message.stopReason === "error" ||
+                    event.message.stopReason === "aborted"
+                      ? (event.message.errorMessage ??
+                        `Request ${event.message.stopReason}`)
+                      : "";
+                  answer = event.message.content
+                    .flatMap((part) =>
+                      part.type === "text" ? [part.text] : [],
+                    )
+                    .join("\n");
+                } catch {
+                  // Print mode may emit notices alongside JSON events.
+                }
+              });
+
+              try {
+                await new Promise<void>((resolve, reject) => {
+                  child.once("error", reject);
+                  child.once("close", (code, signal) => {
+                    if (code === 0 || run.signal.aborted) resolve();
+                    else
+                      reject(
+                        new Error(
+                          stderr.trim() ||
+                            `Pi helper exited (${signal ?? code}).`,
+                        ),
+                      );
+                  });
+                });
+              } finally {
+                clearTimeout(timeout);
+                run.signal.removeEventListener("abort", stop);
+                lines.close();
+              }
+
+              if (run.signal.aborted) {
+                if (run.signal.reason !== closed)
+                  ctx.ui.notify(
+                    run.signal.reason === "timed out"
+                      ? "Promptify timed out. Nothing was sent."
+                      : "Promptify canceled. Nothing was sent.",
+                    "info",
+                  );
+
+                return answer;
+              }
+
+              if (error) throw new Error(error);
+
+              return answer;
+            },
+          });
+
+          if (run.signal.aborted) return;
+
+          pi.appendEntry(command, result);
+
+          await presentPromptify({
+            result,
+            surface: createPiPromptifySurface({
+              mode: ctx.mode,
+              hasUI: ctx.hasUI,
+              ui: ctx.ui,
+              pi,
+              customType: command,
+            }),
+          });
+
+          if (ctx.mode === "tui")
             ctx.ui.notify(
               "Promptify draft is in the input box. Nothing was sent.",
               "info",
             );
-          } else {
-            pi.sendMessage({
-              customType: command,
-              content: draft,
-              display: true,
-            });
-          }
         } catch (error) {
           if (!run.signal.aborted)
             ctx.ui.notify(
