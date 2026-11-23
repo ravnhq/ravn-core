@@ -20,6 +20,7 @@ Promptify rewrites a request without submitting the draft: TUI hosts prepend it 
 Preconditions: `pnpm install` done. The RPC driver uses Pi's real host and extension but replaces the nested helper response with a deterministic draft, so it needs no login or API budget.
 
 - Run `node .agents/skills/verify-ravn-core/scripts/collect.ts promptify-rpc node .agents/skills/verify-ravn-core/scripts/promptify-rpc.ts`. Expect exit 0. In `stdout.txt`, `promptHandled` is `true`, `agentRunStarted` is `false`, and the editor title and prefill are `Promptify draft` and `deterministic rewrite`.
+- Run `node .agents/skills/verify-ravn-core/scripts/collect.ts promptify-event node .agents/skills/verify-ravn-core/scripts/promptify-event.ts`. Expect exit 0. In `stdout.txt`, `promptHandled` and `customMessage` are `true`, and `agentRunStarted` is `false`.
 - Run `node .agents/skills/verify-ravn-core/scripts/collect.ts promptify-contract node --test test/ravn-core/promptify/*.test.ts`. Expect exit 0 and eight passing tests in `stdout.txt`.
 - Run `node .agents/skills/verify-ravn-core/scripts/collect.ts promptify-package npm pack --dry-run --json --ignore-scripts --workspace=false plugins/agent/ravn-core`. Expect exit 0. In `stdout.txt`, the file list includes `promptify/engine.ts` and `pi/promptify-surface.ts`.
 
