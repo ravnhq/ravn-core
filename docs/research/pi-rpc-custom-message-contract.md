@@ -27,9 +27,12 @@ contract: show the draft without asking the main agent to execute it. See
    `pi.sendMessage()`](https://github.com/earendil-works/pi/blob/v1.5.2/packages/coding-agent/docs/extensions.md#pisendmessagemessage-options)
 
 2. Pi's implementation appends the custom message, then emits both
-   `message_start` and `message_end` events with `role: "custom"`. An RPC host
-   therefore receives a complete, durable message event even though no agent
-   turn starts. [Pi `AgentSession.sendCustomMessage()` source](https://github.com/earendil-works/pi/blob/v1.5.2/packages/coding-agent/src/core/agent-session.ts#L1931-L1985)
+   `message_start` and `message_end` events with `role: "custom"`. However, an
+   extension command is still marked streaming until its handler returns. A
+   non-triggering message sent before that return is queued for the end of the
+   current turn; a handled command that starts no agent run has no such end, so
+   the message can remain queued. Event-only adapters must schedule publication
+   after the handler settles. [Pi `AgentSession.sendCustomMessage()` source](https://github.com/earendil-works/pi/blob/v1.5.2/packages/coding-agent/src/core/agent-session.ts#L1931-L1985)
 
 3. `pi.sendUserMessage()` is not a display-only substitute. When idle it sends
    a real user message and always starts a new agent turn. Using it for the
@@ -45,7 +48,8 @@ contract: show the draft without asking the main agent to execute it. See
 
 ## Recommendation
 
-Keep ravn-core's non-TUI `pi.sendMessage({ display: true })` behavior. The
+Keep ravn-core's non-TUI `pi.sendMessage({ display: true })` behavior, but issue
+it after the handled command returns. The
 integration boundary should translate Pi `message_start`/`message_end` events
 whose message role is `custom` into a visible transcript item (while preserving
 that it is not an assistant-model response). It should then settle the handled
