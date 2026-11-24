@@ -53,6 +53,8 @@ export default function promptifyEventVerification(pi: ExtensionAPI): void {
           ui: ctx.ui,
           pi,
           customType,
+          isIdle: () => ctx.isIdle(),
+          onAgentSettled: (task) => pi.on("agent_settled", () => task()),
         }),
       });
     },
@@ -68,6 +70,7 @@ interface Proof {
 async function verifyCommandOrder(): Promise<void> {
   let commandActive = true;
   let sentDuringCommand: boolean | undefined;
+  const settled: Array<() => void> = [];
 
   await presentPromptify({
     result: {
@@ -89,12 +92,18 @@ async function verifyCommandOrder(): Promise<void> {
         },
       },
       customType,
+      isIdle: () => false,
+      onAgentSettled: (task) => {
+        settled.push(task);
+
+        return () => undefined;
+      },
     }),
   });
 
+  assert.equal(sentDuringCommand, undefined);
   commandActive = false;
-
-  await new Promise<void>((resolvePromise) => setImmediate(resolvePromise));
+  settled.forEach((task) => task());
 
   assert.equal(sentDuringCommand, false);
 }

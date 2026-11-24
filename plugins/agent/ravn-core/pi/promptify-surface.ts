@@ -27,7 +27,8 @@ interface CreatePiPromptifySurfaceInput {
   readonly ui: PromptifyUi;
   readonly pi: PromptifyPi;
   readonly customType: string;
-  readonly defer?: (task: () => void) => void;
+  readonly isIdle: () => boolean;
+  readonly onAgentSettled: (task: () => void) => () => void;
 }
 
 export function createPiPromptifySurface({
@@ -36,8 +37,27 @@ export function createPiPromptifySurface({
   ui,
   pi,
   customType,
-  defer = (task) => setImmediate(task),
+  isIdle,
+  onAgentSettled,
 }: CreatePiPromptifySurfaceInput): PromptifySurface {
+  const emitWhenIdle = (draft: string) => {
+    const emit = () =>
+      pi.sendMessage({ customType, content: draft, display: true });
+
+    if (isIdle()) {
+      emit();
+
+      return;
+    }
+
+    let unsubscribe = () => {};
+
+    unsubscribe = onAgentSettled(() => {
+      unsubscribe();
+      emit();
+    });
+  };
+
   switch (mode) {
     case "tui":
       return {
@@ -50,19 +70,13 @@ export function createPiPromptifySurface({
 
       return {
         kind: "event",
-        emit: (draft) =>
-          defer(() =>
-            pi.sendMessage({ customType, content: draft, display: true }),
-          ),
+        emit: emitWhenIdle,
       };
     case "json":
     case "print":
       return {
         kind: "event",
-        emit: (draft) =>
-          defer(() =>
-            pi.sendMessage({ customType, content: draft, display: true }),
-          ),
+        emit: emitWhenIdle,
       };
     default: {
       const exhaustive: never = mode;

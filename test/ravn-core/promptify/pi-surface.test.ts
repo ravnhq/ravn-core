@@ -12,8 +12,9 @@ const result = {
 
 function host() {
   let editorText = "existing";
+  let idle = true;
   const dialogs: Array<{ title: string; prefill?: string }> = [];
-  const deferred: Array<() => void> = [];
+  const settled: Array<() => void> = [];
 
   const messages: Array<{
     customType: string;
@@ -48,8 +49,23 @@ function host() {
     pi,
     dialogs,
     messages,
-    defer: (task: () => void) => deferred.push(task),
-    runDeferred: () => deferred.splice(0).forEach((task) => task()),
+    isIdle: () => idle,
+    setIdle: (value: boolean) => {
+      idle = value;
+    },
+    onAgentSettled: (task: () => void) => {
+      settled.push(task);
+
+      return () => {
+        const index = settled.indexOf(task);
+
+        if (index !== -1) settled.splice(index, 1);
+      };
+    },
+    settle: () => {
+      idle = true;
+      settled.slice().forEach((task) => task());
+    },
     editorText: () => editorText,
   };
 }
@@ -64,7 +80,8 @@ test("Pi TUI maps Promptify to the composer", async () => {
       ui: target.ui,
       pi: target.pi,
       customType: "promptify",
-      defer: target.defer,
+      isIdle: target.isIdle,
+      onAgentSettled: target.onAgentSettled,
     }),
   });
   assert.equal(target.editorText(), "rewritten\n\nexisting");
@@ -82,7 +99,8 @@ test("Pi RPC maps Promptify to one editable dialog", async () => {
       ui: target.ui,
       pi: target.pi,
       customType: "promptify",
-      defer: target.defer,
+      isIdle: target.isIdle,
+      onAgentSettled: target.onAgentSettled,
     }),
   });
   assert.equal(target.editorText(), "existing");
@@ -95,6 +113,7 @@ test("Pi RPC maps Promptify to one editable dialog", async () => {
 test("Pi without host UI emits only after the handled command settles", async () => {
   for (const mode of ["rpc", "json", "print"] as const) {
     const target = host();
+    target.setIdle(false);
     await presentPromptify({
       result,
       surface: createPiPromptifySurface({
@@ -103,12 +122,13 @@ test("Pi without host UI emits only after the handled command settles", async ()
         ui: target.ui,
         pi: target.pi,
         customType: "promptify",
-        defer: target.defer,
+        isIdle: target.isIdle,
+        onAgentSettled: target.onAgentSettled,
       }),
     });
     assert.deepEqual(target.messages, []);
 
-    target.runDeferred();
+    target.settle();
 
     assert.deepEqual(target.messages, [
       {
@@ -120,4 +140,27 @@ test("Pi without host UI emits only after the handled command settles", async ()
     assert.deepEqual(target.dialogs, []);
     assert.equal(target.editorText(), "existing");
   }
+});
+
+test("Pi without host UI emits immediately when no command turn is active", async () => {
+  const target = host();
+  await presentPromptify({
+    result,
+    surface: createPiPromptifySurface({
+      mode: "rpc",
+      hasUI: false,
+      ui: target.ui,
+      pi: target.pi,
+      customType: "promptify",
+      isIdle: target.isIdle,
+      onAgentSettled: target.onAgentSettled,
+    }),
+  });
+  assert.deepEqual(target.messages, [
+    {
+      customType: "promptify",
+      content: "rewritten",
+      display: true,
+    },
+  ]);
 });
