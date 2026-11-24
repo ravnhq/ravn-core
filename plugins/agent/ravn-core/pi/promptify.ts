@@ -300,6 +300,8 @@ export default function promptify(pi: ExtensionAPI) {
               ui: ctx.ui,
               pi,
               customType: command,
+              isIdle: () => ctx.isIdle(),
+              onAgentSettled: (task) => pi.on("agent_settled", () => task()),
             }),
           });
 
