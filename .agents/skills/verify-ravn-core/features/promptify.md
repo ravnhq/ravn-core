@@ -12,7 +12,7 @@ Promptify rewrites a request without submitting the draft: TUI hosts prepend it 
 ## How to get to it (user POV)
 
 - In Pi TUI, run `/promptify <request>` and find the draft in the composer.
-- From a Pi RPC client, send `/promptify <request>`, answer the editor request, and receive the handled prompt disposition.
+- From a Pi RPC client, send `/promptify <request>`, receive the handled prompt disposition, then review the draft in the editor. The prompt response does not wait for the editor to close.
 - In Pi JSON or print mode, run the command and consume the displayed custom message.
 
 ## Driving it with Node and npm

@@ -330,7 +330,10 @@ export default function promptify(pi: ExtensionAPI) {
         }
       };
 
-      if (ctx.mode === "tui") void finish();
+      // RPC hosts time out unanswered prompt requests. A draft editor can
+      // stay open indefinitely, so acknowledge the command before showing it.
+      if (ctx.mode === "tui" || (ctx.mode === "rpc" && ctx.hasUI))
+        void finish();
       else await finish();
     },
   });
