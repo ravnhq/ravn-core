@@ -112,8 +112,11 @@ async function driveRpc(): Promise<void> {
   const lines = createInterface({ input: child.stdout });
 
   const completed = new Promise<RpcProof>((resolveProof, rejectProof) => {
+    let promptHandled = false;
+
     const timeout = setTimeout(
-      () => rejectProof(new Error(`Pi RPC timed out. ${stderr}`)),
+      () =>
+        rejectProof(new Error(`Pi RPC did not deliver the draft. ${stderr}`)),
       10_000,
     );
 
@@ -134,6 +137,16 @@ async function driveRpc(): Promise<void> {
       const editorRequest = editorRequestSchema.safeParse(value);
 
       if (editorRequest.success) {
+        clearTimeout(timeout);
+
+        if (!promptHandled) {
+          rejectProof(
+            new Error("Pi opened the editor before acknowledging /promptify"),
+          );
+
+          return;
+        }
+
         editor = {
           method: editorRequest.data.method,
           title: editorRequest.data.title,
@@ -146,23 +159,12 @@ async function driveRpc(): Promise<void> {
             value: editorRequest.data.prefill ?? "",
           })}\n`,
         );
+        resolveProof({ promptHandled, agentRunStarted, editor });
       }
 
       const promptResponse = promptResponseSchema.safeParse(value);
 
-      if (!promptResponse.success) return;
-
-      clearTimeout(timeout);
-
-      if (!editor) {
-        rejectProof(
-          new Error("Pi handled /promptify without opening an editor"),
-        );
-
-        return;
-      }
-
-      resolveProof({ promptHandled: true, agentRunStarted, editor });
+      if (promptResponse.success) promptHandled = true;
     });
 
     child.once("error", rejectProof);
