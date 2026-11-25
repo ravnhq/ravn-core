@@ -13,7 +13,7 @@
       "name": "ravn-core",
       "source": "./plugins/agent/ravn-core",
       "description": "Core Ravn agent plugin. Bundles reusable skills and MCP server configuration.",
-      "version": "0.26.5",
+      "version": "0.26.6",
       "author": {
         "name": "Ravn AI Enablement Team"
       },
@@ -67,7 +67,7 @@
     },
     {
       "name": "promptify",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "license": "MIT",
       "description": "Rewrite a prompt in the background and insert it as an unsent draft.",
       "author": {
