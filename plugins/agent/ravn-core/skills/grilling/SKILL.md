@@ -8,28 +8,34 @@ metadata:
   proof: subjective
 ---
 
-Interview the user relentlessly until you reach a shared understanding. Start with their plan, design, or decision and map it as a **design tree**: every decision branches into the decisions that hang off it. The explicit command is `grilling` (formerly `grill-me`).
+# Grilling
 
-Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. A question whose answer depends on another still open belongs to a later round. Ask the whole frontier in one round: number each question and give your recommended answer. Wait for the user's answers, then recompute the frontier: settled decisions push it outward and unblock the questions that depended on them.
+Interview the user relentlessly until you reach a shared understanding. (Explicit command: `grilling`, formerly `grill-me`.)
 
-Format a round like so:
+## How to run it
 
-```
-❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+1. **Map the design tree.** Break the plan, design, or decision into a tree of dependent decisions.
+2. **Ask the current frontier in one round.** The **frontier** is every open decision whose prerequisites are already settled. Hold back questions that depend on an unanswered question.
+3. **Give a recommended answer for every question**, worded so "yes" accepts your recommendation.
+4. **Find facts yourself.** Never ask the user for facts you can read from the repo or environment. Dispatch a sub-agent to look them up; hold only the questions downstream of that lookup and ask the rest of the frontier now.
+5. **Recompute after each reply.** Settled answers push the frontier outward and unlock downstream questions.
+
+Done when the frontier is empty — every branch visited, nothing silently assumed — and the user confirms shared understanding. Do not act on the plan before that confirmation.
+
+## Question format
+
+When your harness provides a synchronous multiple-choice prompt tool (`AskUserQuestion` in Claude Code, `request_user_input` in Codex Plan mode), use it instead of text: one entry per question, recommended answer first and labelled `(Recommended)`. Split across multiple calls if the frontier exceeds the tool's limit. Ask any free-form question in text after the tool returns. Skip async prompt tools that return before the user answers (e.g., `request_user_input_async`); use text there.
+
+Text format:
+
+```markdown
+❓ **Q1** - **<question title>**: <question body, including multiple choices>
 
 ➡️ <your recommended answer>
 
 ---
 
-❓ **Q2** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+❓ **Q2** - **<question title>**: <question body, including multiple choices>
 
 ➡️ <your recommended answer>
 ```
-
-Word each question so "yes" accepts your recommended answer.
-
-When your harness has a tool that puts multiple-choice questions to the user and returns their answers (`AskUserQuestion` in Claude Code, `request_user_input` in Codex's Plan mode), ask the round through it instead of the text format: one entry per question, your recommended answer first and labelled `(Recommended)`. A tool that returns before the user answers, such as Codex's `request_user_input_async`, leaves the questions unseen in headless runs; use the text format there. When the frontier exceeds one call's question limit, ask the rest in further calls before you treat the round as answered. Ask any question you cannot reduce to options in the text format once the tool returns.
-
-Finding _facts_ is your job, never the user's: when a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it. A running exploration is an unsettled prerequisite, so only the questions downstream of it wait; ask the rest of the frontier now. The _decisions_ are the user's: put each to them and wait.
-
-The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.

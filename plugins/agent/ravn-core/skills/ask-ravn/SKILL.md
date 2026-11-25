@@ -9,9 +9,14 @@ metadata:
 
 # Ask Ravn
 
-Route only to ravn-core's own skills linked in this map. For another marketplace plugin, say it is outside this map and keep the advice within ravn-core: give no route or invocation form for it, and leave the map as it is.
+Recommend the fitting `ravn-core` skill from this map.
 
-Use these invocation forms, replacing `<skill>` with the recommended skill's frontmatter `name`:
+## Rules
+
+- **Map only, never run**: end the turn with the recommendation; do not start any recommended skill (including model-invocable ones).
+- **Stay inside `ravn-core`**: for another marketplace plugin, say it is outside this map and give no route or invocation form for it.
+- **Read before explaining**: read a skill's linked `SKILL.md` before explaining its details or suggesting a step can be skipped.
+- **Classify invocation per skill**: check each recommended skill's frontmatter individually. `disable-model-invocation: true` means the user must invoke it; absent or `false` means the model can invoke it automatically when the request matches. Tell the user which applies and give the invocation form for user-invoked skills:
 
 | Harness | Skill invocation | This router |
 |---|---|---|
@@ -21,23 +26,19 @@ Use these invocation forms, replacing `<skill>` with the recommended skill's fro
 | Pi | `/skill:<skill>` | `/skill:ask-ravn` |
 | OpenCode v2 | `/<skill>` | `/ask-ravn` |
 
-This map points to skills; it does not run them. End the turn with the map: start none of the recommended skills, model-invocable ones included, so the user picks what runs. Its descriptions are orientation only: before explaining what a skill does or suggesting that a step can be skipped, read its linked `SKILL.md`. Classify invocation from each recommended skill's own frontmatter, one skill at a time, including skills grouped in the same flow or section: `disable-model-invocation: true` requires human invocation; an absent or false flag means model-invocable and may start when the request matches it, even without the user naming it ("pause for now" can trigger `pause-safely`). Tell the user, for each skill you recommend, whether it starts on its own or they invoke it, and give the invocation form for the ones they invoke.
-
 ## Main flow: idea to ready PR
 
-For an idea that should become one ready PR, recommend [ship](../ship/SKILL.md). It owns the sequence: read it to identify the next phase and any approval that phase needs. The artifact is a ready PR with all applicable checks passing on its current head, including checks that only run after readiness. For a PR body alone, recommend [pr](../pr/SKILL.md).
+For an idea that should become one ready PR, recommend [ship](../ship/SKILL.md). It owns the full sequence through a ready PR with all applicable checks passing on its current head. For a PR body alone, recommend [pr](../pr/SKILL.md).
 
 ## On-ramps
 
-- **Something is broken:** [bug-fix](../bug-fix/SKILL.md) reproduces the bug, finds its cause with runtime evidence, and delivers the fix as a PR whose history shows the failure before the fix. It applies [fix-root-causes](../principle-fix-root-causes/SKILL.md) throughout.
-- **PR or stack is open and needs to land:** [babysit](../babysit/SKILL.md) brings it to merge-ready or an evidenced blocker: it discovers the repository gates and clears conflicts, review threads, and failing CI. It merges only when the user asks it to, and only after an independent verifier passes the PR.
-- **Architecture is causing friction:** [improve-codebase-architecture](../improve-codebase-architecture/SKILL.md) surveys deepening opportunities. A chosen change can enter `ship` at goal shaping; [codebase-design](../codebase-design/SKILL.md) supplies its design vocabulary.
-- **Ambitious work no playbook fits:** [figure-it-out](../figure-it-out/SKILL.md) designs a phase plan with a falsifiable done predicate before any code, runs each unit as an experiment it keeps or reverts, and commits the decision trail. Use it for a multi-part change across packages or a long unattended run, after checking that `ship`, `bug-fix`, and `deprecate-and-migrate` do not fit.
-- **Work already started:** [session-pickup](../session-pickup/SKILL.md) finds the resume point from a handoff or prior trail, then continues the unfinished work through the fitting skill or flow.
+- **Something is broken:** [bug-fix](../bug-fix/SKILL.md) reproduces the bug, proves its cause with runtime evidence, and delivers a PR whose history shows the failure before the fix (applies [fix-root-causes](../principle-fix-root-causes/SKILL.md)).
+- **PR or stack is open and needs to land:** [babysit](../babysit/SKILL.md) discovers repo gates and clears conflicts, review threads, and failing CI; merges only when asked and after an independent verifier passes.
+- **Architecture is causing friction:** [improve-codebase-architecture](../improve-codebase-architecture/SKILL.md) surveys deepening opportunities using [codebase-design](../codebase-design/SKILL.md) vocabulary; a chosen change can enter `ship`.
+- **Ambitious work no playbook fits:** [figure-it-out](../figure-it-out/SKILL.md) designs a phase plan with a falsifiable done predicate, runs each unit as a keep-or-revert experiment, and commits a decision trail. Use after confirming `ship`, `bug-fix`, and `deprecate-and-migrate` do not fit.
+- **Work already started:** [session-pickup](../session-pickup/SKILL.md) finds the resume point from a handoff or prior trail and continues through the fitting skill.
 
 ## Standalone work
-
-Use these without the whole `ship` flow:
 
 | Need | Skill |
 |---|---|
@@ -62,11 +63,11 @@ Use these without the whole `ship` flow:
 | Write a skill or agent-facing document | [writing-for-agents](../writing-for-agents/SKILL.md) |
 | Turn corrections that recur across past sessions into structural fixes, checks, or instructions | [learn-from-sessions](../learn-from-sessions/SKILL.md) |
 
-## Vocabulary and principles underneath
+## Vocabulary and principles
 
-[domain-modeling](../domain-modeling/SKILL.md) owns domain terms and representations; [codebase-design](../codebase-design/SKILL.md) owns the vocabulary for modules, interfaces, and seams. They can support a flow or answer a focused design request.
+[domain-modeling](../domain-modeling/SKILL.md) owns domain terms and representations; [codebase-design](../codebase-design/SKILL.md) owns module, interface, and seam vocabulary.
 
-Use this table only when the user asks for guidance on one of these decisions. Point to the owning skill when the guidance is disclosed within it:
+Use this table when the user asks for guidance on a specific engineering decision:
 
 | Condition | Principle |
 |---|---|
@@ -79,16 +80,14 @@ Use this table only when the user asks for guidance on one of these decisions. P
 | Planning a measurement, or trusting or reporting a benchmark or eval number | [explain-the-number](../principle-explain-the-number/SKILL.md) |
 | Checking a finished output | [prove-it-works](../principle-prove-it-works/SKILL.md) |
 | Writing, changing, or deleting a test, or a test disagrees with the spec | [test-the-contract](../principle-test-the-contract/SKILL.md) |
-| Making the same change in many places, or work a reviewer must rerun | [principle-build-the-lever](../principle-build-the-lever/SKILL.md), explicit invocation |
+| Making the same change in many places, or work a reviewer must rerun | [principle-build-the-lever](../principle-build-the-lever/SKILL.md) (user-invoked) |
 
 ## Phase boundaries
 
-Choose at a natural boundary, after recording any decisions and proof the next phase needs:
+At a natural boundary, after recording decisions and proof for the next phase:
 
-- **Continue** in this session while the current evidence and decisions still fit and the next step depends on them.
-- **Clear** the context when the phase is complete and the next step can start from durable artifacts alone.
-- **Compact** when the next step still needs a concise account of decisions, evidence, and open questions. For large reads before compaction, point to [Guard the Context Window](../ship/references/guard-the-context-window.md).
+- **Continue** while current evidence still fits and the next step depends on it.
+- **Clear** when the phase is complete and the next step can start from durable artifacts alone.
+- **Compact** when the next step needs a concise summary of decisions, evidence, and open questions (for large reads before compaction, see [Guard the Context Window](../ship/references/guard-the-context-window.md)).
 - **Pause or hand off** when asked to stop or transfer work: [pause-safely](../pause-safely/SKILL.md) writes the checkpoint; [session-pickup](../session-pickup/SKILL.md) resumes it. Automatic compaction is not a pause.
-- **Use a subagent** for a bounded, independent slice when the active skill calls for one and the harness permits it. Keep the main thread responsible for integrating and checking the result.
-
-Only model-invocable skills can start on their own. For a user-invoked skill named here, this map hints that the human invoke it; the router cannot fire it.
+- **Use a subagent** for a bounded, independent slice when the active skill calls for one and the harness permits it; the main thread integrates and verifies the result.
