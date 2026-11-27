@@ -1,5 +1,5 @@
 interface:
-  display_name: "Agent Ops"
+  display_name: "Agent Craft"
   short_description: "Audit agent-readiness, author agent docs, and mine session lessons"
 policy:
   allow_implicit_invocation: false

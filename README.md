@@ -67,7 +67,7 @@ Run `opencode plugin update` to pick up changes.
 | Pi | `/skill:ask-ravn` | `/skill:ship` |
 | OpenCode v2 (preview) | `/ask-ravn` | `/ship` |
 
-Read-only and advisory skills, such as `codebase-qa`, `research`, `design`, `debug`, `test`, `review`, `verify`, and `handoff`, start on their own when a request fits them. Skills that orchestrate multi-step delivery or write new project skills, such as `ship`, `pr`, `plan`, `agent-ops`, `verification-skill`, `formal-verification-skill`, and `promptify`, set `disable-model-invocation: true` and run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
+Read-only and advisory skills, such as `codebase-qa`, `research`, `design`, `debug`, `test`, `review`, `verify`, and `handoff`, start on their own when a request fits them. Skills that orchestrate multi-step delivery or write new project skills, such as `ship`, `pr`, `plan`, `agent-craft`, `verification-skill`, `formal-verification-skill`, and `promptify`, set `disable-model-invocation: true` and run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
 
 Evals prove `ravn-core` in Claude Code, Codex, and Pi. Cursor installs the same package but isn't in the eval matrix yet.
 

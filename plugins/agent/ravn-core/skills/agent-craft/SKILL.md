@@ -1,5 +1,5 @@
 ---
-name: agent-ops
+name: agent-craft
 description: Audit and fix repository agent-readiness, author or edit skills and AGENTS.md/CLAUDE.md, or mine past coding-agent sessions for recurring corrections.
 disable-model-invocation: true
 license: See LICENSE.txt
@@ -7,7 +7,7 @@ metadata:
   proof: subjective
 ---
 
-# Agent Ops
+# Agent Craft
 
 Maintain the repository's agent environment, instructions, and skills. Choose the branch that matches the request:
 

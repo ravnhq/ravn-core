@@ -151,7 +151,7 @@ export const cases: Case[] = [
   {
     id: "editing-agents-md",
     kind: "fit",
-    expect: ["agent-ops"],
+    expect: ["agent-craft"],
     messages: [
       [
         "user",

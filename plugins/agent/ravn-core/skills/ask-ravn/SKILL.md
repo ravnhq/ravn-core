@@ -54,7 +54,7 @@ This map points to skills; it does not run them. End the turn with the map: star
 | Take a change end-to-end from idea to a ready PR with passing CI | [ship](../ship/SKILL.md) |
 | Draft/update a PR body (with screenshots) or babysit an open PR/stack to merge-ready | [pr](../pr/SKILL.md) |
 | Stress-test a plan (`grill`), design an auditable phase plan, or keep a decision log | [plan](../plan/SKILL.md) |
-| Audit repo agent-readiness, author skills/`AGENTS.md`, or mine past sessions for lessons | [agent-ops](../agent-ops/SKILL.md) |
+| Audit repo agent-readiness, author skills/`AGENTS.md`, or mine past sessions for lessons | [agent-craft](../agent-craft/SKILL.md) |
 | Create or maintain a project guide that drives the real app and preserves evidence | [verification-skill](../verification-skill/SKILL.md) |
 | Create or resync a project guide that formally checks a named property against code | [formal-verification-skill](../formal-verification-skill/SKILL.md) |
 | Deepen a prompt using project evidence without carrying it out | [promptify](../promptify/SKILL.md) |
