@@ -25,7 +25,7 @@ Check skill selection, required reference reads, and final outcome separately.
 
 ## Shared reference
 
-- **Within one plugin**: keep shared reference in a plain file with one owner. Link to it from other skills at the decision point that needs it (for example, [`deprecate-and-migrate`](../deprecate-and-migrate/SKILL.md) linking [`ship`'s sequencing reference](../ship/SEQUENCE-VERIFIABLE-UNITS.md)).
+- **Within one plugin**: keep shared reference in a plain file with one owner. Link to it from other skills at the decision point that needs it (for example, [`deprecate-and-migrate`](../migrate/SKILL.md) linking [`ship`'s sequencing reference](../ship/SEQUENCE-VERIFIABLE-UNITS.md)).
 - **Across plugins**: links do not cross plugin boundaries; put cross-plugin shared reference in a model-invoked reference skill.
 
 ## Splitting skills
