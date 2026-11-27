@@ -13,7 +13,7 @@ import { after, test } from "node:test";
 
 const inventoryScript = join(
   import.meta.dirname,
-  "../../../plugins/agent/ravn-core/skills/deprecate-and-migrate/scripts/inventory.ts",
+  "../../../plugins/agent/ravn-core/skills/migrate/scripts/inventory.ts",
 );
 
 const tempRoot = realpathSync(mkdtempSync(join(tmpdir(), "inventory-")));

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Test"
+  short_description: "Contract-first tests, suite pruning, and Oxlint test guards"

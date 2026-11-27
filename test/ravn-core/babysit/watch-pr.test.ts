@@ -14,7 +14,7 @@ import {
   stateKey,
   watch,
   writeState,
-} from "../../../plugins/agent/ravn-core/skills/babysit/scripts/watch-pr.ts";
+} from "../../../plugins/agent/ravn-core/skills/pr/scripts/watch-pr.ts";
 
 type Pr = {
   number?: number;

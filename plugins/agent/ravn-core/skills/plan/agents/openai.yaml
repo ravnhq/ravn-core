@@ -1,0 +1,5 @@
+interface:
+  display_name: "Plan"
+  short_description: "Grill plans, design auditable phase plans, and log decisions"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Design"
+  short_description: "Module seams, domain modeling, TypeScript types, concurrency, and refactor surveys"

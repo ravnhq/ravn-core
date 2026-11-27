@@ -7,7 +7,7 @@ import { after, test } from "node:test";
 
 const logScript = join(
   import.meta.dirname,
-  "../../../plugins/agent/ravn-core/skills/show-me-your-work/scripts/log.ts",
+  "../../../plugins/agent/ravn-core/skills/plan/scripts/log.ts",
 );
 
 const workDir = mkdtempSync(join(tmpdir(), "show-me-your-work-"));

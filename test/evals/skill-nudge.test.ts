@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { gradeReply } from "../../evals/skill-nudge/promptfooconfig.ts";
+import { MAX_TOKENS } from "../../plugins/mods/skill-nudge/lib/nudge.ts";
 
 test("reasoning tokens cannot erase a complete suggestion within the visible limit", async () => {
   const reply = JSON.stringify({
@@ -34,14 +35,14 @@ test("truncated or ungrounded replies cannot pass a stay-out case as abstentions
     (await gradeReply('{"skill":null}', quiet, { completion: 5 })).pass,
   );
   assert.equal(
-    (await gradeReply('{"skill":', quiet, { completion: 200 })).reason,
+    (await gradeReply('{"skill":', quiet, { completion: MAX_TOKENS })).reason,
     "truncated",
   );
   assert.equal(
     (
       await gradeReply(
         JSON.stringify({
-          skill: "ravn-core:why",
+          skill: "ravn-core:codebase-qa",
           reason: "Check the history.",
           evidence: "U99",
         }),
@@ -55,7 +56,7 @@ test("truncated or ungrounded replies cannot pass a stay-out case as abstentions
 
 test("format and API errors from the reviewer aren't counted as correct silence", async () => {
   const reply = JSON.stringify({
-    skill: "ravn-core:why",
+    skill: "ravn-core:codebase-qa",
     evidence: "U1",
     reason: "Check the history.",
   });

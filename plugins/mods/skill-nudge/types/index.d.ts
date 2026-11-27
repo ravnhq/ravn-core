@@ -1,5 +1,10 @@
 // `asksClaude`: the skill is hidden from the `/` menu, so Use asks Claude to run it.
-export type Nudge = { skill: string; reason: string; asksClaude: boolean };
+export type Nudge = {
+  skill: string;
+  reason: string;
+  args?: string;
+  asksClaude: boolean;
+};
 
 declare module "claude-code" {
   interface PluginState {

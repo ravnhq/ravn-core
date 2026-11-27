@@ -16,4 +16,4 @@ Leave a project-local skill that can rerun a formal check on a named property. R
 
 An explicit mode wins. Ask if the requested scope is ambiguous. Edit the verification, not the product, unless the user asks. A change to the property, its bounds, or the code it describes invalidates prior proof until the check and the failure witness are rerun.
 
-This command replaces `create-formal-verification-skill` and `maintain-formal-verification-skill`.
+This command replaces `create-formal-verification-skill` and `maintain-formal-verification-skill`. To model-check a TLA+ spec with TLC and draw its Mermaid statechart and shortest counterexample paths, use [Statechart](../statechart/SKILL.md).

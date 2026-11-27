@@ -21,7 +21,7 @@
     "plugins/*/*",
     "!plugins/agent/ravn-core",
     "!plugins/mods/*",
-    "plugins/agent/ravn-core/skills/bad-test-terminator/assets/**",
+    "plugins/agent/ravn-core/skills/test/assets/**",
     "plugins/*/*/.claude-plugin/types/**"
   ],
   "jsPlugins": [

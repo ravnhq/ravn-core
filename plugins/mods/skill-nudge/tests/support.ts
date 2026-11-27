@@ -86,6 +86,7 @@ export function world(
   const reviews: ModelCompleteInput[] = [];
   const fills: string[] = [];
   const copies: string[] = [];
+  const toasts: string[] = [];
   let reply = options.reply ?? '{"skill": null}';
   let reviewerReply = '{"verdict":"keep"}';
   let outputTokens = 1;
@@ -95,6 +96,11 @@ export function world(
   on("command.register", async (_$, e) => ({ value: { command: e.name } }));
   on("command.list", async () => ({ value: COMMANDS }));
   on("ui.invalidate", async () => ({ value: undefined }));
+  on("ui.toast", async (_$, e) => {
+    toasts.push(e.text);
+
+    return { value: undefined };
+  });
   on("command.describe", async (_$, e) => ({
     description: e.description,
     isHidden: e.isHidden,
@@ -162,6 +168,7 @@ export function world(
     reviews,
     fills,
     copies,
+    toasts,
     setReply: (text: string, tokens = 1) => {
       reply = text;
       outputTokens = tokens;

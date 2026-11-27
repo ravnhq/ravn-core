@@ -6,8 +6,8 @@ description: >-
   Use before answering any question about how a third-party library, API, or
   framework behaves, including quick ones ("research whether X", "look up
   Y's official docs, defaults, or behavior", "what's the default", "how does
-  Y retry"), and for reading legwork for a background agent. Use why for
-  this repo's own history.
+  Y retry"), and for reading legwork for a background agent. Use codebase-qa
+  for this repo's own code and history.
 license: See LICENSE.txt
 metadata:
   proof: subjective

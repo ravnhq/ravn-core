@@ -1,5 +1,0 @@
-interface:
-  display_name: "Figure It Out"
-  short_description: "Design and run an auditable plan for work no playbook fits"
-policy:
-  allow_implicit_invocation: false

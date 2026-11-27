@@ -11,6 +11,7 @@ import {
   listing,
   parse,
   reviewPrompt,
+  shortName,
   transcript,
   usedSkills,
 } from "../lib/nudge.ts";
@@ -27,6 +28,8 @@ const COMMAND = "skill-nudge";
 
 const ENABLED_KEY = "enabled";
 
+const MUTED_KEY = "muted";
+
 const MODEL = "haiku";
 
 const JUDGMENT_TIMEOUT_MS = 20_000;
@@ -42,7 +45,8 @@ const MAX_EVENTS_PER_SESSION = 500;
 
 const MAX_SESSIONS = 50;
 
-// Haiku judges at most once per this many finished turns.
+// After a tip is shown, wait this many finished turns before judging again.
+// Starts ready so Turn 1 is judged immediately.
 const TURNS_BETWEEN_JUDGMENTS = 2;
 
 const nudge = atom({ plugin: "skill-nudge", key: "nudge" } as const, null);
@@ -51,14 +55,24 @@ const offered = atom({ plugin: "skill-nudge", key: "offered" } as const, []);
 
 const turnsSinceJudgment = atom(
   { plugin: "skill-nudge", key: "turnsSinceJudgment" } as const,
-  0,
+  TURNS_BETWEEN_JUDGMENTS - 1,
 );
 
 async function isEnabled($: EngineInterface): Promise<boolean> {
   return (await $.store.get(ENABLED_KEY)) !== false;
 }
 
+async function mutedSkills($: EngineInterface): Promise<string[]> {
+  const raw = await $.store.get(MUTED_KEY);
+
+  return Array.isArray(raw)
+    ? raw.filter((item): item is string => item === String(item))
+    : [];
+}
+
 let isInteractive = false;
+
+let surface = "terminal";
 
 let isJudging = false;
 
@@ -113,6 +127,16 @@ async function dismissTip($: EngineInterface, skill: string): Promise<void> {
   await fate($, "dismissed", skill);
 }
 
+async function muteTip($: EngineInterface, skill: string): Promise<void> {
+  const current = await mutedSkills($);
+
+  if (!current.includes(skill))
+    await $.store.set(MUTED_KEY, [...current, skill]);
+
+  await update($, nudge, () => null);
+  await fate($, "dismissed", skill);
+}
+
 async function prepareTelemetry($: EngineInterface): Promise<void> {
   if ((await $.store.get(INSTALL_KEY)) === undefined)
     await $.store.set(INSTALL_KEY, crypto.randomUUID());
@@ -152,6 +176,7 @@ async function judge($: EngineInterface, at: number): Promise<void> {
   const exclude = new Set([
     ...usedSkills(messages),
     ...(await read($, offered)),
+    ...(await mutedSkills($)),
   ]);
 
   const skills = catalog(await $.command.list(), exclude);
@@ -207,11 +232,21 @@ async function judge($: EngineInterface, at: number): Promise<void> {
 
   // The tip shows first; recording it never delays it.
   if (shows) {
+    const asksClaude = hidden.has(found.skill);
     await update($, nudge, () => ({
       ...found,
-      asksClaude: hidden.has(found.skill),
+      asksClaude,
     }));
     await update($, offered, (list) => [...list, found.skill]);
+    await update($, turnsSinceJudgment, () => 0);
+
+    // AbovePrompt draws in terminal and desktop only; toast on other surfaces.
+    if (surface !== "terminal" && surface !== "desktop") {
+      const prefix = asksClaude ? "" : "/";
+      $.ui.toast(
+        `Skill tip · ${prefix}${shortName(found.skill)}: ${found.reason}`,
+      );
+    }
   }
 
   await record($, {
@@ -234,6 +269,7 @@ async function judge($: EngineInterface, at: number): Promise<void> {
 export const register: Register = (on) => {
   // Each load starts fresh, as a reload's new environment does.
   isInteractive = false;
+  surface = "terminal";
   isJudging = false;
   hidden = new Set();
   epoch = 0;
@@ -241,10 +277,12 @@ export const register: Register = (on) => {
 
   on("session.start", async ($, e, next) => {
     isInteractive = e.isInteractive;
+    surface = e.surface;
     await $.command.register({
       name: COMMAND,
-      description: "Turn skill nudges on or off; `stats` shows how tips fared",
-      argumentHint: "[stats]",
+      description:
+        "Turn skill nudges on or off; `stats` shows results, `unmute` restores muted skills",
+      argumentHint: "[stats|unmute]",
     });
     await prepareTelemetry($).catch(() => undefined);
     // A reload starts with an empty set, so ask the engine to describe every command again.
@@ -263,7 +301,21 @@ export const register: Register = (on) => {
   });
 
   on("command.run", { command: COMMAND }, async ($, e) => {
-    if (e.args.trim() === "stats") return { text: await stats($) };
+    const arg = e.args.trim();
+
+    if (arg === "stats") return { text: await stats($) };
+
+    if (arg === "unmute") {
+      const muted = await mutedSkills($);
+      await $.store.set(MUTED_KEY, []);
+
+      return {
+        text:
+          muted.length === 0
+            ? "No muted skills."
+            : `Unmuted ${muted.length} ${muted.length === 1 ? "skill" : "skills"}.`,
+      };
+    }
 
     const isOn = !(await isEnabled($));
     await $.store.set(ENABLED_KEY, isOn);
@@ -301,7 +353,6 @@ export const register: Register = (on) => {
       return result;
 
     isJudging = true;
-    await update($, turnsSinceJudgment, () => 0);
     const at = epoch;
     $.clock.after(0, () => {
       void judge($, at)
@@ -320,17 +371,21 @@ export const register: Register = (on) => {
     if (shown === null || e.props.hasSurvey) return next(e);
 
     const { Box, Button, Text } = $.ui.resolve(e);
+    const short = shortName(shown.skill);
 
     const dismiss = () => dismissTip($, shown.skill);
 
+    const mute = () => muteTip($, shown.skill);
+
     const use = async () => {
-      // A draft the user already typed becomes the skill's arguments.
+      // A draft the user already typed takes precedence; otherwise prefill suggested args.
       const { text } = await $.prompt.read();
       const draft = text.trimStart();
+      const suffix = draft || shown.args || "";
       await $.prompt.fill({
         text: shown.asksClaude
-          ? `Use the ${shown.skill} skill.${draft ? ` ${draft}` : ""}`
-          : `/${shown.skill} ${draft}`,
+          ? `Use the ${shown.skill} skill.${suffix ? ` ${suffix}` : ""}`
+          : `/${shown.skill} ${suffix}`,
       });
       await update($, nudge, () => null);
       await fate($, "used", shown.skill);
@@ -339,7 +394,12 @@ export const register: Register = (on) => {
     // Digit hotkeys, as a survey's: a bare digit in the empty prompt presses
     // them, while a letter works only after the person focuses the band.
     return (
-      <Box flexDirection="column" padding={1}>
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        borderColor="suggestion"
+        paddingX={1}
+      >
         <Text>
           <Text color="suggestion" bold>
             ✦ Skill tip
@@ -347,22 +407,33 @@ export const register: Register = (on) => {
           <Text dimColor> · </Text>
           <Text bold>
             {shown.asksClaude ? "" : "/"}
-            {shown.skill}
+            {short}
           </Text>
         </Text>
-        <Box paddingLeft={2} flexDirection="column">
-          <Text>{shown.reason}</Text>
-          <Box columnGap={2}>
-            <Button key="use" label="Use" hotkey="1" plain onPress={use} />
-            <Button
-              key="dismiss"
-              label="Dismiss"
-              hotkey="2"
-              plain
-              role="dismiss"
-              onPress={dismiss}
-            />
-          </Box>
+        <Text>{shown.reason}</Text>
+        <Box columnGap={2}>
+          <Button
+            key="use"
+            label={shown.asksClaude ? `Use ${short}` : `Use /${short}`}
+            hotkey="1"
+            plain
+            onPress={use}
+          />
+          <Button
+            key="dismiss"
+            label="Dismiss"
+            hotkey="2"
+            plain
+            role="dismiss"
+            onPress={dismiss}
+          />
+          <Button
+            key="mute"
+            label="Mute skill"
+            hotkey="3"
+            plain
+            onPress={mute}
+          />
         </Box>
       </Box>
     );

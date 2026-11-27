@@ -29,13 +29,9 @@ async function finishTurns($: Engine, count: number) {
   for (let index = 0; index < count; index += 1) await $.turn.complete(turn());
 }
 
-test("asks Haiku after two answered turns and shows the skill above the prompt", async ($, on) => {
+test("asks Haiku on turn 1, shows the card above the prompt, and cools down for two turns after showing", async ($, on) => {
   const { clock, judged, requests } = world(on, { reply: RESEARCH });
   await $.session.start(sessionStart);
-
-  await $.turn.complete(turn());
-  await clock.settle();
-  expect(requests.length).toBe(0);
 
   await $.turn.complete(turn());
   await judged(1);
@@ -50,20 +46,25 @@ test("asks Haiku after two answered turns and shows the skill above the prompt",
   expect(listed).not.toContain("- skill-nudge:");
 
   const drawn = textOf(await $.ui.render(band));
-  expect(drawn).toContain("ravn-core:research");
+  expect(drawn).toContain("/research");
   expect(drawn).toContain("research what others did first");
+
+  // Cooldown: one turn after showing a tip does not judge again yet.
+  await $.turn.complete(turn());
+  await clock.settle();
+  expect(requests.length).toBe(1);
 });
 
-test("draws nothing of its own when Haiku suggests no skill or an unlisted one", async ($, on) => {
+test("draws nothing of its own when Haiku suggests no skill or an unlisted one, and keeps judging on the next turn", async ($, on) => {
   const { judged, requests, reviews, setReply } = world(on);
   await $.session.start(sessionStart);
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
   expect(requests.length).toBe(1);
   expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
 
   setReply('{"skill": "made-up", "reason": "nope"}');
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(2);
   expect(requests.length).toBe(2);
   expect(reviews.length).toBe(0);
@@ -85,7 +86,7 @@ test("a proposed tip is checked against the whole answer before it can show", as
 
   await $.session.start(sessionStart);
   setReview('{"verdict":"already-done"}');
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
   expect(reviews.length).toBe(1);
   expect(reviews[0]!.prompt).toContain(
@@ -94,11 +95,11 @@ test("a proposed tip is checked against the whole answer before it can show", as
   expect(reviews[0]!.prompt).not.toContain("Deploy the app");
   expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
 
-  // A rejected tip wasn't shown, so it isn't marked as offered.
+  // A rejected tip wasn't shown, so it isn't marked as offered and doesn't trigger cooldown.
   setReview('{"verdict":"keep"}');
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(2);
-  expect(textOf(await $.ui.render(band))).toContain("ravn-core:research");
+  expect(textOf(await $.ui.render(band))).toContain("/research");
 });
 
 test("stays quiet in a non-interactive session", async ($, on) => {
@@ -119,14 +120,40 @@ test("ignores subagent and interrupted turns", async ($, on) => {
   expect(requests.length).toBe(0);
 });
 
+test("Use prefills suggested args when the prompt is empty and preserves a draft otherwise", async ($, on) => {
+  const withArgs = JSON.stringify({
+    skill: "ravn-core:research",
+    reason: "Compare rate-limiting approaches before building.",
+    args: "rate limiting approaches for public APIs",
+    evidence: "U1",
+  });
+
+  const { judged, fills } = world(on, { reply: withArgs });
+  await $.session.start(sessionStart);
+  await $.turn.complete(turn());
+  await judged(1);
+  await $.ui.render(band);
+
+  await $.ui.press({ plugin: "skill-nudge", key: "use" });
+  expect(fills).toEqual([
+    "/ravn-core:research rate limiting approaches for public APIs",
+  ]);
+  expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
+});
+
 test("Use puts the skill ahead of the draft and clears the tip", async ($, on) => {
   const { judged, fills } = world(on, {
-    reply: RESEARCH,
+    reply: JSON.stringify({
+      skill: "ravn-core:research",
+      reason: "Compare approaches first.",
+      args: "ignored because user typed a draft",
+      evidence: "U1",
+    }),
     draft: "auth options",
   });
 
   await $.session.start(sessionStart);
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
   await $.ui.render(band);
 
@@ -135,29 +162,62 @@ test("Use puts the skill ahead of the draft and clears the tip", async ($, on) =
   expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
 });
 
-test("the tip answers a bare digit from the empty prompt, as a survey does", async ($, on) => {
+test("the tip answers bare digits from the empty prompt, including Mute skill", async ($, on) => {
   const { judged } = world(on, { reply: RESEARCH });
   await $.session.start(sessionStart);
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
 
   const ui = await $.ui.mount({ plugin: "skill-nudge", ...band });
   expect((await ui.find({ key: "use" }))?.props).toMatchObject({
     hotkey: "1",
+    label: "Use /research",
     plain: true,
   });
   expect((await ui.find({ key: "dismiss" }))?.props).toMatchObject({
     hotkey: "2",
     plain: true,
   });
+  expect((await ui.find({ key: "mute" }))?.props).toMatchObject({
+    hotkey: "3",
+    plain: true,
+  });
   await ui.unmount();
+});
+
+test("Mute persists across sessions and /skill-nudge unmute restores muted skills", async ($, on) => {
+  const { judged, requests } = world(on, { reply: RESEARCH });
+  await $.session.start(sessionStart);
+  await $.turn.complete(turn());
+  await judged(1);
+  await $.ui.render(band);
+  await $.ui.press({ plugin: "skill-nudge", key: "mute" });
+
+  // Wait out cooldown; research is now muted so Haiku's catalog excludes it.
+  await finishTurns($, 2);
+  await judged(2);
+  expect(requests[1]!.prompt).not.toContain("ravn-core:research:");
+
+  const unmuted = await $.command.run({ ...toggle, args: "unmute" });
+  expect(unmuted).toEqual({ text: "Unmuted 1 skill." });
+  const again = await $.command.run({ ...toggle, args: "unmute" });
+  expect(again).toEqual({ text: "No muted skills." });
+});
+
+test("falls back to a toast on surfaces where AbovePrompt does not draw", async ($, on) => {
+  const { judged, toasts } = world(on, { reply: RESEARCH });
+  await $.session.start({ ...sessionStart, surface: "vscode" });
+  await $.turn.complete(turn());
+  await judged(1);
+  expect(toasts.length).toBe(1);
+  expect(toasts[0]).toContain("/research");
 });
 
 test("a new prompt drops a judgment still in flight", async ($, on) => {
   const { clock, holdModel, judged } = world(on, { reply: RESEARCH });
   await $.session.start(sessionStart);
   const release = holdModel();
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await clock.settle();
 
   await $.prompt.submit({
@@ -191,7 +251,7 @@ test("never offers the same skill twice, nor one the session already ran", async
   });
 
   await $.session.start(sessionStart);
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
   expect(requests[0]!.prompt).not.toContain("ravn-core:grilling:");
   expect(requests[0]!.prompt).not.toContain("- deploy:");
@@ -215,7 +275,7 @@ test("a reply that drops the plugin prefix still names the one listed skill", as
   });
 
   await $.session.start(sessionStart);
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
   await $.ui.render(band);
   await $.ui.press({ plugin: "skill-nudge", key: "use" });
@@ -245,7 +305,7 @@ test("a tip must name an evidence ID supplied for the latest exchange", async ($
   });
 
   await $.session.start(sessionStart);
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
   expect(textOf(await $.ui.render(band))).toContain(STOCK_TEXT);
 
@@ -256,7 +316,7 @@ test("a tip must name an evidence ID supplied for the latest exchange", async ($
       evidence: "A1",
     }),
   );
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(2);
   expect(textOf(await $.ui.render(band))).toContain("Check the endpoint");
 });
@@ -265,12 +325,12 @@ test("Use asks Claude to run a skill hidden from the / menu, as a user-invocable
   const { judged, fills } = world(on, { reply: RESEARCH, draft: "on auth" });
   await $.session.start(sessionStart);
   await $.command.describe(describe("ravn-core:research", true));
-  await finishTurns($, 2);
+  await $.turn.complete(turn());
   await judged(1);
 
   const drawn = textOf(await $.ui.render(band));
-  expect(drawn).toContain("ravn-core:research");
-  expect(drawn).not.toContain("/ravn-core:research");
+  expect(drawn).toContain("research");
+  expect(drawn).not.toContain("/research");
 
   await $.ui.press({ plugin: "skill-nudge", key: "use" });
   expect(fills).toEqual(["Use the ravn-core:research skill. on auth"]);

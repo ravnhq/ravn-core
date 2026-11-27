@@ -15,7 +15,7 @@ export type Message = {
 
 export type Skill = { name: string; description: string };
 
-export type Suggestion = { skill: string; reason: string };
+export type Suggestion = { skill: string; reason: string; args?: string };
 
 export type Decision =
   | { kind: "nudge"; suggestion: Suggestion }
@@ -35,12 +35,14 @@ const RECENT_MESSAGES = 8;
 const MESSAGE_CHARS = 1500;
 
 // Haiku's reply cap; the eval sends the same, so a reply cut short there is cut short here.
-export const MAX_TOKENS = 200;
+export const MAX_TOKENS = 240;
 
 export const REVIEW_MAX_TOKENS = 40;
 
-// The band wraps long text; this cap only stops a runaway reply.
+// The band wraps long text; these caps only stop a runaway reply.
 const REASON_CHARS = 300;
+
+const ARGS_CHARS = 120;
 
 // The format rule closes the transcript too: Haiku follows what it read last.
 const REPLY_FORMAT =
@@ -72,7 +74,7 @@ Choosing between skills:
 Pick the single most specific skill. Its reason must name the next action. Cite the evidence ID beside the line from the latest exchange that shows why the action is still needed. An answer reporting success is not evidence of a missing check unless the latest exchange also identifies what is still unverified. If you cannot support a tip from this exchange, suggest nothing.
 
 ${REPLY_FORMAT}
-{"skill": "<a name exactly as listed>", "evidence": "<ID from the latest exchange, like U1 or A2>", "reason": "<one sentence under 120 characters naming the unfinished action; address the user as you>"}
+{"skill": "<a name exactly as listed>", "evidence": "<ID from the latest exchange, like U1 or A2>", "reason": "<one sentence under 120 characters stating the concrete payoff or next step; address the user as you>", "args": "<optional short argument under 100 characters grounded in the exchange so the command is ready to run>"}
 or, when nothing fits:
 {"skill": null}`;
 
@@ -237,7 +239,7 @@ export function parse(
 
   if (!isJsonObject(value)) return { kind: "invalid" };
 
-  const { skill, reason, evidence } = value;
+  const { skill, reason, evidence, args } = value;
 
   if (skill === null) return { kind: "abstained" };
 
@@ -257,10 +259,29 @@ export function parse(
     return { kind: "ungrounded" };
   }
 
+  const normalizedArgs = isString(args)
+    ? args.replace(/\s+/gu, " ").trim()
+    : "";
+
+  const suggestion: Suggestion = normalizedArgs
+    ? {
+        skill: listed,
+        reason: clip(reason.trim(), REASON_CHARS),
+        args: clip(normalizedArgs, ARGS_CHARS),
+      }
+    : { skill: listed, reason: clip(reason.trim(), REASON_CHARS) };
+
   return {
     kind: "nudge",
-    suggestion: { skill: listed, reason: clip(reason.trim(), REASON_CHARS) },
+    suggestion,
   };
+}
+
+/** Short label for display in the tip header and button, without plugin prefix. */
+export function shortName(skill: string): string {
+  const colon = skill.lastIndexOf(":");
+
+  return colon >= 0 ? skill.slice(colon + 1) : skill;
 }
 
 // Haiku sometimes drops a plugin prefix; a bare name counts when one listed skill ends with it.

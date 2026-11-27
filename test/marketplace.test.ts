@@ -171,7 +171,7 @@ test("an OpenCode package install includes the server, skills, and their assets"
     "references/prune.md",
     "scripts/install.ts",
   ]) {
-    assert.ok(paths.has(`skills/bad-test-terminator/${file}`), file);
+    assert.ok(paths.has(`skills/test/${file}`), file);
   }
 });
 
@@ -180,7 +180,7 @@ test("Node can run a skill helper from an installed OpenCode package", async () 
 
   try {
     const installed = join(dir, "node_modules", "ravn-core", "skills");
-    const skill = "bad-test-terminator";
+    const skill = "test";
 
     cpSync(join(ravnCoreDir, "skills", skill), join(installed, skill), {
       recursive: true,
@@ -205,11 +205,12 @@ test("Node can run a skill helper from an installed OpenCode package", async () 
       },
     );
 
+    const guardDir = "bad-test-terminator";
     const guard = "index.ts";
 
     assert.deepEqual(
-      readFileSync(join(dir, "tools", "oxlint", skill, guard)),
-      readFileSync(join(installed, skill, "assets", skill, guard)),
+      readFileSync(join(dir, "tools", "oxlint", guardDir, guard)),
+      readFileSync(join(installed, skill, "assets", guardDir, guard)),
     );
   } finally {
     rmSync(dir, { recursive: true, force: true });

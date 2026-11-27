@@ -15,7 +15,7 @@ import { after, before, test } from "node:test";
 
 const script = join(
   import.meta.dirname,
-  "../../../plugins/agent/ravn-core/skills/review-and-simplify/scripts/review.ts",
+  "../../../plugins/agent/ravn-core/skills/review/scripts/review.ts",
 );
 
 const root = realpathSync(mkdtempSync(join(tmpdir(), "review-and-simplify-")));

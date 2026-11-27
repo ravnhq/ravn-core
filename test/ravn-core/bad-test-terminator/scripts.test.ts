@@ -17,10 +17,7 @@ import { after, test } from "node:test";
 
 const repoRoot = realpathSync(join(import.meta.dirname, "..", "..", ".."));
 
-const skillDir = join(
-  repoRoot,
-  "plugins/agent/ravn-core/skills/bad-test-terminator",
-);
+const skillDir = join(repoRoot, "plugins/agent/ravn-core/skills/test");
 
 const skillScripts = join(skillDir, "scripts");
 

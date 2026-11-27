@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review"
+  short_description: "Risk-tiered code review, simplifications, and caller blast radius"

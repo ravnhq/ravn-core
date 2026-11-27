@@ -3,12 +3,14 @@
 Skill Nudge watches your Claude Code session in the background and tells you when one of your installed skills fits what you're doing. After a turn finishes, Haiku reads the recent conversation and your skill list. When a skill fits the next step well, a tip appears above the prompt:
 
 ```
-✦ Skill tip · /ravn-core:research
-  You're weighing approaches; see what others did first.
-  1: Use  2: Dismiss
+╭─────────────────────────────────────────────────────────╮
+│ ✦ Skill tip · /research                                 │
+│ You're weighing approaches; see what others did first.  │
+│ 1: Use /research  2: Dismiss  3: Mute skill             │
+╰─────────────────────────────────────────────────────────╯
 ```
 
-Type `1` or `2` into the empty prompt to pick, as you answer a survey, or click. **Use** puts `/<skill>` in the prompt box, ahead of anything you already typed, so your draft becomes the skill's arguments. A skill marked `user-invocable: false` can't be typed as a command, so for one of those **Use** writes `Use the <skill> skill.` ahead of your draft instead, and Claude runs it. **Dismiss** hides the tip. Sending your next prompt also clears it.
+Type `1`, `2`, or `3` into the empty prompt to pick, as you answer a survey, or click. **Use** puts `/<skill>` in the prompt box—ahead of anything you already typed, or with a short suggested argument from the conversation when the box is empty—so it's ready to edit or send. A skill marked `user-invocable: false` can't be typed as a command, so for one of those **Use** writes `Use the <skill> skill.` instead. **Dismiss** hides the tip for now. **Mute skill** hides it and stops suggesting that skill across sessions (`/skill-nudge unmute` restores muted skills). Sending your next prompt also clears it.
 
 Requires Claude Code 2.1.287 or later.
 
@@ -27,8 +29,8 @@ claude --plugin-dir ./plugins/mods/skill-nudge
 
 ## Behavior
 
-- Skill Nudge starts on. `/skill-nudge` turns it off or back on, and Claude Code's plugin store keeps the choice across sessions. `/skill-nudge stats` shows how tips fared.
-- Haiku judges at most once every two finished turns, and only after the main conversation's turns that end in an answer. Interrupted turns, subagent turns, and non-interactive sessions such as `claude -p` never trigger it.
+- Skill Nudge starts on. `/skill-nudge` turns it off or back on, and Claude Code's plugin store keeps the choice across sessions. `/skill-nudge stats` shows how tips fared, and `/skill-nudge unmute` restores any muted skills.
+- Haiku judges starting on the first answered turn, and cools down for two finished turns after showing a tip. Interrupted turns, subagent turns, and non-interactive sessions such as `claude -p` never trigger it.
 - Haiku sees only skills and slash commands from plugins and from your own user or project configuration. Built-in commands and MCP prompts stay out of the list.
 - A skill the session already ran, through the Skill tool or typed as `/name`, is never suggested. Skill Nudge suggests each skill at most once per session.
 - Most turns produce no tip. A tip names an unfinished action and cites a line from the latest request or answer. Before showing a tip, a short second Haiku request checks it against the whole answer. Tips without evidence, approvals, or a listed skill stay hidden.
@@ -58,4 +60,4 @@ Stats separates deliberate abstentions, tips rejected on review, invalid replies
 
 ## Limits
 
-The tip draws in the band above the prompt, so it shows in the terminal and the Desktop Code tab only. A survey in that band takes priority over the tip.
+The tip card draws in the band above the prompt in the terminal and the Desktop Code tab (a survey in that band takes priority over the tip). On VS Code and mobile, where that band doesn't render, tips appear as a toast notification instead.

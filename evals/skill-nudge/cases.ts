@@ -43,7 +43,7 @@ export const cases: Case[] = [
   {
     id: "plan-ready-to-start",
     kind: "fit",
-    expect: ["grilling"],
+    expect: ["plan"],
     messages: [
       [
         "user",
@@ -58,7 +58,7 @@ export const cases: Case[] = [
   {
     id: "shared-helper-changed",
     kind: "fit",
-    expect: ["blast-radius"],
+    expect: ["review"],
     messages: [
       ["user", "make formatCurrency round half-even instead of half-up"],
       [
@@ -71,7 +71,7 @@ export const cases: Case[] = [
   {
     id: "user-leaving-soon",
     kind: "fit",
-    expect: ["pause-safely"],
+    expect: ["handoff"],
     messages: [
       ["user", "refactor the session store to use the new cache client"],
       [
@@ -92,7 +92,7 @@ export const cases: Case[] = [
   {
     id: "resume-yesterday",
     kind: "fit",
-    expect: ["session-pickup"],
+    expect: ["handoff"],
     messages: [
       [
         "user",
@@ -107,7 +107,7 @@ export const cases: Case[] = [
   {
     id: "unexplained-magic-number",
     kind: "fit",
-    expect: ["why"],
+    expect: ["codebase-qa"],
     messages: [
       [
         "user",
@@ -123,7 +123,7 @@ export const cases: Case[] = [
   {
     id: "where-should-it-live",
     kind: "fit",
-    expect: ["how", "codebase-design"],
+    expect: ["codebase-qa", "design"],
     messages: [
       [
         "user",
@@ -151,7 +151,7 @@ export const cases: Case[] = [
   {
     id: "editing-agents-md",
     kind: "fit",
-    expect: ["writing-for-agents"],
+    expect: ["agent-ops"],
     messages: [
       [
         "user",
@@ -167,7 +167,7 @@ export const cases: Case[] = [
   {
     id: "cannot-verify-ui",
     kind: "fit",
-    expect: ["verification-skill", "principle-prove-it-works"],
+    expect: ["verification-skill", "verify"],
     messages: [
       ["user", "fix the date picker so it doesn't close when you tab out"],
       [
@@ -180,7 +180,7 @@ export const cases: Case[] = [
   {
     id: "null-check-bandaid",
     kind: "fit",
-    expect: ["principle-fix-root-causes"],
+    expect: ["debug"],
     messages: [
       [
         "user",
@@ -196,7 +196,7 @@ export const cases: Case[] = [
   {
     id: "concurrent-writers",
     kind: "fit",
-    expect: ["principle-separate-before-serializing-shared-state"],
+    expect: ["design"],
     messages: [
       [
         "user",
@@ -213,7 +213,7 @@ export const cases: Case[] = [
   {
     id: "how-not-why",
     kind: "route",
-    expect: ["how"],
+    expect: ["codebase-qa"],
     messages: [
       [
         "user",
@@ -228,7 +228,7 @@ export const cases: Case[] = [
   {
     id: "why-not-research",
     kind: "route",
-    expect: ["why"],
+    expect: ["codebase-qa"],
     messages: [
       [
         "user",
@@ -243,7 +243,7 @@ export const cases: Case[] = [
   {
     id: "pickup-not-pause",
     kind: "route",
-    expect: ["session-pickup"],
+    expect: ["handoff"],
     messages: [
       ["user", "continue where the last agent left off on the export feature"],
       [
@@ -320,7 +320,7 @@ export const cases: Case[] = [
   {
     id: "research-done-new-repo-rationale",
     kind: "route",
-    expect: ["why"],
+    expect: ["codebase-qa"],
     messages: [
       ...deliveredResearch,
       [
@@ -363,7 +363,7 @@ export const cases: Case[] = [
     id: "rounding-open-consumer",
     kind: "fit",
     heldOut: true,
-    expect: ["blast-radius"],
+    expect: ["review"],
     messages: [
       ["user", "What could this rounding change break outside the tax helper?"],
       [
@@ -391,7 +391,7 @@ export const cases: Case[] = [
     id: "overnight-unattended",
     kind: "fit",
     heldOut: true,
-    expect: ["show-me-your-work", "pause-safely"],
+    expect: ["plan", "handoff"],
     messages: [
       [
         "user",
@@ -407,7 +407,7 @@ export const cases: Case[] = [
     id: "too-good-speedup",
     kind: "fit",
     heldOut: true,
-    expect: ["principle-explain-the-number"],
+    expect: ["verify"],
     messages: [
       [
         "user",
@@ -424,7 +424,7 @@ export const cases: Case[] = [
     id: "duplicate-after-crash",
     kind: "fit",
     heldOut: true,
-    expect: ["principle-make-operations-idempotent"],
+    expect: ["design"],
     messages: [
       [
         "user",
@@ -440,7 +440,7 @@ export const cases: Case[] = [
     id: "muddled-terms",
     kind: "fit",
     heldOut: true,
-    expect: ["domain-modeling"],
+    expect: ["design"],
     messages: [
       [
         "user",
@@ -493,7 +493,7 @@ export const cases: Case[] = [
       [
         "assistant",
         "I traced every caller and ran the API and admin flows against the change: both still authenticate, and the webhook path never reaches this middleware. It's safe.",
-        ["Skill:ravn-core:blast-radius", "Grep", "Bash"],
+        ["Skill:ravn-core:review", "Grep", "Bash"],
       ],
     ],
   },

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Agent Ops"
+  short_description: "Audit agent-readiness, author agent docs, and mine session lessons"
+policy:
+  allow_implicit_invocation: false

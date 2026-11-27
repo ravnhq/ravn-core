@@ -14,7 +14,7 @@
       ".cursor-plugin/marketplace.json",
       "plugins/*/*/.claude-plugin/plugin.json",
       "plugins/agent/ravn-core/**",
-      "!plugins/agent/ravn-core/skills/bad-test-terminator/assets",
+      "!plugins/agent/ravn-core/skills/test/assets",
       "!plugins/agent/ravn-core/opencode/promptify-gui.cjs",
 
       "plugins/mods/*/**",

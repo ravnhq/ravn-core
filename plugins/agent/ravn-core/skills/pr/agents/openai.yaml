@@ -1,3 +1,5 @@
 interface:
   display_name: "PR"
-  short_description: "Write a PR body that's fast to review"
+  short_description: "Draft or update a PR body, or babysit a PR or stack to merge-ready"
+policy:
+  allow_implicit_invocation: false

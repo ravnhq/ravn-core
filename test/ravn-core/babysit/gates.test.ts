@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { discoverGates } from "../../../plugins/agent/ravn-core/skills/babysit/scripts/gates.ts";
-import type { Run } from "../../../plugins/agent/ravn-core/skills/babysit/scripts/watch-pr.ts";
+import { discoverGates } from "../../../plugins/agent/ravn-core/skills/pr/scripts/gates.ts";
+import type { Run } from "../../../plugins/agent/ravn-core/skills/pr/scripts/watch-pr.ts";
 
 function fakeGh(
   rules: object[][],

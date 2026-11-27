@@ -2,7 +2,7 @@
 
 Ravn's agent plugins, open source under the MIT license.
 
-- **`ravn-core`** packages the engineering workflows Ravn uses with coding agents: an idea-to-PR flow (`ship`), code archaeology (`how`, `why`), verification, design vocabulary, and handoffs. It runs in Claude Code, Codex, Cursor, and Pi.
+- **`ravn-core`** packages the engineering workflows Ravn uses with coding agents: an idea-to-PR flow (`ship`), codebase Q&A (`codebase-qa`), verification, design, debugging, review, and handoffs. It runs in Claude Code, Codex, Cursor, and Pi.
 - **[`explain-change`](plugins/mods/explain-change/README.md)** is a Claude Code mod that shows the `ravn-core` skill's change lessons in a pane, with diagrams and an interactive quiz.
 - **`skill-nudge`** is a Claude Code mod. A background Haiku watches the session and suggests one of your installed skills above the prompt when it fits.
 - **`secret-entry`** is a Claude Code mod. When Claude needs a secret in a file, the write holds and you paste the value into a masked prompt; it never enters the chat.
@@ -53,7 +53,7 @@ The repo-root `package.json` points Pi at the `ravn-core` skills. From a checkou
 opencode plugin add 'github:ravnhq/ravn-core#main::path:plugins/agent/ravn-core'
 ```
 
-Start an OpenCode session in your project. Type `/bad-test-terminator`, select the command, and add what you want it to do. You can also attach a skill to a prompt with `@bad-test-terminator`. OpenCode is not in the skill eval matrix yet.
+Start an OpenCode session in your project. Type `/test`, select the command, and add what you want it to do. You can also attach a skill to a prompt with `@test`. OpenCode is not in the skill eval matrix yet.
 
 Run `opencode plugin update` to pick up changes.
 
@@ -67,7 +67,7 @@ Run `opencode plugin update` to pick up changes.
 | Pi | `/skill:ask-ravn` | `/skill:ship` |
 | OpenCode v2 (preview) | `/ask-ravn` | `/ship` |
 
-Read-only and advisory skills, such as `why`, `how`, `review-and-simplify`, and most principles, start on their own when a request fits them. Skills that push, open or merge PRs, or write a new skill into your project, such as `ship`, `bug-fix`, and `babysit`, set `disable-model-invocation: true` and run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
+Read-only and advisory skills, such as `codebase-qa`, `research`, `design`, `debug`, `test`, `review`, `verify`, and `handoff`, start on their own when a request fits them. Skills that orchestrate multi-step delivery or write new project skills, such as `ship`, `pr`, `plan`, `agent-ops`, `verification-skill`, `formal-verification-skill`, and `promptify`, set `disable-model-invocation: true` and run only when you invoke them. Each skill's frontmatter controls whether the agent can start it on its own.
 
 Evals prove `ravn-core` in Claude Code, Codex, and Pi. Cursor installs the same package but isn't in the eval matrix yet.
 

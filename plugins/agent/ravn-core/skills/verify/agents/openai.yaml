@@ -1,0 +1,3 @@
+interface:
+  display_name: "Verify"
+  short_description: "Prove changes on real artifacts and vet measured numbers"

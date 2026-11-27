@@ -20,7 +20,7 @@
   ],
   "exclude": [
     "node_modules",
-    "plugins/agent/ravn-core/skills/bad-test-terminator/assets/config",
-    "plugins/agent/ravn-core/skills/bad-test-terminator/assets/fixtures"
+    "plugins/agent/ravn-core/skills/test/assets/config",
+    "plugins/agent/ravn-core/skills/test/assets/fixtures"
   ]
 }

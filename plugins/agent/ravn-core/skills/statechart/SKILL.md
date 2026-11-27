@@ -3,9 +3,10 @@ name: statechart
 description: >-
   Model-check a TLA+ spec of a system that moves between states, such as a
   product flow, a protocol, or a service, and draw it as a Mermaid statechart
-  with the shortest path to each state that breaks a rule. Use to read a TLC
+  with the shortest path to each state that breaks a rule. Invoke to read a TLC
   result, to show a bug as a path through states, or for "draw this state
-  machine".
+  machine". To create or resync a repo's long-lived formal-verification guide,
+  use formal-verification-skill.
 license: See LICENSE.txt
 ---
 

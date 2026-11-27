@@ -1,6 +1,6 @@
 ---
 name: review-specialist
-description: One read-only specialist in a review-and-simplify run. Reviews a change for the single specialty its brief names and replies with only a findings JSON. Spawned by review-and-simplify; give it the brief that skill writes.
+description: One read-only specialist in a review run. Reviews a change for the single specialty its brief names and replies with only a findings JSON. Spawned by review; give it the brief that skill writes.
 tools: Read, Grep, Glob
 ---
 

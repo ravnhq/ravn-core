@@ -19,8 +19,8 @@ function reply(skill: string) {
   });
 }
 
-async function nudgeWith($: Engine, settle: () => Promise<void>) {
-  for (let index = 0; index < 2; index += 1) await $.turn.complete(turn());
+async function nudgeWith($: Engine, settle: () => Promise<void>, turns = 1) {
+  for (let index = 0; index < turns; index += 1) await $.turn.complete(turn());
   await settle();
   await $.ui.render(band);
 }
@@ -34,19 +34,19 @@ test("stats counts each tip's fate: used, typed, dismissed, ignored", async ($, 
   await $.session.start(sessionStart);
 
   setReply(reply("ravn-core:research"));
-  await nudgeWith($, () => judged(1));
+  await nudgeWith($, () => judged(1), 1);
   await $.ui.press({ plugin: "skill-nudge", key: "use" });
 
   setReply(reply("ravn-core:grilling"));
-  await nudgeWith($, () => judged(2));
+  await nudgeWith($, () => judged(2), 2);
   await $.ui.press({ plugin: "skill-nudge", key: "dismiss" });
 
   setReply(reply("deploy"));
-  await nudgeWith($, () => judged(3));
+  await nudgeWith($, () => judged(3), 2);
   await $.prompt.submit(submit("/deploy staging"));
 
   // Every test skill has now been offered, so no further judgment runs.
-  await nudgeWith($, () => clock.settle());
+  await nudgeWith($, () => clock.settle(), 2);
 
   const result = await $.command.run(stats);
   const text = "text" in result ? String(result.text) : "";
@@ -117,7 +117,7 @@ test("stats separates deliberate silence, invalid, ungrounded, truncated and lat
   setReply(reply("ravn-core:research"));
   const release = holdModel();
 
-  for (let index = 0; index < 2; index += 1) await $.turn.complete(turn());
+  await $.turn.complete(turn());
   await clock.settle();
   await $.prompt.submit(submit("already moved on"));
   release();
