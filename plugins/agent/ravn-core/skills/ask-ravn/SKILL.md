@@ -11,7 +11,12 @@ metadata:
 
 Route only to ravn-core's own skills linked in this map. For another marketplace plugin, say it is outside this map and keep the advice within ravn-core.
 
-Use these invocation forms, replacing `<skill>` with the recommended skill's frontmatter `name`:
+## Rules
+
+- **Map only, never run**: end the turn with the recommendation; do not start any recommended skill (including model-invocable ones).
+- **Stay inside `ravn-core`**: for another marketplace plugin, say it is outside this map and give no route or invocation form for it.
+- **Read before explaining**: read a skill's linked `SKILL.md` before explaining its details or suggesting a step can be skipped.
+- **Classify invocation per skill**: check each recommended skill's frontmatter individually. `disable-model-invocation: true` means the user must invoke it; absent or `false` means the model can invoke it automatically when the request matches. Tell the user which applies and give the invocation form for user-invoked skills:
 
 | Harness | Skill invocation | This router |
 |---|---|---|

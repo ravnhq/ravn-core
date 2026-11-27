@@ -2,38 +2,48 @@ Reference for writing any document an agent consumes: a skill, an `AGENTS.md` / 
 
 For a skill, read [`SKILL-MECHANICS.md`](../SKILL-MECHANICS.md) for frontmatter, invocation choice, and router skills.
 
-## Context pointers
+## 1. Decide where information lives
 
-A **context pointer** is a reference held in the agent's context that names out-of-context material and encodes the condition for reaching it. A skill's description is one; a line in `AGENTS.md` naming a doc is the same object. The pointer's _wording_, not its target, decides when and how reliably the agent reaches the material. A must-have target behind a weakly worded pointer is a variance bug: sharpen the wording first, and inline the material only if sharpening fails.
+Every line in an always-loaded document (`AGENTS.md`, a skill `description`) pays context cost on every turn, whether or not it applies.
 
-A pointer states what the material is and lists the **branches** that should trigger reaching it (a branch is a distinct case the document handles, so different runs take different paths through it). An always-loaded pointer pays on every turn, so it earns harder pruning than the body:
+- **Always-loaded**: include only what nearly every task needs, plus pointers to conditional material.
+- **Behind a pointer (progressive disclosure)**: move branch-specific rules, workflows, and bulky reference into separate files loaded only when relevant.
+- **Leave in the repo**: do not restate what the agent can read from `package.json`, config files, directory layout, or `--help` unless lookup is expensive. Document what the repo cannot confess: unwritten conventions, rationale behind choices, and non-obvious gotchas.
 
-- **Front-load the leading word.**
-- **One trigger per branch.** Synonyms that rename a branch are one branch written twice; keep only genuinely distinct branches.
-- **Cut identity the body already carries.**
+## 2. Write sharp pointers
 
-## The two loads
+A **pointer** is a short line in context that names an out-of-context file and the exact condition for reading it (a skill's `description`, or a link in `AGENTS.md`).
 
-Every document and pointer you add spends one of two budgets:
+- **Lead with the sharpest word**: front-load the distinguishing concept.
+- **One trigger per distinct branch**: list only genuinely distinct cases; cut synonyms that rename the same branch.
+- **Cut redundancy**: omit details the target file already states.
+- **Fix misses by sharpening first**: if an agent fails to follow a pointer to required material, tighten the trigger wording before inlining the content.
 
-- **Context load**: always-loaded material (an `AGENTS.md` line, a skill description) spends tokens and attention every turn, whether or not it fires.
-- **Cognitive load**: the cost on the human of knowing which documents exist and when to reach for each. The human is the index. Spend it where human judgement matters, remove it where it does not.
+## 3. Structure for execution
 
-Material reached only through a pointer pays the pointer's own line; material with no pointer rides entirely on cognitive load.
+- **Co-locate**: keep a concept's definition, rules, and caveats under one heading. Do not scatter one rule across sections or duplicate it in two places.
+- **Keep steps clean**: in a procedural document, push bulky reference behind a pointer so it does not bury the steps.
+- **Prescribe order only when it matters**: enforce a sequence only when order protects correctness or user authority.
+- **Offload deterministic checks to scripts**: use a script for mechanical verification and leave judgment calls to the agent.
 
-## Information hierarchy
+## 4. Set clear, demanding completion criteria
 
-A document is built from **steps** (the ordered actions the agent performs) and **reference** (definitions, rules, facts consulted on demand), in any mix: all steps (a recipe), all reference (a review's rules, this skill), or both. The core decision is where each piece sits on the **information hierarchy**, ranked by how immediately the agent needs it:
+Every step or phase needs an explicit condition for "done."
 
-1. **In-file step**: what the agent does, in order.
-2. **In-file reference**: consulted on demand. Often a legitimately flat peer-set (every rule of a review on one rung).
-3. **Disclosed reference**: a separate file reached by a context pointer, loaded only when the pointer fires. It spans a sibling file through fully external reference that any document can point at.
+- **Make it checkable**: vague bounds ("understanding reached") invite premature completion. State an observable artifact or check.
+- **Make it demanding**: "every modified model accounted for" forces thorough legwork; "produce a change list" does not. In all-reference docs, state the exhaustiveness bar ("apply every rule").
+- **Gate phase boundaries**: name the input, the artifact passed forward, the check that opens the next phase, and what change invalidates that check.
+- **Prevent rushing**: if visible later steps tempt the agent to rush an earlier step, sharpen the completion criterion first. Split across a real context boundary (handoff or subagent) only when the criterion is irreducibly fuzzy and rushing persists.
 
-Push too little down and the top bloats; push too much and you hide material the agent needs.
+## 5. Phrase for reliability
 
-**Progressive disclosure** is the move down the ladder, behind a pointer, so the top stays legible. It protects the hierarchy; saving tokens is secondary. Branching is the cleanest test: inline what every branch needs, and push behind a pointer what only some branches reach. In a document with steps, in-file reference that should be disclosed buries them and makes attending to them a coin-flip.
+- **Prompt the positive**: state the target behavior ("write one-line comments") rather than negations ("don't write long comments"), which prime the forbidden behavior. Use prohibitions only for hard guardrails that cannot be phrased positively, and pair them with the positive target.
+- **Prefer established, high-signal terms**: use a single standard term the model already understands instead of a multi-sentence restatement or a coined term.
+  - "fast, deterministic, low-overhead" → *tight* loop
+  - "a test you trust to catch the bug" → a *red* test
+- **Replace weak exhortations**: generic modifiers ("be thorough", "be careful") rarely change default behavior. Replace them with concrete criteria or a stronger, specific term.
 
-**Co-location** is the within-file companion: keep a concept's definition, rules, and caveats under one heading, so reading one part brings its neighbours. The document should read like documentation written for the agent. (Duplication repeats one meaning in two places; scattering fragments one meaning across many.)
+## 6. Prune ruthlessly
 
 **Sprawl** is a document simply too long, even when every line is live and unique: attention thins across the excess. The cure is the ladder: disclose reference behind pointers, and split by branch or sequence so each path carries only what it needs.
 
